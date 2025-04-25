@@ -96,7 +96,8 @@ async def get_scenario(
     - Admins/Superadmins: can access all scenarios
     - Regular users: can only access scenarios from modules in assigned courses
     """
-    scenario = await db.scenarios.find_one({"_id": scenario_id})
+    scenario = await db.scenarios.find_one({"_id": str(scenario_id)})
+    print(scenario)
     if not scenario:
         return None
     
@@ -194,7 +195,7 @@ async def get_full_scenario(
     if "try_mode" in scenario_dict and scenario_dict["try_mode"]:
         if "avatar_interaction" in scenario_dict["try_mode"]:
             avatar_id = scenario_dict["try_mode"]["avatar_interaction"]
-            avatar_interaction = await db.avatar_interactions.find_one({"_id": avatar_id})
+            avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_id)})
             if avatar_interaction:
                 scenario_dict["try_mode"]["avatar_interaction"] = avatar_interaction
         
@@ -204,7 +205,7 @@ async def get_full_scenario(
     if "assess_mode" in scenario_dict and scenario_dict["assess_mode"]:
         if "avatar_interaction" in scenario_dict["assess_mode"]:
             avatar_id = scenario_dict["assess_mode"]["avatar_interaction"]
-            avatar_interaction = await db.avatar_interactions.find_one({"_id": avatar_id})
+            avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_id)})
             if avatar_interaction:
                 scenario_dict["assess_mode"]["avatar_interaction"] = avatar_interaction
     
@@ -684,6 +685,7 @@ async def get_full_scenario_endpoint(
     Get a scenario with all references expanded
     """
     scenario = await get_full_scenario(db, scenario_id, current_user)
+    print(scenario)
     if not scenario:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail="Scenario not found or access denied")

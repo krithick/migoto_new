@@ -550,7 +550,7 @@ class ModuleWithScenariosResponse(ModuleBase):
 
 
 class CourseWithModulesResponse(CourseBase):
-    id: UUID = Field(..., alias="_id") # Changed from str to UUID
+    id: UUID  # Changed from str to UUID
     modules: List[ModuleResponse]
     created_by: UUID  # Changed from str to UUID
     created_at: datetime

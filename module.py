@@ -162,6 +162,7 @@ async def get_module_with_scenarios(
     for scenario_id in scenario_ids_str:
         scenario = await db.scenarios.find_one({"_id": scenario_id})
         if scenario:
+            scenario["id"]=scenario.pop("_id")
             scenarios.append(scenario)
     
     # Replace scenario IDs with scenario data

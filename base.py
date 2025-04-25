@@ -109,9 +109,7 @@ class BaseLLMBot(ABC):
         """
         try:
             # Configure the generative model with system instruction
-            return AsyncAzureOpenAI(api_key = os.getenv("api_key"),
-endpoint = os.getenv("endpoint"),
-api_version =  os.getenv("api_version")
+            return AsyncAzureOpenAI(api_key = api_key,azure_endpoint = endpoint,api_version =  api_version
 # Your Azure OpenAI resource's endpoint value.
 )
         except Exception as e:
@@ -400,9 +398,7 @@ class BaseAnalyserBot(ABC):
         """
         try:
             # Configure the generative model with system instruction
-            return AsyncAzureOpenAI(api_key = os.getenv("api_key"),
-endpoint = os.getenv("endpoint"),
-api_version =  os.getenv("api_version")
+            return AsyncAzureOpenAI(api_key = api_key,azure_endpoint = endpoint,api_version =  api_version
 # Your Azure OpenAI resource's endpoint value.
 )
         except Exception as e:
