@@ -37,6 +37,7 @@ class UserBase(BaseModel):
     first_name: str
     last_name: str
     is_active: bool = True
+    thumbnail_url:str
 
 
 class UserCreate(UserBase):

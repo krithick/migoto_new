@@ -3,16 +3,17 @@ from typing import List, Optional, Dict, Any, Union
 from uuid import UUID
 from datetime import datetime
 
-from models_new import (
+
+from models.scenario_models import (
     ScenarioCreate, ScenarioResponse, ScenarioDB,
     LearnModeCreate, TryModeCreate, AssessModeCreate,
-     UserRole
+     
 )
-from user_models import UserDB
+from models.user_models import UserDB ,UserRole
 
 # from main import get_db
-from user import get_current_user, get_admin_user, get_superadmin_user
-from module import get_module  # Import from module CRUD to check permissions
+from core.user import get_current_user, get_admin_user, get_superadmin_user
+from core.module import get_module  # Import from module CRUD to check permissions
 
 # Create router
 router = APIRouter(tags=["Scenarios"])

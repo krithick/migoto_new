@@ -3,15 +3,12 @@ from typing import List, Optional, Dict, Any, Union
 from uuid import UUID
 from datetime import datetime
 
-from models_new import (
-    ModuleCreate, ModuleResponse, ModuleWithScenariosResponse, ModuleDB,
-    ModuleBase, ScenarioResponse, UserRole
-)
-from user_models import UserDB
 
+from models.user_models import UserDB , UserRole
+from models.modules_models import ModuleCreate, ModuleResponse, ModuleWithScenariosResponse, ModuleDB, ModuleBase, ScenarioResponse
 # from main import get_db
-from user import get_current_user, get_admin_user, get_superadmin_user
-from course import get_course  # Import from course CRUD to check permissions
+from core.user import get_current_user, get_admin_user, get_superadmin_user
+from core.course import get_course  # Import from course CRUD to check permissions
 
 # Create router
 router = APIRouter(tags=["Modules"])

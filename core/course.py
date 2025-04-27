@@ -3,13 +3,12 @@ from typing import List, Optional, Dict, Any, Union
 from uuid import UUID
 from datetime import datetime
 
-from models_new import (
-    CourseCreate, CourseResponse, CourseWithModulesResponse, CourseDB,
-    CourseBase, ModuleResponse, UserRole
-)
-from user_models import UserDB
 
-from user import get_current_user, get_admin_user, get_superadmin_user
+from models.course_models import   CourseCreate, CourseResponse, CourseWithModulesResponse, CourseDB,CourseBase
+from models.modules_models import ModuleResponse
+from models.user_models import UserDB ,UserRole
+
+from core.user import get_current_user, get_admin_user, get_superadmin_user
 
 # Create router
 router = APIRouter(prefix="/courses", tags=["Courses"])

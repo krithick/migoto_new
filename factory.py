@@ -19,7 +19,7 @@ import re
 import os
 from dotenv import load_dotenv
 from base import BaseLLMBot ,BaseAnalyserBot
-from models import BotConfig,BotConfigAnalyser,ChatReport,ChatRequest,ChatResponse,ChatSession,Message 
+from models_old import BotConfig,BotConfigAnalyser,ChatReport,ChatRequest,ChatResponse,ChatSession,Message 
 
 class DynamicBotFactory:
     """

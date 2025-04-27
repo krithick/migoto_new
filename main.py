@@ -15,18 +15,19 @@ import re
 load_dotenv(".env")
 
 # Set up OpenAI client
-from user import router as user_router
-from avatar import router as avatar_router
-from avatar_interaction import router as avatar_interaction_router
-from botvoice import router as botvoice_router
-from course import router as course_router
-from document import router as document_router
-from environment import router as environment_router
-from language import router as language_router
-from module import router as module_router
-from scenario import router as scenario_router
-from persona import router as persona_router
-from video import router as video_router
+from core.user import router as user_router
+from core.avatar import router as avatar_router
+from core.avatar_interaction import router as avatar_interaction_router
+from core.botvoice import router as botvoice_router
+from core.course import router as course_router
+from core.document import router as document_router
+from core.environment import router as environment_router
+from core.language import router as language_router
+from core.module import router as module_router
+from core.scenario import router as scenario_router
+from core.persona import router as persona_router
+from core.video import router as video_router
+# from core.structure import router as new_router
 app = FastAPI(title="Role-Play Scenario Generator API",debug=True)
 app.include_router(user_router)
 app.include_router(avatar_router)
@@ -40,6 +41,7 @@ app.include_router(module_router)
 app.include_router(scenario_router)
 app.include_router(persona_router)
 app.include_router(video_router)
+# app.include_router(new_router)
 
 api_key = os.getenv("api_key")
 endpoint = os.getenv("endpoint")
@@ -643,7 +645,7 @@ async def get_scenario_examples():
 ##################
 #####CHAT
 ######
-from models import BotConfig,BotConfigAnalyser,ChatReport,ChatRequest,ChatResponse,ChatSession,Message ,ChatReport_,Evaluation
+from models_old import BotConfig,BotConfigAnalyser,ChatReport,ChatRequest,ChatResponse,ChatSession,Message ,ChatReport_,Evaluation
 from factory import DynamicBotFactory
 from pydantic import BaseModel
 from uuid import uuid4

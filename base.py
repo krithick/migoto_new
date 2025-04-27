@@ -15,7 +15,7 @@ import json
 
 from dotenv import load_dotenv
 
-from models import BotConfig,BotConfigAnalyser,ChatReport,ChatRequest,ChatResponse,ChatSession,Message 
+from models_old import BotConfig,BotConfigAnalyser,ChatReport,ChatRequest,ChatResponse,ChatSession,Message 
 from typing import Optional, List
 from fastapi import HTTPException, UploadFile
 from pydantic import BaseModel, Field

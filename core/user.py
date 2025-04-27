@@ -8,7 +8,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 
-from user_models import (
+from models.user_models import (
     UserResponse, UserCreate, UserUpdate, UserWithCoursesResponse, UserDB,
     AdminUserResponse, AdminUserCreate, AdminUserDB,
     Token, UserRole, LoginRequest, UserAssignmentUpdate, CourseAssignmentUpdate,
