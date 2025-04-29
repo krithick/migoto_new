@@ -45,6 +45,7 @@ class MongoDB:
         self.documents = self.db.documents
         self.avatar_interactions = self.db.avatar_interactions
         self.users = self.db.users
+        self.user_course_assignments = self.db.user_course_assignments
     async def create_session(self, session: ChatSession) -> str:
         await self.sessions.insert_one(session.dict())
         return session.session_id

@@ -7,7 +7,7 @@ import os
 from motor.motor_asyncio import AsyncIOMotorClient
 from jose import jwt, JWTError
 from passlib.context import CryptContext
-
+from uuid import uuid4
 from models.user_models import (
     UserResponse, UserCreate, UserUpdate, UserWithCoursesResponse, UserDB,
     AdminUserResponse, AdminUserCreate, AdminUserDB,
@@ -15,6 +15,14 @@ from models.user_models import (
     PasswordChangeRequest, PasswordResetRequest, PasswordResetConfirm,
     TokenData
 )
+from models.course_assignment_models import CompletionUpdate
+from core.course_assignment import (
+    update_course_assignment, 
+    get_user_courses_with_assignments,
+    CourseAssignmentUpdate
+)
+from models.course_models import CourseWithAssignmentResponse
+from core.course_assignment import create_course_assignment, delete_course_assignment
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -326,58 +334,7 @@ async def create_admin_user(db: Any, admin: AdminUserCreate, created_by: UUID) -
     return AdminUserDB(**created_admin)
 
 
-# async def update_user(db: Any, user_id: UUID, update_data: UserUpdate, updated_by: UUID) -> Optional[UserDB]:
-#     """Update a user"""
-#     # Get the user to update
-#     user = await get_user_by_id(db, user_id)
-#     if not user:
-#         return None
-    
-#     # Get the user making the update
-#     updater = await get_user_by_id(db, updated_by)
-#     if not updater:
-#         raise HTTPException(
-#             status_code=status.HTTP_403_FORBIDDEN,
-#             detail="Unauthorized update attempt"
-#         )
-    
-#     # Check authorization
-#     if updater.role == UserRole.USER and updater.id != user.id:
-#         # Regular users can only update themselves
-#         raise HTTPException(
-#             status_code=status.HTTP_403_FORBIDDEN,
-#             detail="Users can only update their own information"
-#         )
-#     elif updater.role == UserRole.ADMIN:
-#         # Admins can update users they manage and themselves
-#         admin = await db.users.find_one({"_id": updated_by, "managed_users": user_id})
-#         if not admin and updater.id != user.id:
-#             raise HTTPException(
-#                 status_code=status.HTTP_403_FORBIDDEN,
-#                 detail="Admin can only update managed users or themselves"
-#             )
-        
-#         # Admins can't change roles to superadmin
-#         if update_data.role == UserRole.SUPERADMIN:
-#             raise HTTPException(
-#                 status_code=status.HTTP_403_FORBIDDEN,
-#                 detail="Admins cannot promote users to superadmin"
-#             )
-    
-#     # Prepare update data
-#     update_dict = {k: v for k, v in update_data.dict().items() if v is not None}
-#     update_dict["updated_at"] = datetime.now()
-    
-#     # Update in database
-#     await db.users.update_one(
-#         {"_id": user_id},
-#         {"$set": update_dict}
-#     )
-    
-#     updated_user = await db.users.find_one({"_id": user_id})
-#     if updated_user:
-#         return UserDB(**updated_user)
-#     return None
+
 
 # Fix for update_user
 async def update_user(db: Any, user_id: UUID, update_data: UserUpdate, updated_by: UUID) -> Optional[UserDB]:
@@ -437,54 +394,6 @@ async def update_user(db: Any, user_id: UUID, update_data: UserUpdate, updated_b
     return None
 
 
-# async def delete_user(db: Any, user_id: UUID, deleted_by: UUID) -> bool:
-#     """Delete a user"""
-#     # Get the user to delete
-#     user = await get_user_by_id(db, user_id)
-#     if not user:
-#         return False
-    
-#     # Get the user making the deletion
-#     deleter = await get_user_by_id(db, deleted_by)
-#     if not deleter:
-#         raise HTTPException(
-#             status_code=status.HTTP_403_FORBIDDEN,
-#             detail="Unauthorized deletion attempt"
-#         )
-    
-#     # Check authorization
-#     if deleter.role == UserRole.USER and deleter.id != user.id:
-#         # Regular users can only delete themselves
-#         raise HTTPException(
-#             status_code=status.HTTP_403_FORBIDDEN,
-#             detail="Users can only delete themselves"
-#         )
-#     elif deleter.role == UserRole.ADMIN:
-#         # Admins can delete users they manage but not other admins or superadmins
-#         if user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
-#             raise HTTPException(
-#                 status_code=status.HTTP_403_FORBIDDEN,
-#                 detail="Admins cannot delete other admins or superadmins"
-#             )
-        
-#         admin = await db.users.find_one({"_id": deleted_by, "managed_users": user_id})
-#         if not admin and deleter.id != user.id:
-#             raise HTTPException(
-#                 status_code=status.HTTP_403_FORBIDDEN,
-#                 detail="Admin can only delete managed users or themselves"
-#             )
-    
-#     # Delete from database
-#     result = await db.users.delete_one({"_id": user_id})
-    
-#     # Remove user from any admin's managed_users
-#     if result.deleted_count > 0:
-#         await db.users.update_many(
-#             {"managed_users": user_id},
-#             {"$pull": {"managed_users": user_id}}
-#         )
-    
-#     return result.deleted_count > 0
 
 # Fix for delete_user
 async def delete_user(db: Any, user_id: UUID, deleted_by: UUID) -> bool:
@@ -578,6 +487,9 @@ async def assign_users_to_admin(db: Any, admin_id: UUID, user_ids: List[UUID], o
     
     return True
 
+
+
+# Fix for assign_courses_to_user
 # async def assign_courses_to_user(db: Any, user_id: UUID, course_ids: List[UUID], operation: str) -> bool:
 #     """Assign or remove courses from a user"""
 #     # Check if user exists
@@ -588,8 +500,11 @@ async def assign_users_to_admin(db: Any, admin_id: UUID, user_ids: List[UUID], o
 #             detail="Specified user does not exist"
 #         )
     
+#     # Convert UUIDs to strings for MongoDB
+#     course_ids_str = [str(course_id) for course_id in course_ids]
+    
 #     # Validate that all course_ids exist
-#     for course_id in course_ids:
+#     for course_id in course_ids_str:
 #         course = await db.courses.find_one({"_id": course_id})
 #         if not course:
 #             raise HTTPException(
@@ -599,21 +514,90 @@ async def assign_users_to_admin(db: Any, admin_id: UUID, user_ids: List[UUID], o
     
 #     # Perform the operation
 #     if operation == "add":
+#         assignment_time = datetime.now()
+#         # Create assignment records with timestamps
+#         assignments = []
 #         # Add courses to user's assigned_courses
 #         await db.users.update_one(
-#             {"_id": user_id},
-#             {"$addToSet": {"assigned_courses": {"$each": course_ids}}}
+#             {"_id": str(user_id)},
+#             {"$addToSet": {"assigned_courses": {"$each": course_ids_str}}}
 #         )
 #     elif operation == "remove":
 #         # Remove courses from user's assigned_courses
 #         await db.users.update_one(
-#             {"_id": user_id},
-#             {"$pull": {"assigned_courses": {"$in": course_ids}}}
+#             {"_id": str(user_id)},
+#             {"$pull": {"assigned_courses": {"$in": course_ids_str}}}
 #         )
     
 #     return True
+# asdxa
 
-# Fix for assign_courses_to_user
+# async def assign_courses_to_user(db: Any, user_id: UUID, course_ids: List[UUID], operation: str) -> bool:
+    """Assign or remove courses from a user"""
+    # Check if user exists
+    user = await get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Specified user does not exist"
+        )
+    
+    # Convert UUIDs to strings for MongoDB
+    course_ids_str = [str(course_id) for course_id in course_ids]
+    
+    # Validate that all course_ids exist
+    for course_id in course_ids_str:
+        course = await db.courses.find_one({"_id": course_id})
+        if not course:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Course with ID {course_id} does not exist"
+            )
+    
+    # Perform the operation
+    if operation == "add":
+        # Add courses to user's assigned_courses (existing functionality)
+        await db.users.update_one(
+            {"_id": str(user_id)},
+            {"$addToSet": {"assigned_courses": {"$each": course_ids_str}}}
+        )
+        
+        # Record assignment dates in junction collection
+        assignment_time = datetime.now()
+        for course_id in course_ids_str:
+            # Check if assignment already exists
+            existing = await db.user_course_assignments.find_one({
+                "user_id": str(user_id),
+                "course_id": course_id
+            })
+            
+            if not existing:
+                # Create new assignment record
+                assignment = {
+                    "_id": str(uuid4()),
+                    "user_id": str(user_id),
+                    "course_id": course_id,
+                    "assigned_date": assignment_time,
+                    "completed": False,
+                    "completed_date": None
+                }
+                await db.user_course_assignments.insert_one(assignment)
+                
+    elif operation == "remove":
+        # Remove courses from user's assigned_courses (existing functionality)
+        await db.users.update_one(
+            {"_id": str(user_id)},
+            {"$pull": {"assigned_courses": {"$in": course_ids_str}}}
+        )
+        
+        # Remove assignment records
+        await db.user_course_assignments.delete_many({
+            "user_id": str(user_id),
+            "course_id": {"$in": course_ids_str}
+        })
+    
+    return True
+
 async def assign_courses_to_user(db: Any, user_id: UUID, course_ids: List[UUID], operation: str) -> bool:
     """Assign or remove courses from a user"""
     # Check if user exists
@@ -638,21 +622,30 @@ async def assign_courses_to_user(db: Any, user_id: UUID, course_ids: List[UUID],
     
     # Perform the operation
     if operation == "add":
-        # Add courses to user's assigned_courses
+        # Add courses to user's assigned_courses (existing functionality)
         await db.users.update_one(
             {"_id": str(user_id)},
             {"$addToSet": {"assigned_courses": {"$each": course_ids_str}}}
         )
+        
+        # Create course assignments for each course
+        for course_id in course_ids:
+            await create_course_assignment(db, user_id, course_id)
+            
     elif operation == "remove":
-        # Remove courses from user's assigned_courses
+        # Remove courses from user's assigned_courses (existing functionality)
         await db.users.update_one(
             {"_id": str(user_id)},
             {"$pull": {"assigned_courses": {"$in": course_ids_str}}}
         )
+        
+        # Delete course assignments
+        for course_id in course_ids:
+            await delete_course_assignment(db, user_id, course_id)
     
     return True
-
-
+# adsdsa
+# 
 # async def get_users_by_admin(db: Any, admin_id: UUID) -> List[UserDB]:
 #     """Get all users managed by a specific admin"""
 #     admin = await get_user_by_id(db, admin_id)
@@ -706,27 +699,134 @@ async def get_admins_by_superadmin(db: Any, skip: int = 0, limit: int = 100) -> 
         admins.append(AdminUserDB(**document))
     return admins
 
+# async def get_user_courses(db: Any, user_id: UUID) -> List[Dict[str, Any]]:
+#     """Get all courses assigned to a user"""
+#     user = await get_user_by_id(db, user_id)
+#     if not user:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="User not found"
+#         )
+    
+#     user_data = user.dict()
+#     # assigned_course_ids = user_data.get("assigned_courses", [])
+#     assigned_course_ids = [str(course_id) for course_id in user_data.get("assigned_courses", [])]
+#     # assigned_course_ids_str = [str(course_id) for course_id in assigned_course_ids]
+#     courses = []
+#     if assigned_course_ids:
+#         cursor = db.courses.find({"_id": {"$in": assigned_course_ids}})
+#         async for course in cursor:
+#             courses.append(course)
+    
+#     return courses
+# async def get_user_courses(db: Any, user_id: UUID) -> List[Dict[str, Any]]:
+#     """Get all courses assigned to a user with assignment dates"""
+#     user = await get_user_by_id(db, user_id)
+#     if not user:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="User not found"
+#         )
+    
+#     user_data = user.dict()
+#     assigned_course_ids = [str(course_id) for course_id in user_data.get("assigned_courses", [])]
+    
+#     # Get assignment dates first
+#     assignment_data = {}
+#     if assigned_course_ids:
+#         assignments_cursor = db.user_course_assignments.find({
+#             "user_id": str(user_id),
+#             "course_id": {"$in": assigned_course_ids}
+#         })
+        
+#         async for assignment in assignments_cursor:
+#             assignment_data[assignment["course_id"]] = {
+#                 "assigned_date": assignment["assigned_date"],
+#                 "completed": assignment.get("completed", False),
+#                 "completed_date": assignment.get("completed_date")
+#             }
+
+#     # Get course data
+#     courses = []
+#     if assigned_course_ids:
+#         courses_cursor = db.courses.find({"_id": {"$in": assigned_course_ids}})
+#         async for course in courses_cursor:
+#             # Convert _id to id for consistency
+#             course["id"] = course.pop("_id")
+            
+#             # Add assignment data
+#             course_id = course["id"]
+#             if course_id in assignment_data:
+#                 data = assignment_data[course_id]
+#                 course["assigned_date"] = data["assigned_date"]
+#                 course["completed"] = data["completed"]
+#                 course["completed_date"] = data["completed_date"]
+#             else:
+#                 # Fallback for courses without recorded assignment data
+#                 course["assigned_date"] = user_data.get("created_at", datetime.now())
+#                 course["completed"] = False
+#                 course["completed_date"] = None
+            
+#             courses.append(course)
+    
+#     return courses
+# """"""""latest
+# async def get_user_courses(db: Any, user_id: UUID) -> List[Dict[str, Any]]:
+#     """Get all courses assigned to a user with assignment and completion data"""
+#     user = await get_user_by_id(db, user_id)
+#     if not user:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="User not found"
+#         )
+    
+#     user_data = user.dict()
+#     assigned_course_ids = [str(course_id) for course_id in user_data.get("assigned_courses", [])]
+    
+#     # Get assignment data first
+#     assignments = {}
+#     if assigned_course_ids:
+#         cursor = db.user_course_assignments.find({
+#             "user_id": str(user_id),
+#             "course_id": {"$in": assigned_course_ids}
+#         })
+        
+#         async for assignment in cursor:
+#             course_id = assignment["course_id"]
+#             assignments[course_id] = {
+#                 "assigned_date": assignment["assigned_date"],
+#                 "completed": assignment.get("completed", False),
+#                 "completed_date": assignment.get("completed_date")
+#             }
+    
+#     # Get course data
+#     courses = []
+#     if assigned_course_ids:
+#         cursor = db.courses.find({"_id": {"$in": assigned_course_ids}})
+#         async for course in cursor:
+#             # Preserve the original course document structure
+#             course_id = course["_id"]
+            
+#             # Add assignment data
+#             if course_id in assignments:
+#                 data = assignments[course_id]
+#                 course["assigned_date"] = data["assigned_date"]
+#                 course["completed"] = data["completed"]
+#                 course["completed_date"] = data["completed_date"]
+#             else:
+#                 # Default values for courses without recorded assignment data
+#                 course["assigned_date"] = user_data.get("created_at", datetime.now())
+#                 course["completed"] = False
+#                 course["completed_date"] = None
+            
+#             courses.append(course)
+    
+#     return courses
+
 async def get_user_courses(db: Any, user_id: UUID) -> List[Dict[str, Any]]:
     """Get all courses assigned to a user"""
-    user = await get_user_by_id(db, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    
-    user_data = user.dict()
-    # assigned_course_ids = user_data.get("assigned_courses", [])
-    assigned_course_ids = [str(course_id) for course_id in user_data.get("assigned_courses", [])]
-    # assigned_course_ids_str = [str(course_id) for course_id in assigned_course_ids]
-    courses = []
-    if assigned_course_ids:
-        cursor = db.courses.find({"_id": {"$in": assigned_course_ids}})
-        async for course in cursor:
-            courses.append(course)
-    
-    return courses
-
+    # Replace with call to the new function
+    return await get_user_courses_with_assignments(db, user_id)
 async def change_password(db: Any, user_id: UUID, current_password: str, new_password: str) -> bool:
     """Change a user's password"""
     user = await get_user_by_id(db, user_id)
@@ -867,15 +967,59 @@ async def read_users_me(current_user: UserDB = Depends(get_current_user)):
     """
     return current_user
 
-@router.get("/users/me/courses", response_model=List[Dict[str, Any]])
+# @router.get("/users/me/courses", response_model=List[Dict[str, Any]])
+# async def read_users_me_courses(
+#     current_user: UserDB = Depends(get_current_user),
+#     db: Any = Depends(get_database)
+# ):
+#     """
+#     Get courses assigned to current user
+#     """
+#     return await get_user_courses(db, current_user.id)
+@router.get("/users/me/courses", response_model=List[CourseWithAssignmentResponse])
 async def read_users_me_courses(
-    current_user: UserDB = Depends(get_current_user),
-    db: Any = Depends(get_database)
+    db: Any = Depends(get_database),
+    current_user: UserDB = Depends(get_current_user)
 ):
     """
-    Get courses assigned to current user
+    Get courses assigned to current user with assignment data
     """
-    return await get_user_courses(db, current_user.id)
+    return await get_user_courses_with_assignments(db, current_user.id)
+
+@router.put("/users/me/courses/{course_id}/completion", response_model=Dict[str, bool])
+async def update_course_completion_status(
+    course_id: UUID,
+    completion_data: CompletionUpdate,
+    db: Any = Depends(get_database),
+    current_user: UserDB = Depends(get_current_user)
+):
+    """
+    Update completion status for one of the current user's assigned courses
+    """
+    # Validate course exists and is assigned to user
+    course = await db.courses.find_one({"_id": str(course_id)})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    user_data = current_user.dict()
+    assigned_courses = [str(c_id) for c_id in user_data.get("assigned_courses", [])]
+    
+    if str(course_id) not in assigned_courses:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Course is not assigned to current user"
+        )
+    
+    # Create update model
+    update_data = CourseAssignmentUpdate(
+        completed=completion_data.completed
+    )
+    
+    # Update the assignment
+    result = await update_course_assignment(db, current_user.id, course_id, update_data)
+    
+    return {"success": result is not None}
+
 
 @router.get("/users", response_model=List[UserResponse])
 async def read_users(
@@ -1039,4 +1183,4 @@ async def read_user_courses(
                 detail="Not authorized to view courses for this user"
             )
     
-    return await get_user_courses(db, user_id)
+    return await get_user_courses_with_assignments(db, user_id)

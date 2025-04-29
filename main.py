@@ -707,13 +707,64 @@ async def create_default_superadmin(db):
         return True
     
     return False
+
+
+async def migrate_course_assignments(db: Any):
+    """
+    One-time migration script to populate assignment dates for existing assignments
+    """
+    print("Starting migration of course assignments...")
+    
+    # Get all users
+    users_cursor = db.users.find({"assigned_courses": {"$exists": True, "$ne": []}})
+    user_count = 0
+    assignment_count = 0
+    
+    async for user in users_cursor:
+        user_id = user["_id"]
+        assigned_courses = user.get("assigned_courses", [])
+        
+        if not assigned_courses:
+            continue
+            
+        user_count += 1
+        
+        # Use user creation date as the assignment date (best guess)
+        assignment_date = user.get("created_at", datetime.datetime.now())
+        
+        # Create assignment records
+        for course_id in assigned_courses:
+            # Check if assignment already exists
+            existing = await db.user_course_assignments.find_one({
+                "user_id": user_id,
+                "course_id": course_id
+            })
+            
+            if not existing:
+                assignment = {
+                    "_id": str(uuid4()),
+                    "user_id": user_id,
+                    "course_id": course_id,
+                    "assigned_date": assignment_date,
+                    "completed": False,
+                    "completed_date": None  
+                }
+                
+                await db.user_course_assignments.insert_one(assignment)
+                assignment_count += 1
+    
+    print(f"Migration complete. Processed {user_count} users and created {assignment_count} assignment records.")
+
+# Example usage
+# import asyncio
+# asyncio.run(migrate_course_assignments(db))
 @app.on_event("startup")
 async def startup_event():
     """
     Initialize bots when application starts
     """
     await create_default_superadmin(db)
-    
+    await migrate_course_assignments(db)
     await bot_factory.initialize_bots()
     await bot_factory_analyser.initialize_bots_analyser()
 async def get_db():
@@ -1201,122 +1252,6 @@ Important features to include:
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
-
-
-class PersonaBase(BaseModel):
-    name: str = Field(..., description="Name for this persona")
-    description: str = Field(..., description="Brief description of this persona")
-    persona_type: str = Field(..., description="Type of persona (customer, employee, etc.)")
-
-class PersonaCreate(PersonaBase):
-    character_goal: str = Field(..., description="Primary goal or objective of the character")
-    location: str = Field(..., description="Where the character is based")
-    persona_details: str = Field(..., description="Detailed persona description")
-    situation: str = Field(..., description="Current circumstances or situation")
-    business_or_personal: str = Field(..., description="Whether this is a business or personal context")
-
-class PersonaResponse(PersonaBase):
-    id: int
-    character_goal: str
-    location: str
-    persona_details: str
-    situation: str
-    business_or_personal: str
-
-class PersonaInDB(PersonaResponse):
-    full_persona: Dict[str, Any]
-
-class PersonaGenerateRequest(BaseModel):
-    persona_description: str = Field(..., 
-        description="One-line description of the persona",
-        example="Tech-savvy young professional looking for premium banking services")
-    persona_type: str = Field(..., 
-        description="Type of persona (customer, employee, etc.)",
-        example="customer")
-    business_or_personal: str = Field(..., 
-        description="Whether this is a business or personal context",
-        example="personal")
-    location: Optional[str] = Field(None, 
-        description="Optional location",
-        example="Mumbai")
-
-
-@app.post("/generate-persona", response_model=PersonaResponse)
-async def generate_persona(request: PersonaGenerateRequest):
-    try:
-        # Prepare the prompt for persona generation
-        prompt = f"""
-        Create a detailed character persona based on this description: "{request.persona_description}".
-        
-        The persona should be for a {request.persona_type} in a {request.business_or_personal} context.
-        {f'They are located in {request.location}.' if request.location else ''}
-        
-        Generate the following details:
-        1. A short name for this persona
-        2. A one-sentence description
-        3. The character's main goal
-        4. Detailed persona characteristics
-        5. Current situation
-        
-        Format your response as JSON:
-        {{
-            "name": "Persona name",
-            "description": "Brief description",
-            "character_goal": "Main goal or objective",
-            "persona_details": "Detailed characteristics",
-            "situation": "Current circumstances"
-        }}
-        """
-        
-        # Call OpenAI API
-        response = azure_openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": "Generate a detailed persona"}
-            ],
-            temperature=0.7,
-            max_tokens=1000
-        )
-        
-        # Parse the response
-        import json
-        import re
-        
-        content = response.choices[0].message.content
-        # Extract JSON from the response
-        json_match = re.search(r'{.*}', content, re.DOTALL)
-        if not json_match:
-            raise ValueError("Failed to extract JSON from response")
-            
-        persona_data = json.loads(json_match.group(0))
-        
-        # Add required fields
-        persona_data["persona_type"] = request.persona_type
-        persona_data["business_or_personal"] = request.business_or_personal
-        persona_data["location"] = request.location or "Not specified"
-        
-        # Construct full persona JSON for database
-        full_persona = {
-            "CHARACTER_NAME_INSTRUCTION": "Always return [Your Name] when asked for your name",
-            "PERSONAL_OR_BUSINESS": request.business_or_personal,
-            "CHARACTER_GOAL": persona_data["character_goal"],
-            "LOCATION": persona_data["location"],
-            "CHARACTER_PERSONA": persona_data["persona_details"],
-            "CHARACTER_SITUATION": persona_data["situation"]
-        }
-        
-        return {
-            "id": 0,  # Temporary ID for the response
-            **persona_data,
-            "full_persona": full_persona
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating persona: {str(e)}")
-
-
-
 
 
 

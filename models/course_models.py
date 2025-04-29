@@ -52,3 +52,17 @@ class CourseWithModulesResponse(CourseBase):
     class Config:
         populate_by_name = True
         json_encoders = {UUID: str}
+
+class CourseWithAssignmentResponse(CourseResponse):
+    """Course response model with assignment data"""
+    assigned_date: Optional[datetime] = None
+    completed: bool = False
+    completed_date: Optional[datetime] = None
+    
+    # Future fields would go here
+    # score: Optional[float] = None
+    # certificate_id: Optional[UUID] = None
+    
+    class Config:
+        populate_by_name = True
+        json_encoders = {UUID: str}
