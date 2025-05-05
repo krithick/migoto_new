@@ -167,6 +167,7 @@ class DynamicChatHandler:
     - Name: {persona.name}
     - Type: {persona.persona_type}
     - Gender: {persona.gender}
+    - Age: {persona.age}
     - Goal: {persona.character_goal}
     - Location: {persona.location}
     - Description: {persona.description}
