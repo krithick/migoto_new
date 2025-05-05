@@ -151,7 +151,38 @@ class BaseLLMBot(ABC):
             context += f"Content: {doc.get('content', 'No content')}\n\n"
         
         return context
+    def apply_persona_to_system_prompt(system_prompt: str, persona: dict) -> str:
+        """
+        Apply persona details to the system prompt
     
+        :param system_prompt: Original system prompt with [PERSONA_PLACEHOLDER]
+        :param persona: Persona document from database
+        :return: Enhanced system prompt
+        """
+        if not persona:
+            return system_prompt
+    
+        # Format persona details as markdown
+        persona_markdown = f"""
+    - Name: {persona.get('name', '[Your Name]')}
+    - Type: {persona.get('persona_type', '')}
+    - Gender: {persona.get('gender', '')}
+    - Goal: {persona.get('character_goal', '')}
+    - Location: {persona.get('location', '')}
+    - Description: {persona.get('description', '')}
+    - Details: {persona.get('persona_details', '')}
+    - Current situation: {persona.get('situation', '')}
+    - Context: {persona.get('business_or_personal', '')}
+    """
+    
+        # Add background story if available
+        if persona.get('background_story'):
+            persona_markdown += f"- Background: {persona.get('background_story')}\n"
+
+    # Replace placeholder with persona details
+        enhanced_prompt = system_prompt.replace("[PERSONA_PLACEHOLDER]", persona_markdown)
+    
+        return enhanced_prompt    
     def format_conversation(self, conversation_history, context=""):
         """
         Format the conversation history into a list of `Content` objects.
@@ -180,15 +211,8 @@ class BaseLLMBot(ABC):
                             officer_question: str,
                             conversation_history: List[Message]) -> str:
         
-        # First, retrieve relevant documents from Azure AI Search
-        # documents = await self.retrieve_relevant_docs(officer_question)
-        # print("%c Line:181 🍻 documents", "color:#ed9ec7", documents)
-        
-        # # Format the retrieved documents into context
-        # context = self.format_retrieved_context(documents)
-        # print(context)
-        tts_request = speechsdk.SpeechSynthesisRequest(input_type = speechsdk.SpeechSynthesisRequestInputType.TextStream)
-        tts_task = self.speech_synthesizer.speak_async(tts_request)
+
+    
         # Format conversation with the retrieved context
         contents = self.format_conversation(conversation_history, "context")
         # contents = self.format_conversation(conversation_history, context)

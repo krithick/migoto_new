@@ -28,7 +28,6 @@ class ScenarioDB(ScenarioBase):
     created_by: UUID
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
-    
     # @model_validator(mode='after')
     # def check_at_least_one_mode(cls, values):
     #     if not any([values.get('learn_mode'), values.get('try_mode'), values.get('assess_mode')]):
@@ -53,6 +52,7 @@ class ScenarioResponse(BaseModel):
     learn_mode: LearnModeResponse
     try_mode: TryModeResponse
     assess_mode: AssessModeResponse
+    thumbnail_url: str
     created_by: UUID  # Changed from str to UUID
     created_at: datetime
     updated_at: datetime

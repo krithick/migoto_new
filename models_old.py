@@ -23,8 +23,9 @@ class ChatSession(BaseModel):
     extra: str
     session_id: str
     scenario_name: str
-    persona_id: Optional[str] = None  # Add persona tracking
-    persona_settings: Optional[Dict] = None  # Store persona-specific settings
+    avatar_interaction: str
+    avatar_id :str
+    language_id : str
     conversation_history: List[Message]
     usage: Optional[dict] = None
     created_at: datetime = datetime.now()

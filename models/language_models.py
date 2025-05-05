@@ -8,6 +8,7 @@ class LanguageBase(BaseModel):
     code: str
     name: str
     thumbnail_url:str
+    prompt: str
 
 
 class LanguageCreate(LanguageBase):
