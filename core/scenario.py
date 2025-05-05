@@ -14,6 +14,7 @@ from models.user_models import UserDB ,UserRole
 # from main import get_db
 from core.user import get_current_user, get_admin_user, get_superadmin_user
 from core.module import get_module  # Import from module CRUD to check permissions
+from core.scenario_assignment import get_scenario_assignment
 
 # Create router
 router = APIRouter(tags=["Scenarios"])
@@ -106,21 +107,24 @@ async def get_scenario(
     if current_user and current_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
         return ScenarioDB(**scenario)
     
-    # For regular users, check if scenario belongs to a module in an assigned course
-    if current_user:
-        # Find modules that contain this scenario - convert UUID to string for MongoDB
-        modules_with_scenario = await db.modules.find({"scenarios": str(scenario_id)}).to_list(None)
-        module_ids = [module["_id"] for module in modules_with_scenario]
+    # For regular users, check if scenario is assigned
+    if current_user and current_user.role == UserRole.USER:
+        # Check if scenario is assigned to user
+        assignment = await db.user_scenario_assignments.find_one({
+            "user_id": str(current_user.id),
+            "scenario_id": str(scenario_id)
+        })
         
-        # Find courses that contain these modules
-        if module_ids:
-            user_data = current_user.dict()
-            assigned_course_ids = user_data.get("assigned_courses", [])
+        if assignment:
+            scenario_obj = ScenarioDB(**scenario)
+            scenario_obj_dict = scenario_obj.model_dump()
             
-            for course_id in assigned_course_ids:
-                course = await db.courses.find_one({"_id": str(course_id)})
-                if course and any(module_id in course.get("modules", []) for module_id in module_ids):
-                    return ScenarioDB(**scenario)
+            # Add assignment data
+            scenario_obj_dict["assigned_modes"] = assignment.get("assigned_modes", [])
+            scenario_obj_dict["completed"] = assignment.get("completed", False)
+            scenario_obj_dict["completed_date"] = assignment.get("completed_date")
+            print(scenario_obj_dict)
+            return scenario_obj_dict
     
     return None
 
@@ -132,7 +136,7 @@ async def get_scenarios_by_module(
     """
     Get all scenarios belonging to a specific module, with permission checks
     """
-    # First check if user can access the module
+    # First check if user can access this module
     module = await get_module(db, module_id, current_user)
     if not module:
         return []
@@ -140,21 +144,171 @@ async def get_scenarios_by_module(
     scenarios = []
     scenario_ids = module.dict().get("scenarios", [])
     
-    for scenario_id in scenario_ids:
-        # Convert UUID to string for MongoDB
-        scenario = await db.scenarios.find_one({"_id": str(scenario_id)})
-        if scenario:
-            scenarios.append(ScenarioDB(**scenario))
-    print(scenarios)
+    # Convert scenario_ids to strings for MongoDB
+    scenario_ids_str = [str(scenario_id) for scenario_id in scenario_ids]
+    
+    # If user is regular user, filter scenarios by assignment
+    if current_user and current_user.role == UserRole.USER:
+        # Check if module is assigned to user
+        module_assigned = await db.user_module_assignments.find_one({
+            "user_id": str(current_user.id),
+            "module_id": str(module_id)
+        })
+        
+        if not module_assigned:
+            return []  # Not assigned to this module
+        
+        # Get assigned scenarios for this module
+        assignments_cursor = db.user_scenario_assignments.find({
+            "user_id": str(current_user.id),
+            "module_id": str(module_id)
+        })
+        
+        # Get assigned scenario IDs and data
+        assigned_scenario_ids = []
+        assigned_scenario_data = {}
+        
+        async for assignment in assignments_cursor:
+            scenario_id = assignment["scenario_id"]
+            assigned_scenario_ids.append(scenario_id)
+            assigned_scenario_data[scenario_id] = {
+                "assigned_modes": assignment.get("assigned_modes", []),
+                "completed": assignment.get("completed", False),
+                "completed_date": assignment.get("completed_date")
+            }
+        
+        # Filter scenario_ids to only show assigned ones
+        scenario_ids_str = [s_id for s_id in scenario_ids_str if s_id in assigned_scenario_ids]
+        
+        # Fetch scenarios with assignment data
+        for scenario_id in scenario_ids_str:
+            scenario = await db.scenarios.find_one({"_id": scenario_id})
+            if scenario:
+                scenario_obj = ScenarioDB(**scenario)
+                scenario_obj_dict= scenario_obj.model_dump()
+                # Add assignment data
+                if scenario_id in assigned_scenario_data:
+                    data = assigned_scenario_data[scenario_id]
+                    scenario_obj_dict["assigned_modes"] = data["assigned_modes"]
+                    scenario_obj_dict["completed"] = data["completed"]
+                    scenario_obj_dict["completed_date"] = data["completed_date"]
+                
+                scenarios.append(scenario_obj_dict)
+    else:
+        # For admins/superadmins, show all scenarios
+        for scenario_id in scenario_ids_str:
+            scenario = await db.scenarios.find_one({"_id": scenario_id})
+            if scenario:
+                scenarios.append(ScenarioDB(**scenario))
+    
     return scenarios
 
+# Modify the get_full_scenario function to respect mode assignments
+# async def get_full_scenario(
+#     db: Any, 
+#     scenario_id: UUID, 
+#     current_user: Optional[UserDB] = None
+# ) -> Optional[Dict[str, Any]]:
+#     """
+#     Get a scenario with all references expanded
+#     """
+#     # First check if user can access this scenario
+#     scenario = await get_scenario(db, scenario_id, current_user)
+#     if not scenario:
+#         return None
+    
+#     # Get scenario with expanded references
+#     scenario_dict = scenario.dict()
+    
+#     # If user is regular user, check scenario assignment to determine which modes to show
+#     assignment = None
+#     if current_user and current_user.role == UserRole.USER:
+#         assignment = await get_scenario_assignment(db, current_user.id, scenario_id)
+    
+#     # Process learn mode if present and (admin user or mode is assigned to regular user)
+#     if "learn_mode" in scenario_dict and scenario_dict["learn_mode"]:
+#         # For regular user, check if mode is assigned
+#         if current_user.role == UserRole.USER and assignment:
+#             assigned_modes = assignment.assigned_modes
+#             # If learn_mode is not assigned, remove it
+#             if "learn_mode" not in [mode.value for mode in assigned_modes]:
+#                 scenario_dict.pop("learn_mode", None)
+#             else:
+#                 # Add progress information
+#                 mode_progress = assignment.mode_progress ["learn_mode"]
+#                 if "learn_mode" in scenario_dict:
+#                     scenario_dict["learn_mode"]["completed"] = mode_progress.completed
+#                     scenario_dict["learn_mode"]["completed_date"] = mode_progress.completed_date
+        
+#         # If learn_mode is still present, expand its references
+#         if "learn_mode" in scenario_dict:
+#             if "avatar_interaction" in scenario_dict["learn_mode"]:
+#                 avatar_id = scenario_dict["learn_mode"]["avatar_interaction"]
+#                 avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_id)})
+#                 if avatar_interaction:
+#                     scenario_dict["learn_mode"]["avatar_interaction"] = avatar_interaction
+    
+#     # Process try mode if present
+#     if "try_mode" in scenario_dict and scenario_dict["try_mode"]:
+#         # For regular user, check if mode is assigned
+#         if current_user.role == UserRole.USER and assignment:
+#             assigned_modes = assignment.assigned_modes
+#             # If try_mode is not assigned, remove it
+#             if "try_mode" not in [mode.value for mode in assigned_modes]:
+#                 scenario_dict.pop("try_mode", None)
+#             else:
+#                 # Add progress information
+#                 mode_progress = assignment.mode_progress["try_mode"]
+#                 if "try_mode" in scenario_dict:
+#                     scenario_dict["try_mode"]["completed"] = mode_progress.completed
+#                     scenario_dict["try_mode"]["completed_date"] = mode_progress.completed_date
+        
+#         # If try_mode is still present, expand its references
+#         if "try_mode" in scenario_dict:
+#             if "avatar_interaction" in scenario_dict["try_mode"]:
+#                 avatar_id = scenario_dict["try_mode"]["avatar_interaction"]
+#                 avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_id)})
+#                 if avatar_interaction:
+#                     scenario_dict["try_mode"]["avatar_interaction"] = avatar_interaction
+    
+#     # Process assess mode if present
+#     if "assess_mode" in scenario_dict and scenario_dict["assess_mode"]:
+#         # For regular user, check if mode is assigned
+#         if current_user.role == UserRole.USER and assignment:
+#             assigned_modes = assignment.assigned_modes
+#             # If assess_mode is not assigned, remove it
+#             if "assess_mode" not in [mode.value for mode in assigned_modes]:
+#                 scenario_dict.pop("assess_mode", None)
+#             else:
+#                 # Add progress information
+#                 mode_progress = assignment.mode_progress["assess_mode"]
+#                 if "assess_mode" in scenario_dict:
+#                     scenario_dict["assess_mode"]["completed"] = mode_progress.completed
+#                     scenario_dict["assess_mode"]["completed_date"] = mode_progress.completed_date
+        
+#         # If assess_mode is still present, expand its references
+#         if "assess_mode" in scenario_dict:
+#             if "avatar_interaction" in scenario_dict["assess_mode"]:
+#                 avatar_id = scenario_dict["assess_mode"]["avatar_interaction"]
+#                 avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_id)})
+#                 if avatar_interaction:
+#                     scenario_dict["assess_mode"]["avatar_interaction"] = avatar_interaction
+    
+#     # Add assignment data to the scenario
+#     if current_user and current_user.role == UserRole.USER and assignment:
+#         scenario_dict["assigned"] = True
+#         scenario_dict["assigned_modes"] = [mode.value for mode in assignment.assigned_modes]
+#         scenario_dict["completed"] = assignment.completed
+#         scenario_dict["completed_date"] = assignment.completed_date
+    
+#     return scenario_dict
 async def get_full_scenario(
     db: Any, 
     scenario_id: UUID, 
     current_user: Optional[UserDB] = None
 ) -> Optional[Dict[str, Any]]:
     """
-    Get a scenario with all references expanded
+    Get a scenario with all references expanded and respect assigned modes
     """
     # First check if user can access this scenario
     scenario = await get_scenario(db, scenario_id, current_user)
@@ -164,54 +318,96 @@ async def get_full_scenario(
     # Get scenario with expanded references
     scenario_dict = scenario.dict()
     
+    # Get assignment data for regular users
+    assigned_modes = []
+    mode_progress = {}
+    
+    if current_user and current_user.role == UserRole.USER:
+        # Get assignment for this scenario
+        assignment = await db.user_scenario_assignments.find_one({
+            "user_id": str(current_user.id),
+            "scenario_id": str(scenario_id)
+        })
+        
+        if assignment:
+            assigned_modes = assignment.get("assigned_modes", [])
+            mode_progress = assignment.get("mode_progress", {})
+            
+            # Add assignment data to scenario
+            scenario_dict["assigned"] = True
+            scenario_dict["assigned_modes"] = assigned_modes
+            scenario_dict["completed"] = assignment.get("completed", False)
+            scenario_dict["completed_date"] = assignment.get("completed_date")
+    
+    # If user is regular user, filter modes based on assignments
+    # For admins, show all modes
+    filter_modes = current_user and current_user.role == UserRole.USER
+    
     # Process learn mode if present
     if "learn_mode" in scenario_dict and scenario_dict["learn_mode"]:
-        if "avatar_interaction" in scenario_dict["learn_mode"]:
-            avatar_id = scenario_dict["learn_mode"]["avatar_interaction"]
-            avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_id)})
-            if avatar_interaction:
-                scenario_dict["learn_mode"]["avatar_interaction"] = avatar_interaction
-        
-        # Expand videos - NOW IN LEARN MODE
-        if "videos" in scenario_dict["learn_mode"] and scenario_dict["learn_mode"]["videos"]:
-            video_ids = scenario_dict["learn_mode"]["videos"]
-            videos = []
-            for video_id in video_ids:
-                video = await db.videos.find_one({"_id": str(video_id)})
-                if video:
-                    videos.append(video)
-            scenario_dict["learn_mode"]["videos"] = videos
-        
-        # Expand documents - NOW IN LEARN MODE
-        if "documents" in scenario_dict["learn_mode"] and scenario_dict["learn_mode"]["documents"]:
-            doc_ids = scenario_dict["learn_mode"]["documents"]
-            documents = []
-            for doc_id in doc_ids:
-                document = await db.documents.find_one({"_id": str(doc_id)})
-                if document:
-                    documents.append(document)
-            scenario_dict["learn_mode"]["documents"] = documents
+        # For regular users, check if mode is assigned
+        if filter_modes and "learn_mode" not in assigned_modes:
+            # Remove this mode
+            scenario_dict.pop("learn_mode", None)
+        else:
+            # Add mode progress if available
+            if "learn_mode" in mode_progress:
+                if "learn_mode" not in scenario_dict:
+                    scenario_dict["learn_mode"] = {}
+                scenario_dict["learn_mode"]["completed"] = mode_progress["learn_mode"].get("completed", False)
+                scenario_dict["learn_mode"]["completed_date"] = mode_progress["learn_mode"].get("completed_date")
+            
+            # Expand avatar interaction reference
+            if "learn_mode" in scenario_dict and "avatar_interaction" in scenario_dict["learn_mode"]:
+                avatar_id = scenario_dict["learn_mode"]["avatar_interaction"]
+                avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_id)})
+                if avatar_interaction:
+                    scenario_dict["learn_mode"]["avatar_interaction"] = avatar_interaction
     
     # Process try mode if present
     if "try_mode" in scenario_dict and scenario_dict["try_mode"]:
-        if "avatar_interaction" in scenario_dict["try_mode"]:
-            avatar_id = scenario_dict["try_mode"]["avatar_interaction"]
-            avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_id)})
-            if avatar_interaction:
-                scenario_dict["try_mode"]["avatar_interaction"] = avatar_interaction
-        
-        # No need to expand videos or documents in try_mode anymore
+        # For regular users, check if mode is assigned
+        if filter_modes and "try_mode" not in assigned_modes:
+            # Remove this mode
+            scenario_dict.pop("try_mode", None)
+        else:
+            # Add mode progress if available
+            if "try_mode" in mode_progress:
+                if "try_mode" not in scenario_dict:
+                    scenario_dict["try_mode"] = {}
+                scenario_dict["try_mode"]["completed"] = mode_progress["try_mode"].get("completed", False)
+                scenario_dict["try_mode"]["completed_date"] = mode_progress["try_mode"].get("completed_date")
+            
+            # Expand avatar interaction reference
+            if "try_mode" in scenario_dict and "avatar_interaction" in scenario_dict["try_mode"]:
+                avatar_id = scenario_dict["try_mode"]["avatar_interaction"]
+                avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_id)})
+                if avatar_interaction:
+                    scenario_dict["try_mode"]["avatar_interaction"] = avatar_interaction
     
     # Process assess mode if present
     if "assess_mode" in scenario_dict and scenario_dict["assess_mode"]:
-        if "avatar_interaction" in scenario_dict["assess_mode"]:
-            avatar_id = scenario_dict["assess_mode"]["avatar_interaction"]
-            avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_id)})
-            if avatar_interaction:
-                scenario_dict["assess_mode"]["avatar_interaction"] = avatar_interaction
+        # For regular users, check if mode is assigned
+        if filter_modes and "assess_mode" not in assigned_modes:
+            # Remove this mode
+            scenario_dict.pop("assess_mode", None)
+        else:
+            # Add mode progress if available
+            if "assess_mode" in mode_progress:
+                if "assess_mode" not in scenario_dict:
+                    scenario_dict["assess_mode"] = {}
+                scenario_dict["assess_mode"]["completed"] = mode_progress["assess_mode"].get("completed", False)
+                scenario_dict["assess_mode"]["completed_date"] = mode_progress["assess_mode"].get("completed_date")
+            
+            # Expand avatar interaction reference
+            if "assess_mode" in scenario_dict and "avatar_interaction" in scenario_dict["assess_mode"]:
+                avatar_id = scenario_dict["assess_mode"]["avatar_interaction"]
+                avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_id)})
+                if avatar_interaction:
+                    scenario_dict["assess_mode"]["avatar_interaction"] = avatar_interaction
     
+    print(scenario_dict)
     return scenario_dict
-
 # async def create_scenario(
 #     db: Any, 
 #     module_id: UUID, 
@@ -649,7 +845,8 @@ async def get_scenarios_endpoint(
     """
     return await get_scenarios(db, skip, limit, current_user)
 
-@router.get("/scenarios/{scenario_id}", response_model=ScenarioResponse)
+@router.get("/scenarios/{scenario_id}", response_model=Dict[str, Any])
+# @router.get("/scenarios/{scenario_id}", response_model=ScenarioResponse)response_model=Dict[str, Any]
 async def get_scenario_endpoint(
     scenario_id: UUID,
     db: Any = Depends(get_database),

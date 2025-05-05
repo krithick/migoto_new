@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field, EmailStr, validator, root_validator,model
 from uuid import UUID, uuid4
 from datetime import datetime
 from enum import Enum
-from models.scenario_models import ScenarioDB , ScenarioResponse
+from models.scenario_models import ScenarioDB , ScenarioWithAssignmentResponse,ScenarioResponse
 # Module Models
 class ModuleBase(BaseModel):
     title: str
@@ -52,3 +52,16 @@ class ModuleWithScenariosResponse(ModuleBase):
         json_encoders = {UUID: str}
 
 
+class ModuleWithAssignmentResponse(ModuleResponse):
+    """Module response model with assignment data"""
+    assigned_date: Optional[datetime] = None
+    completed: bool = False
+    completed_date: Optional[datetime] = None
+    # scenarios : List[ScenarioWithAssignmentResponse]
+    # Future fields would go here
+    # score: Optional[float] = None
+    # certificate_id: Optional[UUID] = None
+    
+    class Config:
+        populate_by_name = True
+        json_encoders = {UUID: str}

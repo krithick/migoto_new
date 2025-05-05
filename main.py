@@ -30,6 +30,8 @@ from core.persona import router as persona_router
 from core.video import router as video_router
 from core.chat import router as chat_router
 from scenario_generator import router as scenario_router_
+from core.scenario_assignment_router import router as scenario_assignment_router
+from core.module_assignment_router import router as module_assignment_router
 
 # from core.structure import router as new_router
 app = FastAPI(title="Role-Play Scenario Generator API",debug=True)
@@ -47,6 +49,8 @@ app.include_router(persona_router)
 app.include_router(video_router)
 app.include_router(chat_router)
 app.include_router(scenario_router_)
+app.include_router(scenario_assignment_router)
+app.include_router(module_assignment_router)
 
 # app.include_router(new_router)
 

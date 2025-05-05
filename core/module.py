@@ -5,11 +5,11 @@ from datetime import datetime
 
 
 from models.user_models import UserDB , UserRole
-from models.modules_models import ModuleCreate, ModuleResponse, ModuleWithScenariosResponse, ModuleDB, ModuleBase, ScenarioResponse
+from models.modules_models import ModuleCreate, ModuleResponse,ModuleWithAssignmentResponse, ModuleWithScenariosResponse, ModuleDB, ModuleBase, ScenarioResponse
 # from main import get_db
 from core.user import get_current_user, get_admin_user, get_superadmin_user
 from core.course import get_course  # Import from course CRUD to check permissions
-
+from core.scenario_assignment import get_user_module_scenario_assignments
 # Create router
 router = APIRouter(tags=["Modules"])
 
@@ -125,12 +125,113 @@ async def get_modules_by_course(
     # Convert module_ids to strings for MongoDB
     module_ids_str = [str(module_id) for module_id in module_ids]
     
-    for module_id in module_ids_str:
-        module = await db.modules.find_one({"_id": module_id})
-        if module:
-            modules.append(ModuleDB(**module))
+    # If user is regular user, filter modules by assignment
+    if current_user and current_user.role == UserRole.USER:
+        # Get assigned modules for this course
+        assignments_cursor = db.user_module_assignments.find({
+            "user_id": str(current_user.id),
+            "course_id": str(course_id)
+        })
+        
+        # Get assigned module IDs
+        assigned_module_ids = []
+        assigned_module_data = {}
+        
+        async for assignment in assignments_cursor:
+            module_id = assignment["module_id"]
+            assigned_module_ids.append(module_id)
+            assigned_module_data[module_id] = {
+                "completed": assignment.get("completed", False),
+                "completed_date": assignment.get("completed_date"),
+                "assigned_date": assignment.get("assigned_date")
+            }
+        
+        # Filter module_ids to only show assigned ones
+        module_ids_str = [m_id for m_id in module_ids_str if m_id in assigned_module_ids]
+        
+        # Fetch modules with assignment data
+        for module_id in module_ids_str:
+            module = await db.modules.find_one({"_id": module_id})
+            if module:
+                module_obj = ModuleDB(**module)
+                module_obj_dict=module_obj.model_dump()
+                print(module_obj)
+                
+                # Add assignment data
+                if module_id in assigned_module_data:
+                    module_obj_dict["assigned_date"] = assigned_module_data[module_id]["assigned_date"]
+                    module_obj_dict["completed"] = assigned_module_data[module_id]["completed"]
+                    module_obj_dict["completed_date"] = assigned_module_data[module_id]["completed_date"]
+                print(module_obj_dict)
+                modules.append(module_obj_dict)
+    else:
+        # For admins/superadmins, show all modules
+        for module_id in module_ids_str:
+            module = await db.modules.find_one({"_id": module_id})
+            if module:
+                modules.append(ModuleDB(**module))
     
     return modules
+
+# Modify the get_module_with_scenarios function to filter by assignment
+# async def get_module_with_scenarios(
+#     db: Any, 
+#     module_id: UUID, 
+#     current_user: Optional[UserDB] = None
+# ) -> Optional[Dict[str, Any]]:
+#     """
+#     Get a module with all its scenarios expanded
+#     """
+#     # First check if user can access this module
+#     module = await get_module(db, module_id, current_user)
+#     if not module:
+#         return None
+    
+#     # Get module with expanded scenarios
+#     module_dict = module.dict()
+    
+#     # Get scenarios for this module
+#     scenario_ids = module_dict.get("scenarios", [])
+    
+#     # Convert scenario_ids to strings for MongoDB
+#     scenario_ids_str = [str(scenario_id) for scenario_id in scenario_ids]
+    
+#     # If user is regular user, only show assigned scenarios
+#     if current_user.role == UserRole.USER:
+#         # Get scenario assignments for this user and module
+#         scenario_assignments = await get_user_module_scenario_assignments(db, current_user.id, module_id)
+#         assigned_scenario_ids = [str(assignment.scenario_id) for assignment in scenario_assignments]
+        
+#         # Filter scenarios to only show assigned ones
+#         scenario_ids_str = [s_id for s_id in scenario_ids_str if s_id in assigned_scenario_ids]
+    
+#     scenarios = []
+    
+#     for scenario_id in scenario_ids_str:
+#         scenario = await db.scenarios.find_one({"_id": scenario_id})
+#         if scenario:
+#             scenario["id"] = scenario.pop("_id")
+            
+#             # If user is regular user, add assignment info to scenario
+#             if current_user.role == UserRole.USER:
+#                 # Find assignment for this scenario
+#                 assignment = await db.user_scenario_assignments.find_one({
+#                     "user_id": str(current_user.id),
+#                     "scenario_id": scenario_id
+#                 })
+                
+#                 if assignment:
+#                     scenario["assigned"] = True
+#                     scenario["assigned_modes"] = assignment.get("assigned_modes", [])
+#                     scenario["completed"] = assignment.get("completed", False)
+#                     scenario["mode_progress"] = assignment.get("mode_progress", {})
+            
+#             scenarios.append(scenario)
+    
+#     # Replace scenario IDs with scenario data
+#     module_dict["scenarios"] = scenarios
+    
+#     return module_dict
 
 async def get_module_with_scenarios(
     db: Any, 
@@ -156,17 +257,54 @@ async def get_module_with_scenarios(
     
     scenarios = []
     
+    # If user is regular user, filter scenarios to only show assigned ones
+    if current_user and current_user.role == UserRole.USER:
+        # Get scenario assignments for this user and module
+        assignments_cursor = db.user_scenario_assignments.find({
+            "user_id": str(current_user.id),
+            "module_id": str(module_id)
+        })
+        
+        # Get assigned scenario IDs
+        assigned_scenario_ids = []
+        assigned_scenario_data = {}
+        
+        async for assignment in assignments_cursor:
+            scenario_id = assignment["scenario_id"]
+            assigned_scenario_ids.append(scenario_id)
+            assigned_scenario_data[scenario_id] = {
+                "assigned_modes": assignment.get("assigned_modes", []),
+                "completed": assignment.get("completed", False),
+                "completed_date": assignment.get("completed_date"),
+                "mode_progress": assignment.get("mode_progress", {})
+            }
+        
+        # Filter scenario_ids to only show assigned ones
+        scenario_ids_str = [s_id for s_id in scenario_ids_str if s_id in assigned_scenario_ids]
+    
+    # Fetch scenarios
     for scenario_id in scenario_ids_str:
         scenario = await db.scenarios.find_one({"_id": scenario_id})
         if scenario:
-            scenario["id"]=scenario.pop("_id")
+            scenario["id"] = scenario.pop("_id")
+            
+            # Add assignment info for regular users
+            if current_user and current_user.role == UserRole.USER:
+                if scenario_id in assigned_scenario_data:
+                    data = assigned_scenario_data[scenario_id]
+                    scenario["assigned"] = True
+                    scenario["assigned_modes"] = data["assigned_modes"]
+                    scenario["completed"] = data["completed"]
+                    scenario["completed_date"] = data["completed_date"]
+                    scenario["mode_progress"] = data["mode_progress"]
+            
             scenarios.append(scenario)
     
     # Replace scenario IDs with scenario data
     module_dict["scenarios"] = scenarios
-    print(module_dict,"/full")
+    
+    print(module_dict, "/full")
     return module_dict
-
 async def create_module(
     db: Any, 
     course_id: UUID, 
@@ -425,7 +563,8 @@ async def get_module_endpoint(
                             detail="Module not found or access denied")
     return module
 
-@router.get("/courses/{course_id}/modules", response_model=List[ModuleResponse])
+@router.get("/courses/{course_id}/modules", response_model=List[ModuleWithAssignmentResponse])
+# @router.get("/courses/{course_id}/modules", response_model=List[ModuleResponse])response_model=Dict[str, Any]
 async def get_modules_by_course_endpoint(
     course_id: UUID,
     db: Any = Depends(get_database),

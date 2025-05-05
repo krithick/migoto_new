@@ -1,3 +1,10 @@
+"""
+MongoDB Client Class
+
+This module provides a MongoDB client class for connecting to MongoDB
+and accessing the various collections in the database.
+"""
+
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Type
 from pydantic import BaseModel, Field
@@ -29,10 +36,12 @@ class MongoDB:
     def __init__(self,MONGO_URL,DATABASE_NAME):
         self.client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL, uuidRepresentation='standard')
         self.db = self.client[DATABASE_NAME]
+        
+        # Original collections
         self.sessions = self.db.sessions
-        self.analysis=self.db.analysis
-        self.bot_configs=self.db.bot_configs
-        self.bot_configs_analyser=self.db.bot_configs_analyser
+        self.analysis = self.db.analysis
+        self.bot_configs = self.db.bot_configs
+        self.bot_configs_analyser = self.db.bot_configs_analyser
         self.courses = self.db.courses
         self.modules = self.db.modules
         self.scenarios = self.db.scenarios
@@ -45,34 +54,48 @@ class MongoDB:
         self.documents = self.db.documents
         self.avatar_interactions = self.db.avatar_interactions
         self.users = self.db.users
+        
+        # Existing course assignment collection
         self.user_course_assignments = self.db.user_course_assignments
+        
+        # New collections for module and scenario assignments
+        self.user_module_assignments = self.db.user_module_assignments
+        self.user_scenario_assignments = self.db.user_scenario_assignments
+        
+    # Existing functions
     async def create_session(self, session: ChatSession) -> str:
         await self.sessions.insert_one(session.dict())
         return session.session_id
+    
     # for evaluation 
     async def create_conversation_analysis(self,report:ChatReport) -> str:
         await self.analysis.insert_one(report.dict())
-        # for sales
+        
+    # for sales
     async def create_conversation_analysis_(self,report:ChatReport_) -> str:
         await self.analysis.insert_one(report.dict())
+    
     # get sessions 
     async def get_session(self, session_id: str) -> Optional[ChatSession]:
         session_data = await self.sessions.find_one({"session_id": session_id})
         if session_data:
             return ChatSession(**session_data)
         return None
+    
     # get sessions raw
     async def get_session_raw(self, session_id: str) -> Optional[ChatSession]:
         session_data = await self.sessions.find_one({"session_id": session_id})
         if session_data:
             return session_data
         return None
+    
     # get session analysis for evaluation
     async def get_session_analysis(self, session_id: str) -> Optional[ChatSession]:
         session_data = await self.analysis.find_one({"session_id": session_id})
         if session_data:
             return Evaluation(**session_data)
         return None
+    
     # for sales
     async def get_session_analysis_(self, session_id: str) -> Optional[ChatSession]:
         session_data = await self.analysis.find_one({"session_id": session_id})
@@ -80,18 +103,21 @@ class MongoDB:
         if session_data:
             return ChatReport_(**session_data)
         return None
+    
     async def update_session(self, session: ChatSession):
         session.last_updated = datetime.now()
         await self.sessions.update_one(
             {"session_id": session.session_id},
             {"$set": session.dict()}
         )
+    
     async def create_bot(self,bot_config:BotConfig):
         bot= await self.bot_configs.insert_one(bot_config.dict())
         if bot :
             return bot
         else:
             HTTPException(status_code=400,detail="Error creating Bot")
+    
     async def create_bot_analyser(self,bot_config:BotConfigAnalyser):
         bot= await self.bot_configs_analyser.insert_one(bot_config.dict())
         if bot :
@@ -187,6 +213,7 @@ class MongoDB:
                 bot['_id'] = str(bot['_id'])
     
         return bots
+    
     async def update_bot(self, bot_id: str, bot: BotConfig):
         """
         Update an existing bot with new data
@@ -230,3 +257,75 @@ class MongoDB:
             bot['_id'] = str(bot['_id'])
     
         return bot
+        
+    # New methods for module and scenario assignments
+    
+    async def initialize_module_assignments_collection(self):
+        """
+        Create indexes for the module assignments collection
+        """
+        # Create compound index on user_id and module_id for faster lookups
+        await self.user_module_assignments.create_index([
+            ("user_id", 1), 
+            ("module_id", 1)
+        ], unique=True)
+        
+        # Create index on course_id for filtering by course
+        await self.user_module_assignments.create_index([
+            ("user_id", 1), 
+            ("course_id", 1)
+        ])
+        
+        # Create index on completion status
+        await self.user_module_assignments.create_index([
+            ("user_id", 1), 
+            ("completed", 1)
+        ])
+    
+    async def initialize_scenario_assignments_collection(self):
+        """
+        Create indexes for the scenario assignments collection
+        """
+        # Create compound index on user_id and scenario_id for faster lookups
+        await self.user_scenario_assignments.create_index([
+            ("user_id", 1), 
+            ("scenario_id", 1)
+        ], unique=True)
+        
+        # Create index on module_id for filtering by module
+        await self.user_scenario_assignments.create_index([
+            ("user_id", 1), 
+            ("module_id", 1)
+        ])
+        
+        # Create index on completion status
+        await self.user_scenario_assignments.create_index([
+            ("user_id", 1), 
+            ("completed", 1)
+        ])
+        
+        # Create index on assigned_modes for filtering by mode
+        await self.user_scenario_assignments.create_index([
+            ("user_id", 1), 
+            ("assigned_modes", 1)
+        ])
+    
+    async def get_collection_names(self):
+        """
+        Get a list of all collection names in the database
+        """
+        return await self.db.list_collection_names()
+        
+    async def initialize_collections(self):
+        """
+        Initialize all collections and create necessary indexes
+        """
+        # Get all collection names
+        collections = await self.get_collection_names()
+        
+        # Check if the new collections exist, create indexes if they do
+        if "user_module_assignments" in collections:
+            await self.initialize_module_assignments_collection()
+        
+        if "user_scenario_assignments" in collections:
+            await self.initialize_scenario_assignments_collection()

@@ -9,6 +9,7 @@ from models.modules_models import ModuleResponse
 from models.user_models import UserDB ,UserRole
 
 from core.user import get_current_user, get_admin_user, get_superadmin_user
+from core.module_assignment import get_user_course_module_assignments
 
 # Create router
 router = APIRouter(prefix="/courses", tags=["Courses"])
@@ -80,6 +81,51 @@ async def get_course(db: Any, course_id: UUID, current_user: Optional[UserDB] = 
     
     return CourseDB(**course)
 
+# Modify the get_course_with_modules function to filter by assignment
+# async def get_course_with_modules(
+#     db: Any, 
+#     course_id: UUID, 
+#     current_user: Optional[UserDB] = None
+# ) -> Optional[Dict[str, Any]]:
+#     """
+#     Get a course with all modules expanded and check permissions
+#     """
+#     # First check if user can access this course
+#     course = await get_course(db, course_id, current_user)
+#     if not course:
+#         return None
+    
+#     # Get course with expanded modules
+#     course_dict = course.dict()
+    
+#     # Get modules for this course
+#     module_ids = course_dict.get("modules", [])
+    
+#     # Convert module_ids to strings for MongoDB
+#     module_ids_str = [str(module_id) for module_id in module_ids]
+    
+#     # If user is regular user, only show assigned modules
+#     if current_user.role == UserRole.USER:
+#         # Get module assignments for this user and course
+#         module_assignments = await get_user_course_module_assignments(db, current_user.id, course_id)
+#         assigned_module_ids = [str(assignment.module_id) for assignment in module_assignments]
+        
+#         # Filter modules to only show assigned ones
+#         module_ids_str = [m_id for m_id in module_ids_str if m_id in assigned_module_ids]
+    
+#     modules = []
+    
+#     for module_id in module_ids_str:
+#         module = await db.modules.find_one({"_id": module_id})
+#         if module:
+#             module["id"] = module.pop("_id")
+#             modules.append(module)
+    
+#     # Replace module IDs with module data
+#     course_dict["modules"] = modules
+    
+#     return CourseWithModulesResponse(**course_dict)
+
 async def get_course_with_modules(
     db: Any, 
     course_id: UUID, 
@@ -104,16 +150,46 @@ async def get_course_with_modules(
     
     modules = []
     
+    # If user is regular user, filter modules to only show assigned ones
+    if current_user and current_user.role == UserRole.USER:
+        # Get module assignments for this user and course
+        assignments_cursor = db.user_module_assignments.find({
+            "user_id": str(current_user.id),
+            "course_id": str(course_id)
+        })
+        
+        # Get assigned module IDs
+        assigned_module_ids = []
+        async for assignment in assignments_cursor:
+            assigned_module_ids.append(assignment["module_id"])
+        
+        # Filter module_ids to only show assigned ones
+        module_ids_str = [m_id for m_id in module_ids_str if m_id in assigned_module_ids]
+    
+    # Fetch modules
     for module_id in module_ids_str:
         module = await db.modules.find_one({"_id": module_id})
         if module:
             module["id"] = module.pop("_id")
+            
+            # Add assignment info for regular users
+            if current_user and current_user.role == UserRole.USER:
+                assignment = await db.user_module_assignments.find_one({
+                    "user_id": str(current_user.id),
+                    "module_id": module_id
+                })
+                
+                if assignment:
+                    module["assigned"] = True
+                    module["completed"] = assignment.get("completed", False)
+                    module["completed_date"] = assignment.get("completed_date")
+            
             modules.append(module)
-            # modules.append((module))
     
     # Replace module IDs with module data
     course_dict["modules"] = modules
-    print(course_dict,"heeeeeeeeeeee")
+    
+    print(course_dict, "heeeeeeeeeeee")
     return CourseWithModulesResponse(**course_dict)
 
 async def create_course(db: Any, course: CourseCreate, created_by: UUID) -> CourseDB:
