@@ -198,48 +198,57 @@ async def authenticate_user(db: Any, email: str, password: str) -> Optional[User
 #     created_user = await db.users.find_one({"_id": str(result.inserted_id)})
     
 #     return UserDB(**created_user)
-async def create_user(db: Any, user: UserCreate, created_by: Optional[UUID] = None) -> UserDB:
+async def create_user(db: Any, users: List[UserCreate], created_by: Optional[UUID] = None) -> UserDB:
     """Create a new user"""
-    # Check if user with this email already exists
-    existing_user = await get_user_by_email(db, user.email)
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+    created_users = []
+
+    for user in users:
+        existing_user = await get_user_by_email(db, user.email)
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        
+        user_dict = user.dict()
+        hashed_password = get_password_hash(user_dict.pop("password"))
+
+        assignee_emp_id = None
+
+        if created_by:
+            admin = await get_user_by_id(db, created_by)
+            if admin and admin.role == UserRole.ADMIN:
+                assignee_emp_id = admin.emp_id
+
+        user_db = UserDB(
+            **user_dict,
+            hashed_password=hashed_password,
+            assignee_emp_id=assignee_emp_id,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
         )
-    
-    # Create UserDB model
-    user_dict = user.dict()
-    hashed_password = get_password_hash(user_dict.pop("password"))
-    
-    user_db = UserDB(
-        **user_dict,
-        hashed_password=hashed_password,
-        created_at=datetime.now(),
-        updated_at=datetime.now()
-    )
-    
-    # Insert into database
-    user_dict = user_db.dict(by_alias=True)
-    
-    # Always store _id as string in MongoDB
-    if "_id" in user_dict:
-        user_dict["_id"] = str(user_dict["_id"])
-    
-    result = await db.users.insert_one(user_dict)
-    created_user = await db.users.find_one({"_id": str(result.inserted_id)})
-    
-    # If created by an admin, assign the user to that admin
-    if created_by:
-        admin = await get_user_by_id(db, created_by)
-        if admin and admin.role == UserRole.ADMIN:
-            # Add new user to admin's managed_users
+
+        
+        # Insert into database
+        user_dict = user_db.dict(by_alias=True)
+        
+        # Always store _id as string in MongoDB
+        if "_id" in user_dict:
+            user_dict["_id"] = str(user_dict["_id"])
+
+
+        result = await db.users.insert_one(user_dict)
+        created_user = await db.users.find_one({"_id": str(result.inserted_id)})
+
+        if created_by and admin and admin.role == UserRole.ADMIN:
+            # Add the new user to admin's managed_users list
             await db.users.update_one(
                 {"_id": str(admin.id)},
                 {"$addToSet": {"managed_users": str(user_db.id)}}
             )
-    
-    return UserDB(**created_user)
+        created_users.append(UserDB(**created_user))
+
+    return created_users
 
 # async def create_admin_user(db: Any, admin: AdminUserCreate, created_by: UUID) -> AdminUserDB:
 #     """Create a new admin user (by superadmin)"""
@@ -949,16 +958,16 @@ async def confirm_password_reset(
 #     Create a new user (admin/superadmin only)
 #     """
 #     return await create_user(db, user)
-@router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/users", response_model=List[UserResponse], status_code=status.HTTP_201_CREATED)
 async def create_user_endpoint(
-    user: UserCreate,
+    users: List[UserCreate],
     db: Any = Depends(get_database),
     admin_user: UserDB = Depends(get_admin_user)
 ):
     """
     Create a new user (admin/superadmin only)
     """
-    return await create_user(db, user, created_by=admin_user.id)
+    return await create_user(db, users, created_by=admin_user.id)
 
 @router.get("/users/me", response_model=UserResponse)
 async def read_users_me(current_user: UserDB = Depends(get_current_user)):

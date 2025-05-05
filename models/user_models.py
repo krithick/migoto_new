@@ -34,10 +34,9 @@ class PyUUID(UUID):
 
 class UserBase(BaseModel):
     email: EmailStr
-    first_name: str
-    last_name: str
+    emp_id: str
+    username: str
     is_active: bool = True
-    thumbnail_url:str
 
 
 class UserCreate(UserBase):
@@ -53,16 +52,17 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    username: Optional[str] = None
     is_active: Optional[bool] = None
     role: Optional[UserRole] = None
+
 
 
 class UserDB(UserBase):
     id: UUID = Field(default_factory=uuid4, alias="_id")
     role: UserRole = UserRole.USER
     hashed_password: str
+    emp_id: str
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
     assigned_courses: List[UUID] = Field(default_factory=list)
@@ -76,6 +76,8 @@ class UserDB(UserBase):
 class UserResponse(UserBase):
     id: UUID
     role: UserRole
+    emp_id: str
+    assignee_emp_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     
