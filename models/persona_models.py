@@ -12,6 +12,7 @@ class PersonaBase(BaseModel):
     description: str = Field(..., description="Brief description of this persona")
     persona_type: str = Field(..., description="Type of persona (customer, employee, etc.)")
     gender:BotGender
+    age : int
     @field_validator('gender', mode='before')
     @classmethod
     def validate_mode(cls, v):
