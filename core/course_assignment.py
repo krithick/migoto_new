@@ -187,3 +187,179 @@ async def get_user_courses_with_assignments(
             courses.append(course)
     
     return courses
+
+
+async def update_course_completion(
+    db: Any,
+    user_id: UUID,
+    course_id: UUID
+) -> bool:
+    """
+    Update course completion status based on module completions
+    Returns True if the course was completed, False otherwise
+    """
+    try:
+        # Find course assignment
+        course_assignment = await db.user_course_assignments.find_one({
+            "user_id": str(user_id),
+            "course_id": str(course_id)
+        })
+        
+        if not course_assignment:
+            return False
+        
+        # Get all module assignments for this course
+        module_assignments = await db.user_module_assignments.find({
+            "user_id": str(user_id),
+            "course_id": str(course_id)
+        }).to_list(length=None)
+        
+        # If there are no module assignments, don't update course status
+        if not module_assignments:
+            return False
+        
+        # Check if all modules are completed
+        all_modules_completed = all(
+            assignment.get("completed", False) 
+            for assignment in module_assignments
+        )
+        
+        # Update course completion status
+        completion_date = datetime.now() if all_modules_completed else None
+        update_result = await db.user_course_assignments.update_one(
+            {
+                "user_id": str(user_id),
+                "course_id": str(course_id)
+            },
+            {
+                "$set": {
+                    "completed": all_modules_completed,
+                    "completed_date": completion_date
+                }
+            }
+        )
+        
+        return all_modules_completed
+    except Exception as e:
+        print(f"Error updating course completion: {e}")
+        return False
+
+
+async def assign_course_with_content(
+    db: Any,
+    user_id: UUID,
+    course_id: UUID,
+    include_all_modules: bool = True,
+    include_all_scenarios: bool = True,
+    module_ids: List[UUID] = None,
+    scenario_mapping: Dict[UUID, List[UUID]] = None,
+    mode_mapping: Dict[UUID, List[str]] = None
+) -> Dict[str, Any]:
+    """
+    Assign a course to a user, optionally with its modules and scenarios
+    
+    Parameters:
+    - user_id: UUID of the user
+    - course_id: UUID of the course
+    - include_all_modules: Whether to include all modules in the course
+    - include_all_scenarios: Whether to include all scenarios in modules
+    - module_ids: List of specific module IDs to include (if not all)
+    - scenario_mapping: Dict mapping module IDs to lists of scenario IDs
+    - mode_mapping: Dict mapping scenario IDs to lists of modes
+    
+    Returns:
+    - Dict with course, module, and scenario assignment counts
+    """
+    # Import functions to avoid circular imports
+    from core.module_assignment import bulk_create_module_assignments
+    from core.scenario_assignment import bulk_create_scenario_assignments
+    from models.module_assignment_models import BulkModuleAssignmentCreate
+    from models.scenario_assignment_models import BulkScenarioAssignmentCreate, ScenarioModeType
+    
+    # Create course assignment
+    course_assignment = await create_course_assignment(db, user_id, course_id)
+    
+    # Get course to find modules
+    course = await db.courses.find_one({"_id": str(course_id)})
+    if not course:
+        return {
+            "course_assigned": course_assignment is not None,
+            "modules_assigned": 0,
+            "scenarios_assigned": 0
+        }
+    
+    # Determine which modules to assign
+    modules_to_assign = []
+    if include_all_modules:
+        modules_to_assign = course.get("modules", [])
+    elif module_ids:
+        modules_to_assign = [str(m_id) for m_id in module_ids]
+    
+    # Create module assignments if needed
+    modules_assigned = 0
+    if modules_to_assign:
+        # Convert string IDs to UUIDs
+        module_ids_uuid = [UUID(m_id) for m_id in modules_to_assign]
+        
+        # Create bulk assignment
+        bulk_module_assignment = BulkModuleAssignmentCreate(
+            user_id=user_id,
+            course_id=course_id,
+            module_ids=module_ids_uuid,
+            operation="add"
+        )
+        
+        # Execute bulk assignment
+        module_assignments = await bulk_create_module_assignments(db, bulk_module_assignment)
+        modules_assigned = len(module_assignments)
+    
+    # Create scenario assignments if needed
+    scenarios_assigned = 0
+    if include_all_scenarios or scenario_mapping:
+        for module_id in modules_to_assign:
+            # Get module to find scenarios
+            module = await db.modules.find_one({"_id": module_id})
+            if not module:
+                continue
+            
+            # Determine which scenarios to assign
+            scenarios_to_assign = []
+            if include_all_scenarios:
+                scenarios_to_assign = module.get("scenarios", [])
+            elif scenario_mapping and UUID(module_id) in scenario_mapping:
+                scenarios_to_assign = [str(s_id) for s_id in scenario_mapping[UUID(module_id)]]
+            
+            if not scenarios_to_assign:
+                continue
+            
+            # Convert string IDs to UUIDs
+            scenario_ids_uuid = [UUID(s_id) for s_id in scenarios_to_assign]
+            
+            # Determine modes for each scenario
+            assigned_modes = {}
+            if mode_mapping:
+                for s_id in scenario_ids_uuid:
+                    if s_id in mode_mapping:
+                        assigned_modes[s_id] = [
+                            ScenarioModeType(mode) for mode in mode_mapping[s_id]
+                        ]
+            
+            # Create bulk assignment
+            bulk_scenario_assignment = BulkScenarioAssignmentCreate(
+                user_id=user_id,
+                course_id=course_id,
+                module_id=UUID(module_id),
+                scenario_ids=scenario_ids_uuid,
+                assigned_modes=assigned_modes if assigned_modes else None,
+                operation="add"
+            )
+            
+            # Execute bulk assignment
+            scenario_assignments = await bulk_create_scenario_assignments(db, bulk_scenario_assignment)
+            scenarios_assigned += len(scenario_assignments)
+    
+    return {
+        "course_assigned": course_assignment is not None,
+        "modules_assigned": modules_assigned,
+        "scenarios_assigned": scenarios_assigned
+    }

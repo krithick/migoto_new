@@ -185,11 +185,129 @@ async def chat(
     }
 
 
+# @router.get("/chat/stream")
+# async def chat_stream(
+#     session_id: str = Query(...),
+#     name: Optional[str] = Query(None),
+#     db: Any = Depends(get_db)
+# ):
+#     """
+#     Stream the response for a chat message.
+#     """
+#     # Get session
+#     session = await get_chat_session(db, session_id)
+#     if not session:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    
+#     # Get the chat factory
+#     chat_factory = await get_chat_factory()
+    
+#     # Extract avatar_interaction_id and mode from session
+#     avatar_interaction_id = session.avatar_interaction
+    
+#     # Fetch avatar_interaction to get mode
+#     avatar_interaction = await db.avatar_interactions.find_one({"_id": avatar_interaction_id})
+#     mode = avatar_interaction["mode"] if avatar_interaction else "try_mode"  # Default to try_mode
+    
+#     # Extract persona_id if available
+#     avatar = await db.avatars.find_one({"_id": session.avatar_id})
+#     if not avatar:
+#         raise HTTPException(status_code=404, detail="Avatar  not found")
+#     persona_id=avatar["persona_id"][0]
+#     language_id=session.language_id
+    
+#     # Get the appropriate chat handler
+#     handler = await chat_factory.get_chat_handler(
+#         avatar_interaction_id=UUID(avatar_interaction_id),
+#         mode=mode,
+#         persona_id=UUID(persona_id) if persona_id else None,
+#         language_id=language_id 
+#     )
+    
+#     # Get the most recent user message
+#     if not session.conversation_history:
+#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No conversation history found")
+    
+#     previous_message = session.conversation_history[-1]
+#     message = previous_message.content
+    
+  
+#     # Process the message and get the response stream
+#     try:
+#         response = await handler.process_message(
+#             message,
+#             session.conversation_history,
+#             name
+#         )
+        
+#         async def stream_chat():
+#             res = ""
+#             async for chunk in response:
+#                 updated_message = chunk["chunk"]
+                
+#                 # Check if complete
+#                 if chunk["finish"] == "stop" and chunk["usage"] is not None:
+#                     # Add bot message to conversation history
+#                     bot_message = Message(
+#                         role=handler.config.bot_role,
+#                         content=updated_message,
+#                         timestamp=datetime.now()
+#                     )
+#                     bot_message.usage = chunk["usage"]
+#                     session.conversation_history.append(bot_message)
+#                     await update_chat_session(db, session)
+                
+#                 # Parse for correct formatting tags
+#                 result = re.split(r"\[CORRECT\]", updated_message)
+#                 correct_answer = ''
+#                 if len(result) >= 3:
+#                     correct_answer = result[1]
+#                     answer = result[0]
+#                 else:
+#                     emotion = "neutral"  # Default emotion if parsing fails
+#                     answer = updated_message
+                
+#                 # Check if this is the end of the conversation
+#                 if "[FINISH]" in updated_message:
+#                     answer = updated_message.replace("[FINISH]", " ")
+#                     complete = True
+                    
+#                 else:
+#                     complete = False
+                
+#                 # Check if correction is needed
+#                 if "[CORRECT]" in updated_message:
+#                     correct = False
+#                 else:
+#                     correct = True
+                
+#                 # Format the response as a ChatResponse
+#                 chat_response = ChatResponse(
+#                     session_id=session.session_id,
+#                     response=answer,
+#                     emotion=emotion if 'emotion' in locals() else "neutral",
+#                     complete=complete,
+#                     correct=correct,
+#                     correct_answer=correct_answer,
+#                     conversation_history=session.conversation_history
+#                 )
+                
+#                 yield f"data: {chat_response.json()}\n\n"
+                
+#         return StreamingResponse(stream_chat(), media_type="text/event-stream")
+        
+#     except Exception as e:
+#         print(f"Error in chat stream: {e}")
+#         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+# Update in core/chat.py - Modify the chat_stream endpoint
+
 @router.get("/chat/stream")
 async def chat_stream(
     session_id: str = Query(...),
     name: Optional[str] = Query(None),
-    db: Any = Depends(get_db)
+    db: Any = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user)  # Add this dependency
 ):
     """
     Stream the response for a chat message.
@@ -212,9 +330,9 @@ async def chat_stream(
     # Extract persona_id if available
     avatar = await db.avatars.find_one({"_id": session.avatar_id})
     if not avatar:
-        raise HTTPException(status_code=404, detail="Avatar  not found")
-    persona_id=avatar["persona_id"][0]
-    language_id=session.language_id
+        raise HTTPException(status_code=404, detail="Avatar not found")
+    persona_id = avatar["persona_id"][0]
+    language_id = session.language_id
     
     # Get the appropriate chat handler
     handler = await chat_factory.get_chat_handler(
@@ -231,7 +349,6 @@ async def chat_stream(
     previous_message = session.conversation_history[-1]
     message = previous_message.content
     
-  
     # Process the message and get the response stream
     try:
         response = await handler.process_message(
@@ -268,9 +385,83 @@ async def chat_stream(
                     answer = updated_message
                 
                 # Check if this is the end of the conversation
-                if "[FINISH]" in updated_message:
+                is_finished = "[FINISH]" in updated_message
+                if is_finished:
                     answer = updated_message.replace("[FINISH]", " ")
                     complete = True
+                    
+                    # Update mode completion
+                    try:
+                        # Find the scenario that has this avatar interaction
+                        scenario_query = {}
+                        
+                        if mode == "learn_mode":
+                            scenario_query = {"learn_mode.avatar_interaction": avatar_interaction_id}
+                        elif mode == "try_mode":
+                            scenario_query = {"try_mode.avatar_interaction": avatar_interaction_id}
+                        elif mode == "assess_mode":
+                            scenario_query = {"assess_mode.avatar_interaction": avatar_interaction_id}
+                        
+                        scenarios = await db.scenarios.find(scenario_query).to_list(length=1)
+                        
+                        if scenarios:
+                            scenario_id = scenarios[0]["_id"]
+                            
+                            # Update mode completion
+                            await db.user_scenario_assignments.update_one(
+                                {
+                                    "user_id": str(current_user.id),
+                                    "scenario_id": scenario_id
+                                },
+                                {
+                                    "$set": {
+                                        f"mode_progress.{mode}.completed": True,
+                                        f"mode_progress.{mode}.completed_date": datetime.now()
+                                    }
+                                }
+                            )
+                            
+                            # Check if all assigned modes are now completed
+                            assignment = await db.user_scenario_assignments.find_one({
+                                "user_id": str(current_user.id),
+                                "scenario_id": scenario_id
+                            })
+                            
+                            if assignment:
+                                # Check if all modes are completed
+                                assigned_modes = assignment.get("assigned_modes", [])
+                                mode_progress = assignment.get("mode_progress", {})
+                                
+                                all_modes_completed = True
+                                for assigned_mode in assigned_modes:
+                                    if assigned_mode not in mode_progress or not mode_progress.get(assigned_mode, {}).get("completed", False):
+                                        all_modes_completed = False
+                                        break
+                                
+                                # If all modes are completed, mark scenario as completed
+                                if all_modes_completed:
+                                    await db.user_scenario_assignments.update_one(
+                                        {
+                                            "user_id": str(current_user.id),
+                                            "scenario_id": scenario_id
+                                        },
+                                        {
+                                            "$set": {
+                                                "completed": True,
+                                                "completed_date": datetime.now()
+                                            }
+                                        }
+                                    )
+                                    
+                                    # Update module completion
+                                    from core.module_assignment import update_module_completion_status
+                                    await update_module_completion_status(
+                                        db, 
+                                        current_user.id, 
+                                        UUID(assignment.get("module_id"))
+                                    )
+                    except Exception as e:
+                        print(f"Error updating mode completion: {e}")
                 else:
                     complete = False
                 
@@ -298,7 +489,6 @@ async def chat_stream(
     except Exception as e:
         print(f"Error in chat stream: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
 @router.get("/chat/history/{session_id}")
 async def get_chat_history(
     session_id: str,
