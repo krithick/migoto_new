@@ -123,6 +123,7 @@ async def get_scenario(
             scenario_obj_dict["assigned_modes"] = assignment.get("assigned_modes", [])
             scenario_obj_dict["completed"] = assignment.get("completed", False)
             scenario_obj_dict["completed_date"] = assignment.get("completed_date")
+            scenario_obj_dict["assigned_date"] = assignment.get("assigned_date")
             print(scenario_obj_dict)
             return scenario_obj_dict
     
@@ -174,7 +175,8 @@ async def get_scenarios_by_module(
             assigned_scenario_data[scenario_id] = {
                 "assigned_modes": assignment.get("assigned_modes", []),
                 "completed": assignment.get("completed", False),
-                "completed_date": assignment.get("completed_date")
+                "completed_date": assignment.get("completed_date"),
+                "assigned_date": assignment.get("assigned_date")
             }
         
         # Filter scenario_ids to only show assigned ones
@@ -192,6 +194,7 @@ async def get_scenarios_by_module(
                     scenario_obj_dict["assigned_modes"] = data["assigned_modes"]
                     scenario_obj_dict["completed"] = data["completed"]
                     scenario_obj_dict["completed_date"] = data["completed_date"]
+                    scenario_obj_dict["assigned_date"] = data["assigned_date"]
                 
                 scenarios.append(scenario_obj_dict)
     else:
@@ -861,7 +864,7 @@ async def get_scenario_endpoint(
                             detail="Scenario not found or access denied")
     return scenario
 
-@router.get("/modules/{module_id}/scenarios", response_model=List[ScenarioResponse])
+@router.get("/modules/{module_id}/scenarios", response_model=List[Dict[str, Any]])
 async def get_scenarios_by_module_endpoint(
     module_id: UUID,
     db: Any = Depends(get_database),

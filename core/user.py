@@ -541,7 +541,7 @@ async def assign_users_to_admin(db: Any, admin_id: UUID, user_ids: List[UUID], o
 #     return True
 # asdxa
 
-# async def assign_courses_to_user(db: Any, user_id: UUID, course_ids: List[UUID], operation: str) -> bool:
+async def assign_courses_to_user(db: Any, user_id: UUID, course_ids: List[UUID], operation: str) -> bool:
     """Assign or remove courses from a user"""
     # Check if user exists
     user = await get_user_by_id(db, user_id)
