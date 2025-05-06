@@ -23,6 +23,7 @@ class AvatarInteractionBase(BaseModel):
     bot_role_alt: Optional[str] = None
     content: Optional[Dict[str, Any]] = None
     system_prompt: str
+    layout: int
     # scenario_id :UUID
     mode: AvatarInteractionType
     @field_validator('mode', mode='before')

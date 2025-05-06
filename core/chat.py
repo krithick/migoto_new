@@ -15,7 +15,8 @@ import re
 # Import models and dependencies
 from models_old import Message, ChatSession, ChatResponse
 from database import get_db
-
+from models.user_models import UserDB , UserRole
+from core.user import get_current_user
 # Import the new dynamic chat loader system
 from dynamic_chat import (
     get_chat_factory,
@@ -34,7 +35,8 @@ async def initialize_chat(
     mode: str = Form(...),  # "learn_mode", "try_mode", or "assess_mode"
     persona_id: Optional[UUID] = Form(None),
     language_id: Optional[UUID] = Form(None),
-    db: Any = Depends(get_db)
+    db: Any = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user)  # Add this dependency
 ):
     """
     Initialize a new chat session for a specific avatar interaction and mode.
@@ -51,8 +53,60 @@ async def initialize_chat(
             detail="Invalid mode. Must be 'learn_mode', 'try_mode', or 'assess_mode'"
         )
     
+    # If user is not admin/superadmin, check for assignment
+    if current_user.role == UserRole.USER:
+        # Find the scenario this avatar interaction belongs to
+        scenario = None
+        
+        # Check learn mode
+        learn_mode_scenarios = await db.scenarios.find({
+            "learn_mode.avatar_interaction": str(avatar_interaction_id)
+        }).to_list(length=1)
+        if learn_mode_scenarios:
+            scenario = learn_mode_scenarios[0]
+            
+        # Check try mode if not found
+        if not scenario:
+            try_mode_scenarios = await db.scenarios.find({
+                "try_mode.avatar_interaction": str(avatar_interaction_id)
+            }).to_list(length=1)
+            if try_mode_scenarios:
+                scenario = try_mode_scenarios[0]
+        
+        # Check assess mode if not found
+        if not scenario:
+            assess_mode_scenarios = await db.scenarios.find({
+                "assess_mode.avatar_interaction": str(avatar_interaction_id)
+            }).to_list(length=1)
+            if assess_mode_scenarios:
+                scenario = assess_mode_scenarios[0]
+        
+        # If scenario found, check if user is assigned
+        if scenario:
+            scenario_id = scenario["_id"]
+            
+            # Check if scenario is assigned to user
+            assignment = await db.user_scenario_assignments.find_one({
+                "user_id": str(current_user.id),
+                "scenario_id": scenario_id
+            })
+            
+            if not assignment:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You are not assigned to this scenario"
+                )
+            
+            # Check if mode is assigned
+            assigned_modes = assignment.get("assigned_modes", [])
+            if mode not in assigned_modes:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"You are not assigned to the {mode} of this scenario"
+                )
+    
     # Initialize chat session
-    session = await initialize_chat_session(db, avatar_interaction_id, mode, persona_id,language_id)
+    session = await initialize_chat_session(db, avatar_interaction_id, mode, persona_id, language_id)
     
     # Return session information
     return {
