@@ -109,13 +109,13 @@ async def text_to_speech(
 ):
 
     speech_config_.speech_synthesis_voice_name = voice_id
-
+    print(voice_id)
     # Use default speaker output but capture the result
-    synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
-    start=datetime.now()
+    synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config_, audio_config=None)
+    start=datetime.datetime.now()
     print(start)
     result = synthesizer.speak_text_async(message).get()
-    print(datetime.now()-start)
+    print(datetime.datetime.now()-start)
     print(result)
     # if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
     return Response(
