@@ -254,7 +254,7 @@ async def serve_uploaded_file(
     file_type: str,
     filename: str,
     db: Any = Depends(get_database),
-    current_user: UserDB = Depends(get_current_user)
+    # current_user: UserDB = Depends(get_current_user)
 ):
     """Serve an uploaded file"""
     # Make sure this list includes "audio"

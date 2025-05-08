@@ -381,3 +381,47 @@ async def delete_user_scenario_assignment(
     success = await delete_scenario_assignment(db, user_id, scenario_id)
     
     return {"success": success}
+
+@router.put("/me/scenario/{scenario_id}/mode/{mode}/complete", response_model=Dict[str, bool])
+async def complete_scenario_mode(
+    scenario_id: UUID,
+    mode: ScenarioModeType,
+    completed: bool = Body(True, embed=True),
+    db: Any = Depends(get_database),
+    current_user: UserDB = Depends(get_current_user)
+):
+    """
+    Mark a specific mode of a scenario as completed or not completed
+    """
+    # Check if scenario and mode are assigned to user
+    assignment = await db.user_scenario_assignments.find_one({
+        "user_id": str(current_user.id),
+        "scenario_id": str(scenario_id)
+    })
+    
+    if not assignment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Scenario assignment not found"
+        )
+    
+    assigned_modes = assignment.get("assigned_modes", [])
+    if mode.value not in assigned_modes:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"The {mode.value} is not assigned to you for this scenario"
+        )
+    
+    # Update mode progress
+    progress = ModeProgressUpdate(completed=completed)
+    result = await update_mode_progress(db, current_user.id, scenario_id, mode, progress)
+    
+    if result:
+        # Check if completion triggered scenario completion
+        return {
+            "success": True, 
+            "completed": completed,
+            "scenario_completed": result.completed
+        }
+    
+    return {"success": False, "completed": completed, "scenario_completed": False}

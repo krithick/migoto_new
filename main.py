@@ -34,6 +34,7 @@ from core.scenario_assignment_router import router as scenario_assignment_router
 from core.module_assignment_router import router as module_assignment_router
 from core.speech import router as speech_router
 from core.file_upload import router as upload_router
+from core.course_assignment_router import router as course_assignment_router
 # from core.structure import router as new_router
 app = FastAPI(title="Role-Play Scenario Generator API",debug=True)
 app.include_router(user_router)
@@ -54,6 +55,7 @@ app.include_router(scenario_assignment_router)
 app.include_router(module_assignment_router)
 app.include_router(speech_router)
 app.include_router(upload_router)
+app.include_router(course_assignment_router)
 
 # app.include_router(new_router)
 

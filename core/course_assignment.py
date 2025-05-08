@@ -249,11 +249,13 @@ async def assign_course_with_content(
     db: Any,
     user_id: UUID,
     course_id: UUID,
+    current_user: Optional[UserDB],
     include_all_modules: bool = True,
     include_all_scenarios: bool = True,
     module_ids: List[UUID] = None,
     scenario_mapping: Dict[UUID, List[UUID]] = None,
-    mode_mapping: Dict[UUID, List[str]] = None
+    mode_mapping: Dict[UUID, List[str]] = None,
+    
 ) -> Dict[str, Any]:
     """
     Assign a course to a user, optionally with its modules and scenarios
@@ -275,10 +277,15 @@ async def assign_course_with_content(
     from core.scenario_assignment import bulk_create_scenario_assignments
     from models.module_assignment_models import BulkModuleAssignmentCreate
     from models.scenario_assignment_models import BulkScenarioAssignmentCreate, ScenarioModeType
-    
+    from core.user import get_user_by_id
     # Create course assignment
     course_assignment = await create_course_assignment(db, user_id, course_id)
-    
+    user = await get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Specified user does not exist"
+        )
     # Get course to find modules
     course = await db.courses.find_one({"_id": str(course_id)})
     if not course:
@@ -287,7 +294,10 @@ async def assign_course_with_content(
             "modules_assigned": 0,
             "scenarios_assigned": 0
         }
-    
+    await db.users.update_one(
+    {"_id": str(user_id)},
+    {"$addToSet": {"assigned_courses": str(user_id)}}
+)
     # Determine which modules to assign
     modules_to_assign = []
     if include_all_modules:
