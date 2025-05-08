@@ -6,9 +6,8 @@ from datetime import datetime
 
 from models.document_models import DocumentBase, DocumentCreate, DocumentResponse, DocumentDB
 from models.user_models import UserDB,UserRole
-
+from models.file_upload_models import FileType
 from core.user import get_current_user, get_admin_user, get_superadmin_user
-
 # Create router
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
@@ -319,3 +318,34 @@ async def delete_document_endpoint(
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
     return {"success": True}
+
+@router.post("/from-upload", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
+async def create_document_from_upload(
+    file_id: UUID = Body(...),
+    title: Optional[str] = Body(None),
+    description: Optional[str] = Body(None),
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """
+    Create a new document from an uploaded file
+    """
+    # Get the file upload
+    file_upload = await db.file_uploads.find_one({"_id": str(file_id)})
+    if not file_upload:
+        raise HTTPException(status_code=404, detail="File upload not found")
+    
+    # Verify it's a document file
+    if file_upload.get("file_type") != FileType.DOCUMENT.value:
+        raise HTTPException(status_code=400, detail="File upload is not a document")
+    
+    # Create document
+    document = DocumentCreate(
+        title=title or file_upload.get("original_filename"),
+        file_url=file_upload.get("live_url"),  # Use live URL for production
+        file_type=file_upload.get("mime_type"),
+        description=description or file_upload.get("description", ""),
+        thumbnail_url="/static/document_thumbnail.png"  # Default thumbnail
+    )
+    
+    return await create_document(db, document, admin_user.id)

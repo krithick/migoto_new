@@ -33,6 +33,7 @@ from scenario_generator import router as scenario_router_
 from core.scenario_assignment_router import router as scenario_assignment_router
 from core.module_assignment_router import router as module_assignment_router
 from core.speech import router as speech_router
+from core.file_upload import router as upload_router
 # from core.structure import router as new_router
 app = FastAPI(title="Role-Play Scenario Generator API",debug=True)
 app.include_router(user_router)
@@ -52,6 +53,7 @@ app.include_router(scenario_router_)
 app.include_router(scenario_assignment_router)
 app.include_router(module_assignment_router)
 app.include_router(speech_router)
+app.include_router(upload_router)
 
 # app.include_router(new_router)
 
@@ -343,6 +345,56 @@ async def migrate_course_assignments(db: Any):
     
     print(f"Migration complete. Processed {user_count} users and created {assignment_count} assignment records.")
 
+async def migrate_avatar_models(db: Any):
+    """
+    Update existing avatar documents to include new fields:
+    - fbx
+    - animation
+    - glb
+    - selected
+    """
+    db = db
+    
+    # Count avatars before migration
+    count_before = await db.avatars.count_documents({})
+    
+    # Update all avatars that don't have the new fields
+    update_result = await db.avatars.update_many(
+        {"fbx": {"$exists": False}},
+        {"$set": {"fbx": None}}
+    )
+    
+    update_result = await db.avatars.update_many(
+        {"animation": {"$exists": False}},
+        {"$set": {"animation": None}}
+    )
+    
+    update_result = await db.avatars.update_many(
+        {"glb": {"$exists": False}},
+        {"$set": {"glb": []}}
+    )
+    
+    update_result = await db.avatars.update_many(
+        {"selected": {"$exists": False}},
+        {"$set": {"selected": []}}
+    )
+    
+    # Count updated avatars
+    count_updated = 0
+    cursor = db.avatars.find({
+        "$and": [
+            {"fbx": {"$exists": True}},
+            {"animation": {"$exists": True}},
+            {"glb": {"$exists": True}},
+            {"selected": {"$exists": True}}
+        ]
+    })
+    
+    async for _ in cursor:
+        count_updated += 1
+    
+    print(f"Avatar migration completed. Found {count_before} avatars, updated to new schema: {count_updated}")
+    return count_updated
 # Example usage
 # import asyncio
 # asyncio.run(migrate_course_assignments(db))
@@ -351,8 +403,9 @@ async def startup_event():
     """
     Initialize bots when application starts
     """
-    await create_default_superadmin(db)
-    await migrate_course_assignments(db)
+    # await create_default_superadmin(db)
+    # await migrate_course_assignments(db)
+    await migrate_avatar_models(db)
     await bot_factory.initialize_bots()
     await bot_factory_analyser.initialize_bots_analyser()
 async def get_db():

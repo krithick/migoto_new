@@ -204,7 +204,30 @@ async def get_avatar_interaction(
                     environment_doc["id"] = environment_doc.pop("_id")
                     environment_objects.append(environment_doc)
             avatar_interaction["environments"] = environment_objects
-    
+        if "assigned_documents" in expand and "assigned_documents" in avatar_interaction:
+            document_ids = avatar_interaction["assigned_documents"]
+            document_objects = []
+            
+            for doc_id in document_ids:
+                doc = await db.documents.find_one({"_id": str(doc_id)})
+                if doc:
+                    doc["id"] = doc.pop("_id")
+                    document_objects.append(doc)
+            
+            avatar_interaction["assigned_documents"] = document_objects
+        
+        # Add expansion for assigned videos
+        if "assigned_videos" in expand and "assigned_videos" in avatar_interaction:
+            video_ids = avatar_interaction["assigned_videos"]
+            video_objects = []
+            
+            for vid_id in video_ids:
+                vid = await db.videos.find_one({"_id": str(vid_id)})
+                if vid:
+                    vid["id"] = vid.pop("_id")
+                    video_objects.append(vid)
+            
+            avatar_interaction["assigned_videos"] = video_objects    
     # Return the document
     return avatar_interaction
 #fixxx
@@ -576,3 +599,69 @@ async def delete_avatar_interaction_endpoint(
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Avatar interaction not found")
     return {"success": True}
+
+
+
+@router.put("/{avatar_interaction_id}/documents", response_model=dict)
+async def assign_documents(
+    avatar_interaction_id: UUID,
+    document_ids: List[UUID] = Body(...),
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """
+    Assign documents to an avatar interaction
+    """
+    # Get the avatar interaction
+    avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_interaction_id)})
+    if not avatar_interaction:
+        raise HTTPException(status_code=404, detail="Avatar interaction not found")
+    
+    # Verify all documents exist
+    for doc_id in document_ids:
+        doc = await db.documents.find_one({"_id": str(doc_id)})
+        if not doc:
+            raise HTTPException(status_code=400, detail=f"Document with ID {doc_id} not found")
+    
+    # Convert to strings for MongoDB
+    document_ids_str = [str(doc_id) for doc_id in document_ids]
+    
+    # Update the avatar interaction
+    await db.avatar_interactions.update_one(
+        {"_id": str(avatar_interaction_id)},
+        {"$set": {"assigned_documents": document_ids_str}}
+    )
+    
+    return {"success": True, "document_count": len(document_ids)}
+
+@router.put("/{avatar_interaction_id}/videos", response_model=dict)
+async def assign_videos(
+    avatar_interaction_id: UUID,
+    video_ids: List[UUID] = Body(...),
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """
+    Assign videos to an avatar interaction
+    """
+    # Get the avatar interaction
+    avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_interaction_id)})
+    if not avatar_interaction:
+        raise HTTPException(status_code=404, detail="Avatar interaction not found")
+    
+    # Verify all videos exist
+    for vid_id in video_ids:
+        vid = await db.videos.find_one({"_id": str(vid_id)})
+        if not vid:
+            raise HTTPException(status_code=400, detail=f"Video with ID {vid_id} not found")
+    
+    # Convert to strings for MongoDB
+    video_ids_str = [str(vid_id) for vid_id in video_ids]
+    
+    # Update the avatar interaction
+    await db.avatar_interactions.update_one(
+        {"_id": str(avatar_interaction_id)},
+        {"$set": {"assigned_videos": video_ids_str}}
+    )
+    
+    return {"success": True, "video_count": len(video_ids)}

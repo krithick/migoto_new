@@ -9,7 +9,7 @@ from models.video_models import (
      
 )
 from models.user_models import UserDB ,UserRole
-
+from models.file_upload_models import FileType
 from core.user import get_current_user, get_admin_user, get_superadmin_user
 
 # Create router
@@ -290,3 +290,36 @@ async def delete_video_endpoint(
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video not found")
     return {"success": True}
+
+
+@router.post("/from-upload", response_model=VideoResponse, status_code=status.HTTP_201_CREATED)
+async def create_video_from_upload(
+    file_id: UUID = Body(...),
+    title: Optional[str] = Body(None),
+    description: Optional[str] = Body(None),
+    duration: Optional[int] = Body(None),
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """
+    Create a new video from an uploaded file
+    """
+    # Get the file upload
+    file_upload = await db.file_uploads.find_one({"_id": str(file_id)})
+    if not file_upload:
+        raise HTTPException(status_code=404, detail="File upload not found")
+    
+    # Verify it's a video file
+    if file_upload.get("file_type") != FileType.VIDEO.value:
+        raise HTTPException(status_code=400, detail="File upload is not a video")
+    
+    # Create video
+    video = VideoCreate(
+        title=title or file_upload.get("original_filename"),
+        url=file_upload.get("live_url"),  # Use live URL for production
+        description=description or file_upload.get("description", ""),
+        duration=duration,  # Optional duration in seconds
+        thumbnail_url="/static/video_thumbnail.png"  # Default thumbnail
+    )
+    
+    return await create_video(db, video, admin_user.id)

@@ -3,7 +3,7 @@ from typing import List, Optional, Dict, Any
 from uuid import UUID
 from datetime import datetime
 
-from models.avatar_models import  AvatarBase, AvatarCreate, AvatarResponse, AvatarDB
+from models.avatar_models import  AvatarBase, AvatarCreate, AvatarResponse, AvatarDB , AvatarGLBFile ,AvatarSelectedComponent
 from models.user_models import UserDB ,UserRole
 
 from core.user import get_current_user, get_admin_user, get_superadmin_user
@@ -59,9 +59,7 @@ async def create_avatar(
     avatar: AvatarCreate, 
     created_by: UUID
 ) -> AvatarDB:
-    """
-    Create a new avatar (admin/superadmin only)
-    """
+    """Create a new avatar"""
     # Create AvatarDB model
     avatar_db = AvatarDB(
         **avatar.dict(),
@@ -82,12 +80,28 @@ async def create_avatar(
         avatar_dict["created_by"] = str(avatar_dict["created_by"])
     
     # for "persona_id" in avatar    
-    if "persona_id" in avatar_dict:
+    if "persona_id" in avatar_dict and avatar_dict["persona_id"]:
         avatar_dict["persona_id"] = [str(persona_id) for persona_id in avatar_dict["persona_id"]]
+    
+    # Handle GLB files
+    if "glb" in avatar_dict and avatar_dict["glb"]:
+        # Check if we need to convert to dict
+        if hasattr(avatar_dict["glb"][0], 'dict'):
+            # These are Pydantic objects, convert to dict
+            avatar_dict["glb"] = [glb_file.dict() for glb_file in avatar_dict["glb"]]
+    
+    # Handle selected components
+    if "selected" in avatar_dict and avatar_dict["selected"]:
+        # Check if we need to convert to dict
+        if hasattr(avatar_dict["selected"][0], 'dict'):
+            # These are Pydantic objects, convert to dict
+            avatar_dict["selected"] = [comp.dict() for comp in avatar_dict["selected"]]
+    
     result = await db.avatars.insert_one(avatar_dict)
     created_avatar = await db.avatars.find_one({"_id": str(result.inserted_id)})
     
     return AvatarDB(**created_avatar)
+
 
 async def update_avatar(
     db: Any, 
@@ -96,14 +110,14 @@ async def update_avatar(
     updated_by: UUID
 ) -> Optional[AvatarDB]:
     """
-    Update an avatar with permission checks
+    Update an avatar with 3D model information
     """
-    # Get the avatar to update - use string representation
+    # Get the avatar to update
     avatar = await db.avatars.find_one({"_id": str(avatar_id)})
     if not avatar:
         return None
     
-    # Get the user making the update - use string representation
+    # Get the user making the update
     updater = await db.users.find_one({"_id": str(updated_by)})
     if not updater:
         return None
@@ -111,7 +125,7 @@ async def update_avatar(
     # Convert updater to UserDB for role checking
     updater = UserDB(**updater)
     
-    # Check permissions - compare string representations
+    # Check permissions
     if updater.role == UserRole.ADMIN:
         # Admin can only update avatars they created
         if avatar.get("created_by") != str(updated_by):
@@ -129,7 +143,11 @@ async def update_avatar(
     # Add updated timestamp
     avatar_updates["updated_at"] = datetime.now()
     
-    # Update in database - use string representation
+    # Convert persona_id to string list if present
+    if "persona_id" in avatar_updates and avatar_updates["persona_id"]:
+        avatar_updates["persona_id"] = [str(persona_id) for persona_id in avatar_updates["persona_id"]]
+    
+    # Update in database
     await db.avatars.update_one(
         {"_id": str(avatar_id)},
         {"$set": avatar_updates}
@@ -254,3 +272,108 @@ async def delete_avatar_endpoint(
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Avatar not found")
     return {"success": True}
+
+
+
+@router.put("/{avatar_id}/model-files", response_model=AvatarResponse)
+async def update_avatar_model_files(
+    avatar_id: UUID,
+    fbx: Optional[str] = Body(None),
+    animation: Optional[str] = Body(None),
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """
+    Update avatar model files (FBX, Animation)
+    """
+    # Get the avatar
+    avatar = await db.avatars.find_one({"_id": str(avatar_id)})
+    if not avatar:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+    
+    # Prepare update data
+    update_data = {}
+    if fbx is not None:
+        update_data["fbx"] = fbx
+    if animation is not None:
+        update_data["animation"] = animation
+    
+    # Update the avatar
+    if update_data:
+        update_data["updated_at"] = datetime.now()
+        await db.avatars.update_one(
+            {"_id": str(avatar_id)},
+            {"$set": update_data}
+        )
+    
+    # Return updated avatar
+    updated_avatar = await db.avatars.find_one({"_id": str(avatar_id)})
+    return AvatarDB(**updated_avatar)
+
+@router.post("/{avatar_id}/glb", response_model=AvatarResponse)
+async def add_glb_file(
+    avatar_id: UUID,
+    glb_file: AvatarGLBFile,
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """
+    Add a GLB file to an avatar
+    """
+    # Get the avatar
+    avatar = await db.avatars.find_one({"_id": str(avatar_id)})
+    if not avatar:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+    
+    # Check if GLB with same name already exists
+    glb_files = avatar.get("glb", [])
+    for glb in glb_files:
+        if glb.get("name") == glb_file.name:
+            raise HTTPException(status_code=400, detail=f"GLB file with name '{glb_file.name}' already exists")
+    
+    # Add the GLB file
+    await db.avatars.update_one(
+        {"_id": str(avatar_id)},
+        {
+            "$push": {"glb": glb_file.dict()},
+            "$set": {"updated_at": datetime.now()}
+        }
+    )
+    
+    # Return updated avatar
+    updated_avatar = await db.avatars.find_one({"_id": str(avatar_id)})
+    return AvatarDB(**updated_avatar)
+
+
+@router.put("/{avatar_id}/selected", response_model=AvatarResponse)
+async def update_selected_components(
+    avatar_id: UUID,
+    selected: List[AvatarSelectedComponent],
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """
+    Update selected components for an avatar
+    """
+    # Get the avatar
+    avatar = await db.avatars.find_one({"_id": str(avatar_id)})
+    if not avatar:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+    
+    # Convert selected components to dict
+    selected_dict = [comp.dict() for comp in selected]
+    
+    # Update selected components
+    await db.avatars.update_one(
+        {"_id": str(avatar_id)},
+        {
+            "$set": {
+                "selected": selected_dict,
+                "updated_at": datetime.now()
+            }
+        }
+    )
+    
+    # Return updated avatar
+    updated_avatar = await db.avatars.find_one({"_id": str(avatar_id)})
+    return AvatarDB(**updated_avatar)

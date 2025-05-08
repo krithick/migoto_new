@@ -26,6 +26,8 @@ class AvatarInteractionBase(BaseModel):
     layout: int
     # scenario_id :UUID
     mode: AvatarInteractionType
+    assigned_documents: List[UUID] = Field(default_factory=list)
+    assigned_videos: List[UUID] = Field(default_factory=list)
     @field_validator('mode', mode='before')
     @classmethod
     def validate_mode(cls, v):
