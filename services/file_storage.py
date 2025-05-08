@@ -165,5 +165,5 @@ class FileStorageService:
 file_storage_service = FileStorageService(
     base_upload_dir=os.environ.get("UPLOAD_DIR", "uploads"),
     local_url_prefix=os.environ.get("LOCAL_URL_PREFIX", "http://localhost:8000/uploads"),
-    live_url_prefix=os.environ.get("LIVE_URL_PREFIX", "https://meta.novactech.in:7445")
+    live_url_prefix=os.environ.get("LIVE_URL_PREFIX", "https://meta.novactech.in:7445/uploads")
 )
