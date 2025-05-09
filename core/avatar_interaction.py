@@ -525,19 +525,7 @@ async def get_avatar_interactions_by_environment_endpoint(
     """
     return await get_avatar_interactions_by_environment(db, environment_id, skip, limit, current_user)
 
-# @router.get("/{avatar_interaction_id}", response_model=AvatarInteractionResponse)
-# async def get_avatar_interaction_endpoint(
-#     avatar_interaction_id: UUID,
-#     db: Any = Depends(get_database),
-#     current_user: UserDB = Depends(get_current_user)
-# ):
-#     """
-#     Get a specific avatar interaction by ID
-#     """
-#     avatar_interaction = await get_avatar_interaction(db, avatar_interaction_id, current_user)
-#     if not avatar_interaction:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Avatar interaction not found")
-#     return avatar_interaction
+
 @router.get("/{avatar_interaction_id}", response_model=None)
 async def get_avatar_interaction_endpoint(
     avatar_interaction_id: UUID,

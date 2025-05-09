@@ -429,99 +429,115 @@ class BaseAnalyserBot(ABC):
             print(f"Error initializing LLM for {config.bot_name}: {e}")
             raise
 
-    def _create_analysis_prompt(self, conversation: str) -> str:
+    def _create_analysis_prompt(self, conversation: str,scenario_title: str,scenario_description: str,ai_role: str,key_metrics: str,additional_context: str) -> str:
         print(self.bot_name)
         """Create the analysis prompt for Gemini."""
-        prompt = fprompt = f"""
- # Bank Scheme Recommendation Evaluation Framework
+        prompt  = f"""
+Conversation Quality Analysis Framework
+Purpose
+Evaluate the quality and effectiveness of conversations between an AI/bot and users, covering various roles and interaction types - including advisory, informational, transactional, collaborative, or any other conversational scenario across any domain.
+Input Requirements
 
-## Purpose
-Evaluate bank representatives' performance when discussing current account options with customers, with specific focus on whether they correctly recommend the designated optimal scheme and how effectively they communicate its benefits.
-
-## Input Requirements
-- **Correct Scheme**: {self.bot_name}
+Scenario Title: {scenario_title}
+Scenario Description: {scenario_description}
+AI/Bot Role: {ai_role}
+Key Success Metrics: {key_metrics}
 - **Conversation Transcript**: {conversation}
 
-## Evaluation Process
+Evaluation Process
+Step 1: Conversation Context Identification
 
-### Step 1: Persona Identification
-- Analyze the conversation to identify the customer's profile and needs
-- Determine the customer persona based on details shared about:
-  - Business type and size
-  - Banking needs and priorities
-  - Financial situation
-  - Growth stage and aspirations
-  - Transaction patterns
+Analyze the conversation to identify the purpose and nature of the interaction
+Determine the specific context, topics, and dynamics of the conversation
+Identify the roles adopted by both the AI/bot and the user during the exchange
 
-### Step 2: Scheme Recommendation Assessment
-- Identify which scheme(s) the bank representative recommended
-- Compare against the provided "correct scheme" that should have been recommended
-- Evaluate the alignment between the customer's derived persona and the recommended scheme
+Step 2: Interaction Assessment
 
-### Step 3: Comprehensive Evaluation
+Evaluate how effectively the AI/bot fulfilled its intended role in the conversation
+Assess the appropriateness of responses given the specified scenario and role
+Analyze how well the conversation progressed and evolved throughout the exchange
+
+Step 3: Comprehensive Evaluation
 Assess the following dimensions:
+1. Role Fulfillment (0-10)
 
-#### 1. Scheme Recommendation Accuracy (0-10)
-- Was the correct scheme recommended? (Yes/No)
-- How well did the representative explain why this scheme fits the customer's needs?
-- If multiple schemes were discussed, was appropriate reasoning provided?
-- Was the recommendation proactive or only after specific questioning?
+Did the AI/bot effectively fulfill its intended role in the conversation? (Yes/No)
+How well did the AI/bot accomplish the objectives appropriate to its role?
+Did the conversation achieve its intended purpose?
+Was the AI/bot appropriately proactive or reactive based on its role?
 
-#### 2. Scheme Knowledge Accuracy (0-10)
-- Were all key features of the scheme accurately described?
-- Were the scheme benefits connected to the specific customer's needs?
-- Were limitations or conditions transparently disclosed?
-- Were all stated facts correct when compared to reference materials?
+2. Knowledge & Accuracy (0-10)
 
-#### 3. Response Quality (0-10)
-- How effectively were specific questions about the scheme answered?
-- Was the appropriate level of detail provided?
-- Was information presented in clear, easy-to-understand language?
-- Were all aspects of customer inquiries addressed fully?
+Were all key facts and information accurately presented?
+Were explanations comprehensive and correct?
+Were appropriate resources or references provided when needed?
+Were limitations or uncertainties transparently disclosed?
 
-#### 4. Customer Experience (0-10)
-- How well was the scheme presentation tailored to the customer's specific situation?
-- Did the representative ask questions to understand needs before recommending?
-- Did the representative demonstrate patience in explaining scheme details?
-- Was empathy shown regarding the customer's business context?
+3. Communication Quality (0-10)
+
+How clear and understandable were the responses?
+Was an appropriate level of detail provided?
+How well-structured and organized was the information?
+Were complex concepts explained effectively?
+
+4. Conversation Quality (0-10)
+
+How natural and appropriate was the flow of the conversation?
+Did both participants engage effectively in the exchange?
+Was an appropriate tone maintained throughout the conversation?
+How efficiently and coherently was the conversation conducted?
+
+Step 4: Improvement Analysis
+
+Identify specific moments where alternative responses would have improved the interaction
+Analyze missed opportunities for providing additional value
+Evaluate the conversation flow for potential optimization
 
 ## Output Format
 ```json
 {{
-  "session_id:"sessionID",
-  "conversation_id":"conversation_id",
+  "session_id": "sessionID",
+  "conversation_id": "conversationID",
   "evaluation_meta": {{
-    "derived_customer_persona": "Detailed description of customer persona identified from conversation",
-    "correct_scheme": "Scheme name that should have been recommended (from input)",
-    "recommended_scheme": "Scheme(s) actually recommended by representative"
+    "scenario_title": "Title describing the conversation scenario",
+    "ai_role": "Description of the AI/bot's role in this conversation",
+    "conversation_purpose": "Identified purpose and context of the conversation",
+    "conversation_dynamics": "Analysis of key interaction patterns observed"
   }},
-  "recommendation_accuracy": {{
-    "correct_scheme_recommended": "true/false",
+  "role_fulfillment": {{
+    "role_effectively_fulfilled": true,
     "score": 0,
-    "notes": "Specific observations about recommendation accuracy"
+    "notes": "Specific observations about role fulfillment"
   }},
-  "scheme_presentation": {{
-    "feature_accuracy_score": 0,
-    "benefit_alignment_score": 0,
-    "transparency_score": 0,
+  "knowledge_quality": {{
+    "accuracy_score": 0,
+    "comprehensiveness_score": 0,
+    "relevance_score": 0,
     "overall_score": 0,
-    "key_features_covered": [
-      "Feature 1",
-      "Feature 2"
+    "key_information_provided": [
+      "Information 1",
+      "Information 2"
     ],
-    "key_features_missed": [
-      "Missing feature 1",
-      "Missing feature 2"
+    "key_information_missed": [
+      "Missing information 1",
+      "Missing information 2"
     ]
   }},
   "communication_quality": {{
     "clarity_score": 0, 
-    "completeness_score": 0,
-    "responsiveness_score": 0,
+    "structure_score": 0,
+    "appropriateness_score": 0,
+    "overall_score": 0
+  }},
+  "conversation_quality": {{
+    "flow_score": 0,
+    "coherence_score": 0,
+    "engagement_score": 0,
     "overall_score": 0
   }},
   "overall_evaluation": {{
-    "total_score": 0,
+    "total_raw_score": 0,
+    "total_percentage_score": 0,
     "performance_category": "Exceptional/Strong/Adequate/Needs Improvement/Poor",
     "strengths": [
       "Specific strength 1",
@@ -538,31 +554,70 @@ Assess the following dimensions:
   }},
   "recommendations": [
     "Specific actionable recommendation 1",
-    "Specific actionable recommendation 2"
-  ]
+    "Specific actionable recommendation 2",
+    "Specific actionable recommendation 3"
+  ],
+  "timestamp": "2025-05-09T12:34:56.789Z"
 }}
 ```
 
-## Scoring Guidelines
-- **Exceptional (85-100%)**: Perfect or near-perfect recommendation with comprehensive, accurate explanations aligned to customer needs
-- **Strong (70-84%)**: Correct recommendation with good explanations and minor omissions
-- **Adequate (55-69%)**: Correct recommendation but with notable gaps in explanation or alignment
-- **Needs Improvement (40-54%)**: Incorrect recommendation but with some redeeming qualities in communication
-- **Poor (0-39%)**: Incorrect recommendation with significant gaps in knowledge and communication
+Corporate Assessment Application
+This framework is specifically designed to be applicable in corporate settings for:
 
-## Usage Instructions
-1. Provide the conversation transcript and the name of the correct scheme
-2. The evaluation will first identify the customer persona from the conversation
-3. Then assess whether the correct scheme was recommended
-4. Evaluate how well the scheme was presented and explained
-5. Generate detailed feedback and scoring
-6. Output results in the specified JSON format
+Customer service quality evaluation
+Sales conversation assessments
+Internal communication analysis
+Training and onboarding conversation review
+Compliance verification in regulated communications
+Performance reviews of AI/human representatives
 
-here is some context about the {self.bot_name} scheme to check verify the conversation with 
-{self.system_prompt}
+When used in corporate environments, evaluators can:
 
-Make sure the answers given by the bank employee is correct and assess the marks accordingly 
- """
+Compare scores against established benchmarks
+Track improvement over time using consistent metrics
+Identify training opportunities based on specific gaps
+Document compliance with communication standards
+Generate evidence-based performance reports
+
+Scoring Calculation
+The total score out of 100 is calculated as follows:
+
+Each of the four main evaluation dimensions is scored on a scale of 0-10:
+
+Role Fulfillment (0-10)
+Knowledge & Accuracy (0-10)
+Communication Quality (0-10)
+Conversation Quality (0-10)
+
+
+For each dimension, the sub-scores are averaged to create the dimension score.
+The total raw score is the sum of all four dimension scores (maximum of 40 points).
+This raw score is then converted to a percentage by multiplying by 2.5:
+Total Score (out of 100) = Sum of all dimension scores × 2.5
+
+This percentage score maps to performance categories as follows:
+
+85-100: Exceptional
+70-84: Strong
+55-69: Adequate
+40-54: Needs Improvement
+0-39: Poor
+
+
+
+Usage Instructions
+
+Provide the scenario title, description, AI/bot role, key metrics, and conversation transcript
+The evaluation will first identify the conversation context and dynamics
+Then assess how effectively the AI/bot fulfilled its intended role
+Evaluate the quality of information, communication, and overall conversation
+Generate detailed feedback and scoring
+Output results in the specified JSON format
+
+Additional Context (Optional)
+{additional_context}
+Ensure the evaluation is objective, constructive, and focused on actionable insights that can improve future conversations.
+"""
         
         # prompt=f"""{self.system_prompt} """
         print(prompt)
@@ -587,7 +642,7 @@ Make sure the answers given by the bank employee is correct and assess the marks
             
         return "\n".join(formatted_conversation)
     
-    async def analyze_conversation(self, conversation_data: dict) :
+    async def analyze_conversation(self, conversation_data: dict,interaction_details: dict,scenario_name:str) :
         """
         Analyze a conversation using Gemini and return structured feedback.
         
@@ -606,7 +661,9 @@ Make sure the answers given by the bank employee is correct and assess the marks
             formatted_conversation = self._format_conversation_for_analysis(conversation_data)
             contents = []
             # Create the analysis prompt
-            prompt = self._create_analysis_prompt(formatted_conversation)
+            
+            prompt = self._create_analysis_prompt(formatted_conversation,scenario_title=scenario_name,
+                                                  scenario_description="",ai_role=interaction_details["bot_role"],key_metrics="",additional_context="")
             content = {
                 "role": "system",
                 "content": prompt

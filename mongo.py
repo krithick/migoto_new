@@ -85,14 +85,14 @@ class MongoDB:
     
     # get sessions raw
     async def get_session_raw(self, session_id: str) -> Optional[ChatSession]:
-        session_data = await self.sessions.find_one({"session_id": session_id})
+        session_data = await self.sessions.find_one({"_id": str(session_id)})
         if session_data:
             return session_data
         return None
     
     # get session analysis for evaluation
     async def get_session_analysis(self, session_id: str) -> Optional[ChatSession]:
-        session_data = await self.analysis.find_one({"session_id": session_id})
+        session_data = await self.analysis.find_one({"_id": str(session_id)})
         if session_data:
             return Evaluation(**session_data)
         return None

@@ -9,7 +9,7 @@ from pydantic import BaseModel,Field
 from typing import Dict, List, Optional
 from datetime import datetime
 
-
+from uuid import UUID , uuid4
 
 # FastAPI Models
 class Message(BaseModel):
@@ -19,7 +19,7 @@ class Message(BaseModel):
     usage: Optional[dict] = None
 
 class ChatSession(BaseModel):
-    _id: str
+    id: UUID = Field(default_factory=uuid4, alias="_id")
     extra: str
     session_id: str
     scenario_name: str
@@ -92,12 +92,12 @@ class BotConfigAnalyser(BaseModel):
     bot_id: str
     bot_name: str
     bot_description: str
-    bot_schema:dict
+    bot_schema:str
     system_prompt:str
     is_active: bool = True
     llm_model:str
     instructions:str
-    responseFormat:dict
+    responseFormat:str
     guidelines:str
 
 class Children(BaseModel):

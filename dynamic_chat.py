@@ -305,7 +305,7 @@ async def initialize_chat_session(
     
     session_id = str(uuid4())
     session = ChatSession(
-        _id=session_id,
+        # _id=session_id,
         extra=str(uuid4()),
         session_id=session_id,
         scenario_name=scenario_name,
@@ -322,9 +322,11 @@ async def initialize_chat_session(
         created_at=datetime.now(),
         last_updated=datetime.now()
     )
-    
+    session_dict = session.dict(by_alias=True)
+    if "_id" in session_dict:
+        session_dict["_id"] = str(session_dict["_id"])    
     # Save to database
-    await db.sessions.insert_one(session.dict())
+    await db.sessions.insert_one(session_dict)
     
     return session
 

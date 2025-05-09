@@ -237,17 +237,20 @@ app.add_middleware(
 ##################
 #####CHAT
 ######
-from models_old import BotConfig,BotConfigAnalyser,ChatReport,ChatRequest,ChatResponse,ChatSession,Message ,ChatReport_,Evaluation
+from models_old import BotConfig,BotConfigAnalyser,ChatReport,ChatRequest,ChatResponse,ChatSession,Message ,ChatReport_
 from factory import DynamicBotFactory
 from pydantic import BaseModel
 from uuid import uuid4
 import datetime
 from jose import jwt, JWTError
 from passlib.context import CryptContext
+from core.avatar_interaction import get_avatar_interaction
+from core.user import get_current_user
+from models.evaluation_models import Evaluation
 MONGO_URL = os.getenv("MONGO_URL")
 DATABASE_NAME = os.getenv("DATABASE_NAME")
 db = MongoDB(MONGO_URL,DATABASE_NAME)
-
+import json
 # Create bot factory
 bot_factory = DynamicBotFactory(
     mongodb_uri=os.getenv("MONGO_URL"), 
@@ -407,7 +410,7 @@ async def startup_event():
     """
     # await create_default_superadmin(db)
     # await migrate_course_assignments(db)
-    await migrate_avatar_models(db)
+    # await migrate_avatar_models(db)
     await bot_factory.initialize_bots()
     await bot_factory_analyser.initialize_bots_analyser()
 async def get_db():
@@ -426,7 +429,113 @@ def replace(original_text,your_text):
     return original_text
 
 #
+@app.post("/createBotAnalyser")
+async def createBotAnalyser(
+    bot_name: str=Form(default=None),
+    bot_description: str=Form(default=None),
+    bot_schema:str=Form(default=None),
+    system_prompt: str=Form(default=None),
+    is_active: bool = Form(default=True),
+    llm_model: str=Form(default='gemini-1.5-flash-002'),
+    instructions:str=Form(default=''),
+    responseFormat:str=Form(default=None),
+    guidelines:str=Form(default='')):
+    test="json.loads(bot_schema)"
+    ints="json.loads(responseFormat)"
+    bot_ = BotConfigAnalyser(bot_id=str(uuid.uuid4()),
+                    bot_name=bot_name,
+                    bot_description=bot_description,
+                    bot_schema=test,
+                    system_prompt=system_prompt,
+                    is_active=is_active,
+                    llm_model=llm_model,
+                    instructions=instructions,
+                    responseFormat=ints,
+                    guidelines=guidelines)
+    await db.create_bot_analyser(bot_)
+    await bot_factory_analyser.initialize_bots_analyser()
+    return bot_
+ 
+@app.put("/updateBotAnalyser/{bot_id}")
+async def updateBotAnalyser(
+    bot_id: str,
+    bot_name: str = Form(default=None),
+    bot_description: str = Form(default=None),
+    bot_schema: str = Form(default=None),
+    system_prompt: str = Form(default=None),
+    is_active: bool = Form(default=True),
+    llm_model: str = Form(default='gemini-1.5-flash-002'),
+    instructions: str = Form(default=''),
+    responseFormat: str = Form(default=None),
+    guidelines: str = Form(default='')
+):
+    # Parse JSON strings to Python dictionaries
+    schema = json.loads(bot_schema) if bot_schema else None
+    response_format = json.loads(responseFormat) if responseFormat else None
+    
+    # Create updated bot object
+    updated_bot = BotConfigAnalyser(
+        bot_id=bot_id,
+        bot_name=bot_name,
+        bot_description=bot_description,
+        bot_schema=schema,
+        system_prompt=system_prompt,
+        is_active=is_active,
+        llm_model=llm_model,
+        instructions=instructions,
+        responseFormat=response_format,
+        guidelines=guidelines
+    )
+    
+    # Update in database
+    result = await db.update_bot_analyser(bot_id, updated_bot)
+    
+    # Reinitialize bots after update
+    await bot_factory_analyser.initialize_bots_analyser()
+    
+    if result:
+        return updated_bot
+    else:
+        raise HTTPException(status_code=404, detail=f"Bot with ID {bot_id} not found")
 
+@app.get("/getBotAnalysers")
+async def getBotAnalysers():
+    bots = await db.get_all_bot_analysers()
+    return bots
+@app.get("/sessionAnalyser/{session_id}")
+    
+async def get_session_analysis(
+    session_id: str,
+    db: MongoDB = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user)
+):
+    session2 = await db.get_session_raw(session_id)
+    analysis= await db.get_session_analysis(session_id)
+    print(analysis)
+    if not session2:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if not analysis:
+    # Access the conversation_history
+        conversation_history = session2['conversation_history']
+
+        conversation = {"conversation_history":conversation_history}
+
+        scenario_name= "To Analyze chats"
+        print("scenario name ",scenario_name)
+        analyzer= await bot_factory_analyser.get_bot_analyser(scenario_name)
+        interaction_details=  await get_avatar_interaction(db,session2['avatar_interaction'],current_user)
+        print(interaction_details)
+        results =await analyzer.analyze_conversation(conversation,interaction_details,session2["scenario_name"])
+        results['session_id']=session2['session_id']
+        results['conversation_id']=str(uuid.uuid4())
+        results['timestamp']=datetime.datetime.now()
+        # category_scores=results['category_scores']
+        # # results['overall_score']=category_scores['language_and_communication']+category_scores['product_knowledge']+category_scores['empathy_and_trust']+category_scores['process_clarity']+category_scores['product_suitability']
+        report = Evaluation(**results)
+        model= await db.create_conversation_analysis(report)
+        return results
+        # return results
+    return analysis
 
 # 
 if __name__ == "__main__":

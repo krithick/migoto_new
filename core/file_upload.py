@@ -220,35 +220,7 @@ async def delete_file_upload_endpoint(
     
     return {"success": True}
 
-# Serve uploaded files
-# @router.get("/{file_type}/{filename}")
-# async def serve_uploaded_file(
-#     file_type: str,
-#     filename: str,
-#     db: Any = Depends(get_database),
-#     current_user: UserDB = Depends(get_current_user)
-# ):
-#     """Serve an uploaded file"""
-#     # Validate file type
-#     if file_type not in [ft.value for ft in FileType]:
-#         raise HTTPException(status_code=400, detail="Invalid file type")
-    
-#     # Check if file exists
-#     file_path = os.path.join(UPLOAD_DIR, file_type, filename)
-#     if not os.path.exists(file_path):
-#         raise HTTPException(status_code=404, detail="File not found")
-    
-#     # Determine content type
-#     content_type, _ = mimetypes.guess_type(file_path)
-#     if not content_type:
-#         content_type = "application/octet-stream"
-    
-#     # Serve file
-#     return FileResponse(
-#         path=file_path,
-#         media_type=content_type,
-#         filename=filename  # This sets the Content-Disposition header
-#     )
+
 @router.get("/{file_type}/{filename}")
 async def serve_uploaded_file(
     file_type: str,
