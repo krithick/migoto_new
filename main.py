@@ -35,6 +35,7 @@ from core.module_assignment_router import router as module_assignment_router
 from core.speech import router as speech_router
 from core.file_upload import router as upload_router
 from core.course_assignment_router import router as course_assignment_router
+from core.analysis_report import router as analysis_report_router
 # from core.structure import router as new_router
 app = FastAPI(title="Role-Play Scenario Generator API",debug=True)
 app.include_router(user_router)
@@ -56,6 +57,7 @@ app.include_router(module_assignment_router)
 app.include_router(speech_router)
 app.include_router(upload_router)
 app.include_router(course_assignment_router)
+app.include_router(analysis_report_router)
 
 # app.include_router(new_router)
 
@@ -237,7 +239,7 @@ app.add_middleware(
 ##################
 #####CHAT
 ######
-from models_old import BotConfig,BotConfigAnalyser,ChatReport,ChatRequest,ChatResponse,ChatSession,Message ,ChatReport_
+from models_old import BotConfig,BotConfigAnalyser
 from factory import DynamicBotFactory
 from pydantic import BaseModel
 from uuid import uuid4
@@ -505,13 +507,12 @@ async def getBotAnalysers():
 @app.get("/sessionAnalyser/{session_id}")
     
 async def get_session_analysis(
-    session_id: str,
+    id: str,
     db: MongoDB = Depends(get_db),
     current_user: UserDB = Depends(get_current_user)
 ):
-    session2 = await db.get_session_raw(session_id)
-    analysis= await db.get_session_analysis(session_id)
-    print(analysis)
+    session2 = await db.get_session_raw(id)
+    analysis= await db.get_session_analysis(id)
     if not session2:
         raise HTTPException(status_code=404, detail="Session not found")
     if not analysis:
@@ -521,18 +522,21 @@ async def get_session_analysis(
         conversation = {"conversation_history":conversation_history}
 
         scenario_name= "To Analyze chats"
-        print("scenario name ",scenario_name)
         analyzer= await bot_factory_analyser.get_bot_analyser(scenario_name)
         interaction_details=  await get_avatar_interaction(db,session2['avatar_interaction'],current_user)
-        print(interaction_details)
         results =await analyzer.analyze_conversation(conversation,interaction_details,session2["scenario_name"])
-        results['session_id']=session2['session_id']
+        results['session_id']=str(session2["_id"])
+        results['user_id']=str(session2["user_id"])
         results['conversation_id']=str(uuid.uuid4())
         results['timestamp']=datetime.datetime.now()
         # category_scores=results['category_scores']
         # # results['overall_score']=category_scores['language_and_communication']+category_scores['product_knowledge']+category_scores['empathy_and_trust']+category_scores['process_clarity']+category_scores['product_suitability']
         report = Evaluation(**results)
-        model= await db.create_conversation_analysis(report)
+        session_dict = report.dict(by_alias=True)
+        if "_id" in session_dict:
+            session_dict["_id"] = str(session_dict["_id"])    
+    # Save to database
+        await db.analysis.insert_one(session_dict)
         return results
         # return results
     return analysis

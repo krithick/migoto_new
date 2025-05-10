@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
-
+from uuid import UUID, uuid4
 
 class EvaluationMeta(BaseModel):
     scenario_title: str
@@ -50,6 +50,8 @@ class OverallEvaluation(BaseModel):
 
 class Evaluation(BaseModel):
     """Main model for storing conversation analysis results in the database"""
+    id: UUID = Field(default_factory=uuid4, alias="_id")
+    user_id:str
     session_id: str
     conversation_id: str
     evaluation_meta: EvaluationMeta

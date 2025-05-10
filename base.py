@@ -15,7 +15,7 @@ import json
 
 from dotenv import load_dotenv
 
-from models_old import BotConfig,BotConfigAnalyser,ChatReport,ChatRequest,ChatResponse,ChatSession,Message 
+from models_old import BotConfig,BotConfigAnalyser,Message 
 from typing import Optional, List
 from fastapi import HTTPException, UploadFile
 from pydantic import BaseModel, Field
@@ -620,7 +620,7 @@ Ensure the evaluation is objective, constructive, and focused on actionable insi
 """
         
         # prompt=f"""{self.system_prompt} """
-        print(prompt)
+        # print(prompt)
         return prompt
 
     def _format_conversation_for_analysis(self, conversation_data: dict) -> str:
@@ -680,10 +680,10 @@ Ensure the evaluation is objective, constructive, and focused on actionable insi
                 # stream=True,
                 # stream_options={"include_usage": True}
             )
-            print(response.choices[0].message.content)
+            # print(response.choices[0].message.content)
             # # Clean and parse the response
             cleaned_json_text = self._clean_gemini_response(response.choices[0].message.content)
-            print(cleaned_json_text)
+            # print(cleaned_json_text)
             try:
                 analysis_result = json.loads(cleaned_json_text)
             except json.JSONDecodeError:

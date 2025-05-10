@@ -29,7 +29,8 @@ from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.responses import StreamingResponse
 import io
 import asyncio
-from models_old import BotConfig,BotConfigAnalyser,ChatReport,ChatRequest,ChatResponse,ChatSession,Message ,ChatReport_,Evaluation
+from models_old import BotConfig,BotConfigAnalyser,ChatReport,ChatSession,Message ,ChatReport_
+from models.evaluation_models import Evaluation
 # Any helper class
 
 class MongoDB:
@@ -70,7 +71,10 @@ class MongoDB:
     
     # for evaluation 
     async def create_conversation_analysis(self,report:ChatReport) -> str:
-        await self.analysis.insert_one(report.dict())
+        reprot_dict=report.dict()
+        if "_id" in reprot_dict:
+            reprot_dict["_id"] = str(reprot_dict["_id"]) 
+        await self.analysis.insert_one(reprot_dict)
         
     # for sales
     async def create_conversation_analysis_(self,report:ChatReport_) -> str:
@@ -92,7 +96,7 @@ class MongoDB:
     
     # get session analysis for evaluation
     async def get_session_analysis(self, session_id: str) -> Optional[ChatSession]:
-        session_data = await self.analysis.find_one({"_id": str(session_id)})
+        session_data = await self.analysis.find_one({"session_id": str(session_id)})
         if session_data:
             return Evaluation(**session_data)
         return None

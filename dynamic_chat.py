@@ -289,8 +289,10 @@ async def initialize_chat_session(
     db: Any,
     avatar_interaction_id: UUID,
     mode: str,
+    current_user : UUID,
     persona_id: Optional[UUID] = None,
-    language_id : Optional[UUID] = None
+    language_id : Optional[UUID] = None,
+    
 ) -> ChatSession:
     """Initialize a new chat session for the specified avatar interaction and mode"""
     # Get avatar interaction to get scenario name
@@ -302,16 +304,25 @@ async def initialize_chat_session(
     
     # Determine scenario name based on mode and avatar interaction
     scenario_name = f"{ai_obj.bot_role} - {mode}"
-    
-    session_id = str(uuid4())
+    scenario_query = {}
+                        
+    if mode == "learn_mode":
+        scenario_query = {"learn_mode.avatar_interaction": avatar_interaction_id}
+    elif mode == "try_mode":
+        scenario_query = {"try_mode.avatar_interaction": avatar_interaction_id}
+    elif mode == "assess_mode":
+        scenario_query = {"assess_mode.avatar_interaction": avatar_interaction_id}
+    scenarios = await db.scenarios.find(scenario_query).to_list(length=1)
+    if scenarios:
+        scenario_id = scenarios[0]["_id"]
+                        
     session = ChatSession(
-        # _id=session_id,
         extra=str(uuid4()),
-        session_id=session_id,
         scenario_name=scenario_name,
         avatar_interaction=str(avatar_interaction_id),  # Add this line
         avatar_id=str(avatar_interaction.get("avatars", [""])[0]),
         persona_id=str(persona_id) if persona_id else None,
+        user_id=str(current_user),
         # persona_settings={
         #     "avatar_interaction_id": str(avatar_interaction_id),
         #     "mode": mode
@@ -331,9 +342,9 @@ async def initialize_chat_session(
     return session
 
 
-async def get_chat_session(db: Any, session_id: str) -> Optional[ChatSession]:
+async def get_chat_session(db: Any, id: str) -> Optional[ChatSession]:
     """Get a chat session by ID"""
-    session_data = await db.sessions.find_one({"session_id": session_id})
+    session_data = await db.sessions.find_one({"_id": str(id)})
     if session_data:
         return ChatSession(**session_data)
     return None
@@ -343,6 +354,6 @@ async def update_chat_session(db: Any, session: ChatSession):
     """Update a chat session in the database"""
     session.last_updated = datetime.now()
     await db.sessions.update_one(
-        {"session_id": session.session_id},
+        {"_id": str(session.id)},
         {"$set": session.dict()}
     )

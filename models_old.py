@@ -21,8 +21,8 @@ class Message(BaseModel):
 class ChatSession(BaseModel):
     id: UUID = Field(default_factory=uuid4, alias="_id")
     extra: str
-    session_id: str
     scenario_name: str
+    user_id : str
     avatar_interaction: str
     avatar_id :str
     language_id : str
@@ -31,13 +31,13 @@ class ChatSession(BaseModel):
     created_at: datetime = datetime.now()
     last_updated: datetime = datetime.now()
 
-class ChatRequest(BaseModel):
-    message: str = Form(...)
-    session_id: Optional[str] = Form(default=None)
-    scenario_name: Optional[str] = Form(default=None)
+# class ChatRequest(BaseModel):
+#     message: str = Form(...)
+#     session_id: Optional[str] = Form(default=None)
+#     scenario_name: Optional[str] = Form(default=None)
 
 class ChatResponse(BaseModel):
-    session_id: str
+    
     response: str
     emotion:Optional[str]
     complete:bool
@@ -57,6 +57,7 @@ class ChatReport(BaseModel):
     recommendations: List[str]
 
 class ChatReport(BaseModel):
+    id: UUID = Field(default_factory=uuid4, alias="_id")
     session_id: str
     conversation_id: str
     timestamp: datetime = datetime.now()
