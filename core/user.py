@@ -1494,6 +1494,7 @@ async def get_user_completed_scenario_analysis(
                             "mode": mode,
                             "completed_date": progress.get("completed_date"),
                             "session_id": session_id,
+                            "analysis":analysis,
                             "analysis_id": str(analysis["_id"]),
                             "analysis_timestamp": analysis.get("timestamp"),
                             "analysis_score": analysis.get("overall_evaluation", {}).get("total_score", 0),
