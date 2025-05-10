@@ -429,15 +429,15 @@ class BaseAnalyserBot(ABC):
             print(f"Error initializing LLM for {config.bot_name}: {e}")
             raise
 
-    def _create_analysis_prompt(self, conversation: str,scenario_title: str,scenario_description: str,ai_role: str,key_metrics: str,additional_context: str) -> str:
+    def _create_analysis_prompt(self, conversation: str, scenario_title: str, scenario_description: str, ai_role: str, key_metrics: str, additional_context: str) -> str:
         print(self.bot_name)
         """Create the analysis prompt for Gemini."""
-        prompt  = f"""
-Conversation Quality Analysis Framework
+        prompt = f"""
+User Knowledge & Interaction Analysis Framework
 Purpose
-Evaluate the quality and effectiveness of conversations between an AI/bot and users, covering various roles and interaction types - including advisory, informational, transactional, collaborative, or any other conversational scenario across any domain.
-Input Requirements
+Evaluate the user's knowledge, effectiveness, and engagement when interacting with an AI/bot across various scenarios - including advisory, informational, transactional, collaborative, or any other conversational domain. This analysis focuses primarily on the USER's performance.
 
+Input Requirements
 Scenario Title: {scenario_title}
 Scenario Description: {scenario_description}
 AI/Bot Role: {ai_role}
@@ -446,52 +446,53 @@ Key Success Metrics: {key_metrics}
 
 Evaluation Process
 Step 1: Conversation Context Identification
+- Analyze the conversation to identify the scenario's context and requirements
+- Determine the specific knowledge domains relevant to the scenario
+- Identify what would constitute effective user engagement in this context
 
-Analyze the conversation to identify the purpose and nature of the interaction
-Determine the specific context, topics, and dynamics of the conversation
-Identify the roles adopted by both the AI/bot and the user during the exchange
+Step 2: User Knowledge & Interaction Assessment
+- Evaluate how well the user understands the scenario and its requirements
+- Assess the user's domain knowledge based on their questions and responses
+- Analyze how effectively the user communicates their needs and follows up
 
-Step 2: Interaction Assessment
+Step 3: Comprehensive User Evaluation
+Assess the following five dimensions of user performance:
 
-Evaluate how effectively the AI/bot fulfilled its intended role in the conversation
-Assess the appropriateness of responses given the specified scenario and role
-Analyze how well the conversation progressed and evolved throughout the exchange
+1. User Domain Knowledge (0-20)
+- How well does the user understand key concepts related to the scenario?
+- Does the user demonstrate accurate knowledge of relevant terminology?
+- Is the user aware of important principles or processes in this domain?
+- Can the user apply domain knowledge appropriately in their questions/responses?
 
-Step 3: Comprehensive Evaluation
-Assess the following dimensions:
-1. Role Fulfillment (0-10)
+2. User Communication Clarity (0-20)
+- How clearly does the user express their needs, questions, or objectives?
+- Does the user provide sufficient context for their requests?
+- How well structured and organized are the user's messages?
+- Does the user use appropriate terminology and specificity?
 
-Did the AI/bot effectively fulfill its intended role in the conversation? (Yes/No)
-How well did the AI/bot accomplish the objectives appropriate to its role?
-Did the conversation achieve its intended purpose?
-Was the AI/bot appropriately proactive or reactive based on its role?
+3. User Engagement Quality (0-20)
+- How actively does the user participate in the conversation?
+- Does the user appropriately respond to the AI's questions or suggestions?
+- Is the user's level of engagement consistent throughout the conversation?
+- Does the user demonstrate active listening and comprehension?
 
-2. Knowledge & Accuracy (0-10)
+4. User Problem-Solving Ability (0-20)
+- How effectively does the user define their problem or objective?
+- Does the user demonstrate logical reasoning in their approach?
+- Can the user adapt their approach based on new information?
+- How well does the user utilize the AI as a resource to solve their problem?
 
-Were all key facts and information accurately presented?
-Were explanations comprehensive and correct?
-Were appropriate resources or references provided when needed?
-Were limitations or uncertainties transparently disclosed?
-
-3. Communication Quality (0-10)
-
-How clear and understandable were the responses?
-Was an appropriate level of detail provided?
-How well-structured and organized was the information?
-Were complex concepts explained effectively?
-
-4. Conversation Quality (0-10)
-
-How natural and appropriate was the flow of the conversation?
-Did both participants engage effectively in the exchange?
-Was an appropriate tone maintained throughout the conversation?
-How efficiently and coherently was the conversation conducted?
+5. User Learning & Adaptation (0-20)
+- Does the user incorporate new information provided by the AI?
+- How well does the user respond to corrections or clarifications?
+- Does the user build upon earlier exchanges to advance the conversation?
+- Is there evidence of the user learning or gaining insights during the conversation?
 
 Step 4: Improvement Analysis
-
-Identify specific moments where alternative responses would have improved the interaction
-Analyze missed opportunities for providing additional value
-Evaluate the conversation flow for potential optimization
+- Identify knowledge gaps the user demonstrated during the conversation
+- Analyze opportunities where the user could have engaged more effectively
+- Evaluate how the user might improve their problem-defining and problem-solving approach
+- Suggest specific ways the user could enhance their interaction quality
 
 ## Output Format
 ```json
@@ -500,123 +501,148 @@ Evaluate the conversation flow for potential optimization
   "conversation_id": "conversationID",
   "evaluation_meta": {{
     "scenario_title": "Title describing the conversation scenario",
-    "ai_role": "Description of the AI/bot's role in this conversation",
-    "conversation_purpose": "Identified purpose and context of the conversation",
-    "conversation_dynamics": "Analysis of key interaction patterns observed"
+    "user_objective": "Identified user's main goal or purpose in the conversation",
+    "relevant_domain": "The knowledge domain(s) relevant to this scenario",
+    "interaction_context": "The specific context in which this user-AI interaction occurred"
   }},
-  "role_fulfillment": {{
-    "role_effectively_fulfilled": true,
-    "score": 0,
-    "notes": "Specific observations about role fulfillment"
-  }},
-  "knowledge_quality": {{
-    "accuracy_score": 0,
-    "comprehensiveness_score": 0,
-    "relevance_score": 0,
+  "user_domain_knowledge": {{
+    "concept_understanding_score": 0,
+    "terminology_accuracy_score": 0,
+    "principles_awareness_score": 0,
+    "knowledge_application_score": 0,
     "overall_score": 0,
-    "key_information_provided": [
-      "Information 1",
-      "Information 2"
+    "demonstrated_knowledge_areas": [
+      "Knowledge area 1",
+      "Knowledge area 2"
     ],
-    "key_information_missed": [
-      "Missing information 1",
-      "Missing information 2"
+    "knowledge_gaps": [
+      "Knowledge gap 1",
+      "Knowledge gap 2"
     ]
   }},
-  "communication_quality": {{
-    "clarity_score": 0, 
-    "structure_score": 0,
-    "appropriateness_score": 0,
-    "overall_score": 0
+  "user_communication_clarity": {{
+    "expression_clarity_score": 0,
+    "context_provision_score": 0,
+    "message_structure_score": 0,
+    "terminology_usage_score": 0,
+    "overall_score": 0,
+    "communication_strengths": [
+      "Communication strength 1",
+      "Communication strength 2"
+    ],
+    "communication_challenges": [
+      "Communication challenge 1",
+      "Communication challenge 2"
+    ]
   }},
-  "conversation_quality": {{
-    "flow_score": 0,
-    "coherence_score": 0,
-    "engagement_score": 0,
-    "overall_score": 0
+  "user_engagement_quality": {{
+    "participation_score": 0, 
+    "responsiveness_score": 0,
+    "engagement_consistency_score": 0,
+    "active_listening_score": 0,
+    "overall_score": 0,
+    "engagement_patterns": [
+      "Engagement pattern 1",
+      "Engagement pattern 2"
+    ]
+  }},
+  "user_problem_solving": {{
+    "problem_definition_score": 0,
+    "logical_reasoning_score": 0,
+    "adaptability_score": 0,
+    "resource_utilization_score": 0,
+    "overall_score": 0,
+    "problem_solving_strengths": [
+      "Problem-solving strength 1",
+      "Problem-solving strength 2"
+    ],
+    "problem_solving_weaknesses": [
+      "Problem-solving weakness 1",
+      "Problem-solving weakness 2"
+    ]
+  }},
+  "user_learning_adaptation": {{
+    "information_incorporation_score": 0,
+    "correction_response_score": 0,
+    "conversation_progression_score": 0,
+    "insight_gain_score": 0,
+    "overall_score": 0,
+    "learning_indicators": [
+      "Learning indicator 1",
+      "Learning indicator 2"
+    ]
   }},
   "overall_evaluation": {{
-    "total_raw_score": 0,
-    "total_percentage_score": 0,
-    "performance_category": "Exceptional/Strong/Adequate/Needs Improvement/Poor",
-    "strengths": [
-      "Specific strength 1",
-      "Specific strength 2"
+    "total_score": 0,
+    "user_performance_category": "Expert/Proficient/Adequate/Developing/Novice",
+    "user_strengths": [
+      "User strength 1",
+      "User strength 2"
     ],
-    "areas_for_improvement": [
-      "Specific area 1",
-      "Specific area 2"
+    "user_improvement_areas": [
+      "Improvement area 1",
+      "Improvement area 2"
     ],
-    "critical_gaps": [
-      "Critical gap 1",
-      "Critical gap 2"
+    "critical_development_needs": [
+      "Development need 1",
+      "Development need 2"
     ]
   }},
-  "recommendations": [
-    "Specific actionable recommendation 1",
-    "Specific actionable recommendation 2",
-    "Specific actionable recommendation 3"
-  ],
+  "recommendations": {{
+    "knowledge_development_recommendations": [
+      "Knowledge recommendation 1",
+      "Knowledge recommendation 2"
+    ],
+    "communication_improvement_recommendations": [
+      "Communication recommendation 1",
+      "Communication recommendation 2"
+    ],
+    "engagement_enhancement_recommendations": [
+      "Engagement recommendation 1",
+      "Engagement recommendation 2"
+    ],
+    "problem_solving_recommendations": [
+      "Problem-solving recommendation 1",
+      "Problem-solving recommendation 2"
+    ],
+    "learning_strategy_recommendations": [
+      "Learning strategy 1",
+      "Learning strategy 2"
+    ]
+  }},
   "timestamp": "2025-05-09T12:34:56.789Z"
 }}
 ```
-
-Corporate Assessment Application
-This framework is specifically designed to be applicable in corporate settings for:
-
-Customer service quality evaluation
-Sales conversation assessments
-Internal communication analysis
-Training and onboarding conversation review
-Compliance verification in regulated communications
-Performance reviews of AI/human representatives
-
-When used in corporate environments, evaluators can:
-
-Compare scores against established benchmarks
-Track improvement over time using consistent metrics
-Identify training opportunities based on specific gaps
-Document compliance with communication standards
-Generate evidence-based performance reports
-
 Scoring Calculation
 The total score out of 100 is calculated as follows:
+Each of the five main evaluation dimensions is scored on a scale of 0-20:
 
-Each of the four main evaluation dimensions is scored on a scale of 0-10:
+User Domain Knowledge (0-20)
+User Communication Clarity (0-20)
+User Engagement Quality (0-20)
+User Problem-Solving Ability (0-20)
+User Learning & Adaptation (0-20)
 
-Role Fulfillment (0-10)
-Knowledge & Accuracy (0-10)
-Communication Quality (0-10)
-Conversation Quality (0-10)
-
-
-For each dimension, the sub-scores are averaged to create the dimension score.
-The total raw score is the sum of all four dimension scores (maximum of 40 points).
-This raw score is then converted to a percentage by multiplying by 2.5:
-Total Score (out of 100) = Sum of all dimension scores × 2.5
-
-This percentage score maps to performance categories as follows:
-
-85-100: Exceptional
-70-84: Strong
+For each dimension, the sub-scores are averaged to create the dimension's overall score (out of 20).
+The total score is the sum of all five dimension overall scores (maximum of 100 points).
+This score maps to user performance categories as follows:
+85-100: Expert
+70-84: Proficient
 55-69: Adequate
-40-54: Needs Improvement
-0-39: Poor
-
-
-
+40-54: Developing
+0-39: Novice
 Usage Instructions
 
 Provide the scenario title, description, AI/bot role, key metrics, and conversation transcript
-The evaluation will first identify the conversation context and dynamics
-Then assess how effectively the AI/bot fulfilled its intended role
-Evaluate the quality of information, communication, and overall conversation
-Generate detailed feedback and scoring
+The evaluation will first identify the scenario context and knowledge requirements
+Then assess how effectively the user demonstrated knowledge and engaged in the conversation
+Evaluate the quality of user communication, problem-solving, and learning/adaptation
+Generate detailed feedback and scoring focused on the user's performance
 Output results in the specified JSON format
 
 Additional Context (Optional)
 {additional_context}
-Ensure the evaluation is objective, constructive, and focused on actionable insights that can improve future conversations.
+Ensure the evaluation is objective, constructive, and focused on actionable insights that can help improve the user's knowledge, communication skills, and interaction effectiveness in future conversations.
 """
         
         # prompt=f"""{self.system_prompt} """

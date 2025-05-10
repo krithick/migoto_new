@@ -504,7 +504,7 @@ async def updateBotAnalyser(
 async def getBotAnalysers():
     bots = await db.get_all_bot_analysers()
     return bots
-@app.get("/sessionAnalyser/{session_id}")
+@app.get("/sessionAnalyser/{id}")
     
 async def get_session_analysis(
     id: str,
