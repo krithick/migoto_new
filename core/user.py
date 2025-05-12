@@ -1515,3 +1515,133 @@ async def get_user_completed_scenario_analysis(
     results.sort(key=lambda x: x["completed_date"] if x["completed_date"] else datetime.min, reverse=True)
     
     return results
+@router.get("/admin/users/{user_id}/scenario-sessions", response_model=List[Dict[str, Any]])
+async def get_user_scenario_sessions(
+    user_id: UUID,
+    scenario_id: Optional[UUID] = Query(None, description="Filter by specific scenario ID"),
+    mode: Optional[str] = Query("assess_mode", description="Filter by mode (assess_mode, learn_mode, try_mode, or 'all')"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)  # Only admins can access this
+):
+    """
+    Get all chat sessions and their analysis for a specific user, optionally filtered by scenario.
+    
+    - Filter by specific scenario ID
+    - Filter by mode (assess_mode is default)
+    - Returns chat sessions with associated scenario, module, and course details
+    - Includes analysis reports if available
+    """
+    # Check if admin is allowed to manage this user
+    if admin_user.role == UserRole.ADMIN:
+        admin_data = await db.users.find_one({"_id": str(admin_user.id)})
+        if admin_data and "managed_users" in admin_data:
+            managed_users = admin_data["managed_users"]
+            if str(user_id) not in managed_users and admin_user.id != user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: you can only view data for users you manage"
+                )
+    
+    # Get scenario assignments for the user
+    scenario_assignments = []
+    
+    # Build query based on filters
+    query = {"user_id": str(user_id)}
+    
+    # Add scenario filter if provided
+    if scenario_id:
+        query["scenario_id"] = str(scenario_id)
+    
+    # Add mode filter if not "all"
+    if mode != "all":
+        query["assigned_modes"] = mode
+    
+    # Execute query
+    cursor = db.user_scenario_assignments.find(query).skip(skip).limit(limit)
+    async for assignment in cursor:
+        scenario_assignments.append(assignment)
+    
+    # Prepare results array
+    results = []
+    
+    # Process each scenario assignment
+    for assignment in scenario_assignments:
+        scenario_id = assignment["scenario_id"]
+        module_id = assignment["module_id"]
+        course_id = assignment["course_id"]
+        
+        # Get scenario, module, and course details
+        scenario = await db.scenarios.find_one({"_id": scenario_id})
+        module = await db.modules.find_one({"_id": module_id})
+        course = await db.courses.find_one({"_id": course_id})
+        
+        if not scenario or not module or not course:
+            continue
+            
+        # Get the avatar interaction ID based on mode(s)
+        avatar_interaction_ids = []
+        
+        if mode == "all":
+            # Get all avatar interaction IDs
+            if "learn_mode" in scenario and "avatar_interaction" in scenario["learn_mode"]:
+                avatar_interaction_ids.append(scenario["learn_mode"]["avatar_interaction"])
+            if "try_mode" in scenario and "avatar_interaction" in scenario["try_mode"]:
+                avatar_interaction_ids.append(scenario["try_mode"]["avatar_interaction"])
+            if "assess_mode" in scenario and "avatar_interaction" in scenario["assess_mode"]:
+                avatar_interaction_ids.append(scenario["assess_mode"]["avatar_interaction"])
+        else:
+            # Get avatar interaction ID for the specific mode
+            if mode in scenario and "avatar_interaction" in scenario[mode]:
+                avatar_interaction_ids.append(scenario[mode]["avatar_interaction"])
+        
+        # Find chat sessions for this scenario's avatar interactions
+        for avatar_interaction_id in avatar_interaction_ids:
+            sessions_cursor = db.sessions.find({
+                "user_id": str(user_id),
+                "avatar_interaction": str(avatar_interaction_id)
+            })
+            
+            async for session in sessions_cursor:
+                # Get analysis report for this session if it exists
+                analysis = await db.analysis.find_one({"session_id": str(session["_id"])})
+                
+                # Create session result object
+                session_result = {
+                    "session_id": str(session["_id"]),
+                    "session_created_at": session.get("created_at"),
+                    "session_last_updated": session.get("last_updated"),
+                    "scenario_id": scenario_id,
+                    "scenario_name": scenario.get("title", "Unknown"),
+                    "scenario_thumbnail": scenario.get("thumbnail_url"),
+                    "mode": next((m for m in ["learn_mode", "try_mode", "assess_mode"] 
+                                if m in scenario and "avatar_interaction" in scenario[m] 
+                                and scenario[m]["avatar_interaction"] == avatar_interaction_id), 
+                                "unknown"),
+                    "module_id": module_id,
+                    "module_name": module.get("title", "Unknown"),
+                    "course_id": course_id,
+                    "course_name": course.get("title", "Unknown"),
+                    "message_count": len(session.get("conversation_history", [])),
+                    "has_analysis": analysis is not None,
+                }
+                
+                # Add analysis data if available
+                if analysis:
+                    overall_eval = analysis.get("overall_evaluation", {})
+                    session_result["analysis"] = {
+                        "analysis_id": str(analysis["_id"]),
+                        "timestamp": analysis.get("timestamp"),
+                        "total_score": overall_eval.get("total_score") or overall_eval.get("total_percentage_score"),
+                        "performance_category": overall_eval.get("performance_category") or overall_eval.get("user_performance_category"),
+                        "strengths": overall_eval.get("strengths") or overall_eval.get("user_strengths", []),
+                        "improvement_areas": overall_eval.get("areas_for_improvement") or overall_eval.get("user_improvement_areas", [])
+                    }
+                
+                results.append(session_result)
+    
+    # Sort by most recent sessions first
+    results.sort(key=lambda x: x.get("session_last_updated", datetime.min), reverse=True)
+    
+    return results
