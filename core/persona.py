@@ -9,10 +9,21 @@ from models.persona_models import  PersonaBase, PersonaCreate, PersonaResponse, 
 from models.user_models import UserDB,UserRole
 
 from core.user import get_current_user, get_admin_user, get_superadmin_user
-
+from dotenv import load_dotenv
+from openai import AzureOpenAI
+import os
 # Create router
 router = APIRouter(prefix="/personas", tags=["Personas"])
-
+api_key = os.getenv("api_key")
+endpoint = os.getenv("endpoint")
+api_version =  os.getenv("api_version")
+        
+        
+azure_openai_client = AzureOpenAI(
+            api_key=api_key,
+            api_version=api_version,
+            azure_endpoint=endpoint
+        )
 # Any dependency (assumed to be defined elsewhere)
 async def get_database():
     from database import get_db  # Import your existing function
@@ -124,6 +135,37 @@ async def create_persona(
     
     return PersonaDB(**created_persona)
 
+# async def generate_persona(
+#     db: Any, 
+#     request: PersonaGenerateRequest, 
+#     created_by: UUID
+# ) -> PersonaDB:
+#     """
+#     Generate a persona based on a description (admin/superadmin only)
+    
+#     In a real application, this might involve AI services or templates.
+#     For this example, we'll create a simple persona from the request.
+#     """
+    
+#     # Generate persona name
+#     persona_name = f"Generated {request.persona_type.capitalize()}"
+    
+#     # Create a generated persona
+#     persona = PersonaCreate(
+#         name=persona_name,
+#         description=request.persona_description,
+#         persona_type=request.persona_type,
+#         character_goal="Generated goal based on description",
+#         location=request.location or "Unknown",
+#         persona_details="Generated details based on the provided description",
+#         situation="Standard situation for this persona type",
+#         business_or_personal=request.business_or_personal,
+#         background_story="Generated background story"
+#     )
+    
+#     # Use the standard creation method
+#     return await create_persona(db, persona, created_by)
+import json
 async def generate_persona(
     db: Any, 
     request: PersonaGenerateRequest, 
@@ -135,24 +177,95 @@ async def generate_persona(
     In a real application, this might involve AI services or templates.
     For this example, we'll create a simple persona from the request.
     """
-    # Generate persona name
-    persona_name = f"Generated {request.persona_type.capitalize()}"
+    prompt = f"""
+    You are an expert persona designer who creates deeply realistic, psychologically nuanced character profiles for user research and scenario planning.
+
+    CURRENT TASK:
+    Create an exceptionally detailed and believable persona based on these parameters:
+    - Description: "{request.persona_description}"
+    - Persona Type: "{request.persona_type}" 
+    - Location: "{request.location or "Unspecified"}"
+    - Context: "{request.business_or_personal or "General"}"
+    - Gender: "{request.gender}
+
+    REQUIREMENTS:
+    1. Create a compelling, three-dimensional persona that feels like a real individual
+    2. Ensure all details are internally consistent and psychologically plausible
+    3. Make specific choices about demographics, background, and circumstances
+    4. Include specific personality traits and behavioral patterns
+    5. Consider cultural context based on their location
+
+    RESPONSE FORMAT:
+    Return ONLY a valid JSON object with these exact keys:
+    {{
+        "name": "A culturally appropriate full name for this persona",
+        "gender": "The persona's gender either male or female",
+        "age": 25, (a specific age as a number between 18-80)
+        "character_goal": "A specific goal that motivates this persona",
+        "persona_details": "A detailed textual description including occupation, education, personality traits, values, and technological preferences - THIS MUST BE A SINGLE STRING, NOT AN OBJECT",
+        "situation": "A specific scenario this persona is currently facing - THIS MUST BE A SINGLE STRING, NOT AN OBJECT",
+        "background_story": "A rich backstory explaining formative experiences and how these shaped their current attitudes"
+    }}
+
+    CRITICAL NOTES:
+    - "persona_details" and "situation" MUST be TEXT STRINGS, not nested objects
+    - Include gender and age as separate fields
+    - Make sure JSON is valid with no nested objects for persona_details or situation fields
+    - Return ONLY the JSON - no explanations or other text
+    """
     
-    # Create a generated persona
-    persona = PersonaCreate(
-        name=persona_name,
-        description=request.persona_description,
-        persona_type=request.persona_type,
-        character_goal="Generated goal based on description",
-        location=request.location or "Unknown",
-        persona_details="Generated details based on the provided description",
-        situation="Standard situation for this persona type",
-        business_or_personal=request.business_or_personal,
-        background_story="Generated background story"
-    )
-    
-    # Use the standard creation method
-    return await create_persona(db, persona, created_by)
+    try:
+        response = azure_openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": "Generate the persona now."}
+            ],
+            temperature=0.7,
+            max_tokens=12000,
+            response_format={"type": "json_object"}  # Ensure JSON output if API supports it
+        )
+        
+        # Parse the response to get persona details
+        persona_data = json.loads(response.choices[0].message.content)
+        
+        # Create a generated persona with all required fields
+        persona = PersonaCreate(
+            name=persona_data.get("name", f"Generated {request.persona_type.capitalize()}"),
+            description=request.persona_description,
+            persona_type=request.persona_type,
+            gender=persona_data.get("gender", "Not specified"),
+            age=persona_data.get("age", 30),  # Default age if not provided
+            character_goal=persona_data.get("character_goal", "Generated goal based on description"),
+            location=request.location or "Unknown",
+            persona_details=persona_data.get("persona_details", "Generated details based on the provided description"),
+            situation=persona_data.get("situation", "Standard situation for this persona type"),
+            business_or_personal=request.business_or_personal,
+            background_story=persona_data.get("background_story", "Generated background story")
+        )
+        
+        # Use the standard creation method
+        return await create_persona(db, persona, created_by)
+        
+    except Exception as e:
+        # Handle errors (log them, etc.)
+        #     persona = PersonaCreate(
+        #     name=f"Generated {request.persona_type.capitalize()}",
+        #     description=request.persona_description,
+        #     persona_type=request.persona_type,
+        #     character_goal="Generated goal based on description",
+        #     location=request.location or "Unknown",
+        #     persona_details="Generated details based on the provided description",
+        #     situation="Standard situation for this persona type",
+        #     business_or_personal=request.business_or_personal,
+        #     background_story="Generated background story"
+        # )
+        
+        # return await create_persona(db, persona, created_by)
+        raise HTTPException(status_code=500,detail=f"Error generating persona: {str(e)}")
+        
+        # Fallback to basic persona if generation fails
+
 
 async def update_persona(
     db: Any, 

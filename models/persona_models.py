@@ -67,4 +67,5 @@ class PersonaGenerateRequest(BaseModel):
     location: Optional[str] = Field(None, 
         description="Optional location",
         example="Mumbai")
+    gender: BotGender
 
