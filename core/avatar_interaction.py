@@ -653,3 +653,30 @@ async def assign_videos(
     )
     
     return {"success": True, "video_count": len(video_ids)}
+@router.get("/all/expand", response_model=None)
+async def get_all_avatar_interactions_endpoint(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+    expand: Optional[List[str]] = Query(None, description="Fields to expand (avatars, languages, bot_voices, environments, assigned_documents, assigned_videos)"),
+    db: Any = Depends(get_database),
+    current_user: UserDB = Depends(get_current_user)
+):
+    """
+    Get a list of all avatar interactions (all users can view)
+    """
+
+    avatar_interactions_cursor = db.avatar_interactions.find().skip(skip).limit(limit)
+    avatar_interactions = await avatar_interactions_cursor.to_list(length=limit)
+
+    expanded_list = []
+    for interaction in avatar_interactions:
+        expanded = await get_avatar_interaction(
+            db=db,
+            avatar_interaction_id=UUID(interaction["_id"]),
+            current_user=current_user,
+            expand=expand
+        )
+        if expanded:
+            expanded_list.append(expanded)
+
+    return expanded_list

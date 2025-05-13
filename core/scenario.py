@@ -202,7 +202,9 @@ async def get_scenarios_by_module(
         for scenario_id in scenario_ids_str:
             scenario = await db.scenarios.find_one({"_id": scenario_id})
             if scenario:
-                scenarios.append(ScenarioDB(**scenario))
+                scenario_dict = ScenarioDB(**scenario)
+                scenarios.append(scenario_dict.model_dump())
+                
     
     return scenarios
 

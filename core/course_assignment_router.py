@@ -61,10 +61,61 @@ async def recalculate_course_completion(
     
     return {"success": True, "completed": completed}
 
+# @router.post("/course/{course_id}/assign-with-content", response_model=Dict[str, Any])
+# async def assign_course_with_content_endpoint(
+#     course_id: UUID,
+#     user_id: UUID = Body(..., description="User to assign the course to"),
+#     include_all_modules: bool = Body(True, description="Whether to include all modules"),
+#     include_all_scenarios: bool = Body(True, description="Whether to include all scenarios"),
+#     module_ids: Optional[List[UUID]] = Body(None, description="Specific module IDs to include"),
+#     scenario_mapping: Optional[Dict[str, List[UUID]]] = Body(None, description="Module ID to scenario IDs mapping"),
+#     mode_mapping: Optional[Dict[str, List[str]]] = Body(None, description="Scenario ID to modes mapping"),
+#     db: Any = Depends(get_database),
+#     admin_user: UserDB = Depends(get_admin_user)  # Only admins and superadmins can assign
+# ):
+#     """
+#     Assign a course to a user with specified modules, scenarios and modes
+#     """
+#     # Check if admin is allowed to manage this user
+#     if admin_user.role == UserRole.ADMIN:
+#         admin_data = await db.users.find_one({"_id": str(admin_user.id)})
+#         if admin_data and "managed_users" in admin_data:
+#             managed_users = admin_data["managed_users"]
+#             if str(user_id) not in managed_users:
+#                 raise HTTPException(
+#                     status_code=status.HTTP_403_FORBIDDEN,
+#                     detail="Access denied: you can only assign courses to users you manage"
+#                 )
+    
+#     # Convert string keys to UUIDs in mappings
+#     scenario_mapping_uuid = {}
+#     if scenario_mapping:
+#         for module_id_str, scenarios in scenario_mapping.items():
+#             scenario_mapping_uuid[UUID(module_id_str)] = scenarios
+    
+#     mode_mapping_uuid = {}
+#     if mode_mapping:
+#         for scenario_id_str, modes in mode_mapping.items():
+#             mode_mapping_uuid[UUID(scenario_id_str)] = modes
+    
+#     # Assign course with content
+#     result = await assign_course_with_content(
+#         db,
+#         user_id,
+#         course_id,
+#         include_all_modules,
+#         include_all_scenarios,
+#         module_ids,
+#         scenario_mapping_uuid,
+#         mode_mapping_uuid
+#     )
+    
+#     return result
+
 @router.post("/course/{course_id}/assign-with-content", response_model=Dict[str, Any])
 async def assign_course_with_content_endpoint(
     course_id: UUID,
-    user_id: UUID = Body(..., description="User to assign the course to"),
+    user_ids: List[UUID] = Body(..., description="List of users to assign the course to"),
     include_all_modules: bool = Body(True, description="Whether to include all modules"),
     include_all_scenarios: bool = Body(True, description="Whether to include all scenarios"),
     module_ids: Optional[List[UUID]] = Body(None, description="Specific module IDs to include"),
@@ -76,15 +127,15 @@ async def assign_course_with_content_endpoint(
     """
     Assign a course to a user with specified modules, scenarios and modes
     """
-    # Check if admin is allowed to manage this user
+    # For admin, ensure they can manage each user
     if admin_user.role == UserRole.ADMIN:
         admin_data = await db.users.find_one({"_id": str(admin_user.id)})
-        if admin_data and "managed_users" in admin_data:
-            managed_users = admin_data["managed_users"]
-            if str(user_id) not in managed_users:
+        managed_users = admin_data.get("managed_users", []) if admin_data else []
+        for uid in user_ids:
+            if str(uid) not in managed_users:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Access denied: you can only assign courses to users you manage"
+                    detail=f"Access denied: you can only assign courses to users you manage (user {uid})"
                 )
     
     # Convert string keys to UUIDs in mappings
@@ -98,20 +149,22 @@ async def assign_course_with_content_endpoint(
         for scenario_id_str, modes in mode_mapping.items():
             mode_mapping_uuid[UUID(scenario_id_str)] = modes
     
-    # Assign course with content
-    result = await assign_course_with_content(
-        db,
-        user_id,
-        course_id,
-        include_all_modules,
-        include_all_scenarios,
-        module_ids,
-        scenario_mapping_uuid,
-        mode_mapping_uuid
-    )
-    
-    return result
+     # Assign course for each user
+    assignment_results = {}
+    for user_id in user_ids:
+        result = await assign_course_with_content(
+            db,
+            user_id,
+            course_id,
+            include_all_modules,
+            include_all_scenarios,
+            module_ids,
+            scenario_mapping_uuid,
+            mode_mapping_uuid
+        )
+        assignment_results[str(user_id)] = result
 
+    return assignment_results
 
 @router.put("/me/scenario/{scenario_id}/mode/{mode}/complete", response_model=Dict[str, bool])
 async def complete_scenario_mode(

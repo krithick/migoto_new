@@ -296,7 +296,7 @@ async def assign_course_with_content(
         }
     await db.users.update_one(
     {"_id": str(user_id)},
-    {"$addToSet": {"assigned_courses": str(user_id)}}
+    {"$addToSet": {"assigned_courses": str(course_id)}}
 )
     # Determine which modules to assign
     modules_to_assign = []

@@ -86,7 +86,7 @@ class UserResponse(UserBase):
         json_encoders = {UUID: lambda v: str(v)}
 
 class UserWithCoursesResponse(UserResponse):
-    assigned_courses: List[str]
+    assigned_courses: List[UUID]
     
     class Config:
         populate_by_name = True

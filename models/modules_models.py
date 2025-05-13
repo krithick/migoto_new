@@ -4,6 +4,7 @@ from uuid import UUID, uuid4
 from datetime import datetime
 from enum import Enum
 from models.scenario_models import ScenarioDB , ScenarioWithAssignmentResponse,ScenarioResponse
+from models.user_models import UserRole
 # Module Models
 class ModuleBase(BaseModel):
     title: str
@@ -18,6 +19,7 @@ class ModuleCreate(ModuleBase):
 class ModuleDB(ModuleBase):
     id: UUID = Field(default_factory=uuid4, alias="_id")
     scenarios: List[Union[UUID, ScenarioDB]] = Field(default_factory=list)
+    creater_role:UserRole
     created_by: UUID
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
@@ -30,7 +32,8 @@ class ModuleDB(ModuleBase):
 
 class ModuleResponse(ModuleBase):
     id: UUID  # Changed from str to UUID
-    scenarios: List[UUID]  # Changed from List[str] to List[UUID]
+    scenarios: List[UUID]
+    creater_role:UserRole# Changed from List[str] to List[UUID]
     created_by: UUID  # Changed from str to UUID
     created_at: datetime
     updated_at: datetime
@@ -43,6 +46,7 @@ class ModuleResponse(ModuleBase):
 class ModuleWithScenariosResponse(ModuleBase):
     id: UUID  # Changed from str to UUID
     scenarios: List[ScenarioResponse]
+    creater_role:UserRole
     created_by: UUID  # Changed from str to UUID
     created_at: datetime
     updated_at: datetime

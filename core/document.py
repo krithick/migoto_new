@@ -304,7 +304,25 @@ async def update_document_endpoint(
     if not updated_document:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
     return updated_document
+@router.post("/bulk", response_model=List[DocumentResponse])
+async def get_documents_bulk_endpoint(
+    ids: List[UUID] = Body(..., embed=True),
+    db: Any = Depends(get_database),
+    current_user: UserDB = Depends(get_current_user)
+):
+    """
+    Get multiple documents by list of IDs
+    """
+    documents = []
+    for document_id in ids:
+        document = await get_document(db, document_id, current_user)
+        if document:  # You can also skip or raise an error here if not found
+            documents.append(document)
+        else:
+            # Optionally raise an error or continue
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"document {document_id} not found")
 
+    return documents
 @router.delete("/{document_id}", response_model=Dict[str, bool])
 async def delete_document_endpoint(
     document_id: UUID,

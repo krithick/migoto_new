@@ -57,13 +57,15 @@ async def get_avatar(
 async def create_avatar(
     db: Any, 
     avatar: AvatarCreate, 
-    created_by: UUID
+    created_by: UUID,
+    role:UserRole
 ) -> AvatarDB:
     """Create a new avatar"""
     # Create AvatarDB model
     avatar_db = AvatarDB(
         **avatar.dict(),
         created_by=created_by,
+        creater_role=role,
         created_at=datetime.now(),
         updated_at=datetime.now()
     )
@@ -242,7 +244,7 @@ async def create_avatar_endpoint(
     """
     Create a new avatar (admin/superadmin only)
     """
-    return await create_avatar(db, avatar, admin_user.id)
+    return await create_avatar(db, avatar, admin_user.id,admin_user.role)
 
 @router.put("/{avatar_id}", response_model=AvatarResponse)
 async def update_avatar_endpoint(

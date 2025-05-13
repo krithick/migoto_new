@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, EmailStr, field_validator, validator, roo
 from uuid import UUID, uuid4
 from datetime import datetime
 from enum import Enum
-
+from models.user_models import UserRole
 # Avatar Models
 class AvatarGender(str, Enum):
     Male = "male"
@@ -45,6 +45,7 @@ class AvatarCreate(AvatarBase):
 class AvatarDB(AvatarBase):
     id: UUID = Field(default_factory=uuid4, alias="_id")
     created_by: UUID
+    creater_role:UserRole
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
     
@@ -55,6 +56,7 @@ class AvatarDB(AvatarBase):
 
 class AvatarResponse(AvatarBase):
     id: UUID  # Changed from str to UUID
+    creater_role:UserRole
     created_by: UUID  # Changed from str to UUID
     created_at: datetime
     updated_at: datetime

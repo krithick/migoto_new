@@ -323,3 +323,23 @@ async def create_video_from_upload(
     )
     
     return await create_video(db, video, admin_user.id)
+
+@router.post("/bulk", response_model=List[VideoResponse])
+async def get_videos_bulk_endpoint(
+    ids: List[UUID] = Body(..., embed=True),
+    db: Any = Depends(get_database),
+    current_user: UserDB = Depends(get_current_user)
+):
+    """
+    Get multiple videos by list of IDs
+    """
+    videos = []
+    for video_id in ids:
+        video = await get_video(db, video_id, current_user)
+        if video:  # You can also skip or raise an error here if not found
+            videos.append(video)
+        else:
+            # Optionally raise an error or continue
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Video {video_id} not found")
+
+    return videos

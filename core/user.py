@@ -762,7 +762,7 @@ async def update_course_completion_status(
     return {"success": result is not None}
 
 
-@router.get("/users", response_model=List[UserResponse])
+@router.get("/users", response_model=List[UserWithCoursesResponse])
 async def read_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),

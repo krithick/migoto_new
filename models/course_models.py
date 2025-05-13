@@ -5,7 +5,7 @@ from datetime import datetime
 from enum import Enum
 
 from models.modules_models import ModuleDB ,ModuleResponse
-
+from models.user_models import UserRole
 # Course Models
 
 class CourseBase(BaseModel):
@@ -21,6 +21,7 @@ class CourseCreate(CourseBase):
 class CourseDB(CourseBase):
     id: UUID = Field(default_factory=uuid4, alias="_id")
     modules: List[Union[UUID, ModuleDB]] = Field(default_factory=list)
+    creater_role:UserRole
     created_by: UUID
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
@@ -34,6 +35,7 @@ class CourseDB(CourseBase):
 class CourseResponse(CourseBase):
     id: UUID  # Changed from str to UUID
     modules: List[UUID]  # Changed from List[str] to List[UUID]
+    creater_role:UserRole
     created_by: UUID  # Changed from str to UUID
     created_at: datetime
     updated_at: datetime
@@ -45,6 +47,7 @@ class CourseResponse(CourseBase):
 class CourseWithModulesResponse(CourseBase):
     id: UUID  # Changed from str to UUID
     modules: List[ModuleResponse]
+    creater_role:UserRole
     created_by: UUID  # Changed from str to UUID
     created_at: datetime
     updated_at: datetime

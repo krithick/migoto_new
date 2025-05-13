@@ -192,13 +192,14 @@ async def get_course_with_modules(
     print(course_dict, "heeeeeeeeeeee")
     return CourseWithModulesResponse(**course_dict)
 
-async def create_course(db: Any, course: CourseCreate, created_by: UUID) -> CourseDB:
+async def create_course(db: Any, course: CourseCreate, created_by: UUID,role: UserRole) -> CourseDB:
     """Create a new course"""
     # Create CourseDB model
     course_dict = course.dict()
     
     course_db = CourseDB(
         **course_dict,
+        creater_role=role,
         created_by=created_by,  # Set the creator
         created_at=datetime.now(),
         updated_at=datetime.now()
@@ -412,7 +413,7 @@ async def create_course_endpoint(
     """
     Create a new course (admin/superadmin only)
     """
-    return await create_course(db, course, admin_user.id)
+    return await create_course(db, course, admin_user.id,admin_user.role)
 
 @router.put("/{course_id}", response_model=CourseResponse)
 async def update_course_endpoint(

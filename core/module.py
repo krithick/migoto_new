@@ -309,7 +309,8 @@ async def create_module(
     db: Any, 
     course_id: UUID, 
     module: ModuleCreate, 
-    created_by: UUID
+    created_by: UUID,
+    role:UserRole
 ) -> ModuleDB:
     """
     Create a new module within a course
@@ -338,6 +339,7 @@ async def create_module(
     
     module_db = ModuleDB(
         **module_dict,
+        creater_role=role,
         created_by=created_by,  # Set the creator
         created_at=datetime.now(),
         updated_at=datetime.now()
