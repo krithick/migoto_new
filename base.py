@@ -223,7 +223,7 @@ class BaseLLMBot(ABC):
         
         try:
             response = await self.model.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o",
                 messages=contents,
                 temperature=0.7,
                 max_tokens=1000,
@@ -699,7 +699,7 @@ Ensure the evaluation is objective, constructive, and focused on actionable insi
             # Get response from Gemini
             # response = self.model.generate_content(prompt)
             response = await self.model.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o",
                 messages=contents,
                 temperature=0.7,
                 max_tokens=1000,

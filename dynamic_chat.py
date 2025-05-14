@@ -73,7 +73,7 @@ class DynamicChatHandler:
         try:
             # Get streaming response from LLM
             response = await self.llm_client.chat.completions.create(
-                model="gpt-4o-mini",  # Or use config.llm_model if available
+                model="gpt-4o",  # Or use config.llm_model if available
                 messages=contents,
                 temperature=0.7,
                 max_tokens=1000,
