@@ -1710,8 +1710,8 @@ async def file_to_all_prompts(file: UploadFile = File(...)):
         # Add file info to the response
         return {
             "learn_mode": prompts["learn_mode"],
-            "assess_mode": prompts["assess_mode"],
-            "try_mode": prompts["try_mode"],
+            "assess_mode": prompts["try_mode"],
+            "try_mode": prompts["assess_mode"],
             "scenario_title": prompts["scenario_title"],
             "extracted_info": prompts["extracted_info"],
             "generated_persona": prompts.get("generated_persona"),
