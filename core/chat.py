@@ -392,7 +392,7 @@ async def get_chat_history(
     return {
         "id":session.id,
         "scenario_name": session.scenario_name,
-        "persona_id": session.persona_id,
+        # "persona_id": session.persona_id,
         "conversation_history": [msg.dict() for msg in session.conversation_history],
         "created_at": session.created_at,
         "last_updated": session.last_updated
