@@ -185,7 +185,7 @@ class DynamicChatHandler:
             persona_markdown += f"- Background: {persona.background_story}\n"
     # Replace placeholders
         scenario_prompt = scenario_prompt.replace("[LANGUAGE_PLACEHOLDER]", language_markdown)
-        scenario_prompt = scenario_prompt.replace("[PERSONA_PLACEHOLDER]", persona_markdown)    
+        scenario_prompt = scenario_prompt.replace("[PERSONA_PLACEHOLDER]", persona_markdown)
         return scenario_prompt
     
     def replace_name(self, original_text: str, name: str) -> str:

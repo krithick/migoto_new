@@ -299,6 +299,8 @@ async def assign_course_with_content(
     {"$addToSet": {"assigned_courses": str(course_id)}}
 )
     # Determine which modules to assign
+    print("include_all_modules",include_all_modules)
+    print("include_all_scenarios",include_all_scenarios)
     modules_to_assign = []
     if include_all_modules:
         modules_to_assign = course.get("modules", [])
@@ -310,7 +312,7 @@ async def assign_course_with_content(
     if modules_to_assign:
         # Convert string IDs to UUIDs
         module_ids_uuid = [UUID(m_id) for m_id in modules_to_assign]
-        
+        # print(modules_to_assign)
         # Create bulk assignment
         bulk_module_assignment = BulkModuleAssignmentCreate(
             user_id=user_id,
@@ -325,10 +327,14 @@ async def assign_course_with_content(
     
     # Create scenario assignments if needed
     scenarios_assigned = 0
+    print(include_all_scenarios,modules_to_assign)
     if include_all_scenarios or scenario_mapping:
+        print(include_all_scenarios,"hereerer")
         for module_id in modules_to_assign:
             # Get module to find scenarios
+            print(module_id)
             module = await db.modules.find_one({"_id": module_id})
+            print(module)
             if not module:
                 continue
             
@@ -363,7 +369,7 @@ async def assign_course_with_content(
                 assigned_modes=assigned_modes if assigned_modes else None,
                 operation="add"
             )
-            
+            print("bulk_scenario_assignment",bulk_scenario_assignment)
             # Execute bulk assignment
             scenario_assignments = await bulk_create_scenario_assignments(db, bulk_scenario_assignment)
             scenarios_assigned += len(scenario_assignments)

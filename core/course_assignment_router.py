@@ -151,11 +151,14 @@ async def assign_course_with_content_endpoint(
     
      # Assign course for each user
     assignment_results = {}
+    print("include_all_modules",include_all_modules)
+    print("include_all_scenarios",include_all_scenarios)
     for user_id in user_ids:
         result = await assign_course_with_content(
             db,
             user_id,
             course_id,
+            admin_user,
             include_all_modules,
             include_all_scenarios,
             module_ids,
