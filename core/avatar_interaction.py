@@ -373,35 +373,34 @@ async def update_avatar_interaction(
             detail="Not authorized to update avatar interactions"
         )
     
-    # If updating reference lists, validate that the referenced entities exist
-    if any(field in avatar_interaction_updates for field in ["personas", "avatars", "languages", "bot_voices", "environments"]):
-        # Combine current values with updates for validation
-        temp_interaction = avatar_interaction.copy()
-        temp_interaction.update(avatar_interaction_updates)
-        
-        # Create a temporary AvatarInteractionCreate for validation
-        temp_create = AvatarInteractionCreate(
-            personas=temp_interaction.get("personas", []),
-            avatars=temp_interaction.get("avatars", []),
-            languages=temp_interaction.get("languages", []),
-            bot_voices=temp_interaction.get("bot_voices", []),
-            environments=temp_interaction.get("environments", [])
+    # Make a copy of the existing interaction
+    updated_interaction = avatar_interaction.copy()
+    
+    # Apply the updates
+    for key, value in avatar_interaction_updates.items():
+        updated_interaction[key] = value
+    
+    # Ensure required fields are present
+    required_fields = ["bot_role", "system_prompt", "layout", "mode"]
+    missing_fields = [field for field in required_fields if field not in updated_interaction]
+    if missing_fields:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Missing required fields after update: {', '.join(missing_fields)}"
         )
-        
-        await validate_avatar_interaction_references(db, temp_create)
     
     # Add updated timestamp
-    avatar_interaction_updates["updated_at"] = datetime.now()
+    updated_interaction["updated_at"] = datetime.now()
     
     # Convert all UUIDs in the lists to strings for MongoDB
-    for field in ["personas", "avatars", "languages", "bot_voices", "environments"]:
-        if field in avatar_interaction_updates and avatar_interaction_updates[field]:
-            avatar_interaction_updates[field] = [str(item_id) for item_id in avatar_interaction_updates[field]]
+    for field in ["avatars", "languages", "bot_voices", "environments"]:
+        if field in updated_interaction and updated_interaction[field]:
+            updated_interaction[field] = [str(item_id) for item_id in updated_interaction[field]]
     
-    # Update in database - use string representation
+    # Update in database - use string representation, but only update the fields that were provided
     await db.avatar_interactions.update_one(
         {"_id": str(avatar_interaction_id)},
-        {"$set": avatar_interaction_updates}
+        {"$set": {k: v for k, v in updated_interaction.items() if k != "_id"}}
     )
     
     updated_avatar_interaction = await db.avatar_interactions.find_one({"_id": str(avatar_interaction_id)})
