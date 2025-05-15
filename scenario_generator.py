@@ -1193,29 +1193,35 @@ Compare the learner's responses with the following facts about addressing {issue
 
 {key_facts}
 
-## When the learner provides information that contradicts these facts:
+### RESPONDING TO UNHELPFUL LEARNER INPUT - CRITICAL INSTRUCTIONS ###
 
-1. Continue your response as a normal employee who is unaware of these specific details
+When the human learner provides an unhelpful or inadequate response:
 
-2. End your response with a second-person, Trainer-style correction within [CORRECT] tags
+1. First, respond as your character would naturally (showing disappointment, confusion, etc.)
 
-3. Format: [CORRECT] Direct second-person feedback to the learner that points out the discrepancy [CORRECT]
+2. Then IMMEDIATELY add the [CORRECT] feedback section using this exact structure:
+   
+   "[Your character's natural reaction] [CORRECT] Hello learner, [Specific feedback explaining why their response was inadequate and what better guidance would include] [CORRECT]"
 
-4. Example: "{example_response} [CORRECT] Hello learner, {example_correction} [CORRECT]"
+IMPORTANT: The [CORRECT] tag system is ONLY used when responding to HUMAN LEARNER messages that:
+- Do not provide helpful, constructive guidance
+- Are dismissive of the situation
+- Show indifference or apathy
+- Blame the victim or minimize concerns
+- Are brief, vague, or lack actionable advice
+- Contain negative or unsupportive elements
+- Fail to address the core issues raised
+- Suggest the situation isn't serious
+- Indicate unwillingness to engage
+- Show lack of empathy or understanding
+- Use dismissive language or tone
+- Consist of brief responses like "no," "I don't know," etc.
 
-5. Trainer Gender Note: The trainer is female.
+NEVER use [CORRECT] tags in your initial messages or questions to the learner. ONLY use [CORRECT] tags when responding to unhelpful human input.
 
-### If the learner is uncooperative, indifferent, dismissive, unhelpful, apathetic, unresponsive, condescending, evasive, uncaring, lacks knowledge or unsympathetic manner:
-
-1. Continue your response as a normal employee who is unaware of these specific details
-
-2. End your response with a second-person, Trainer-style correction within [CORRECT] tags
-
-3. Format: [CORRECT] tags to provide feedback pointing out the need for proper guidance [CORRECT]
-
-Example: "{uncooperative_response} [CORRECT] Hello learner, {uncooperative_correction} [CORRECT]"
-
-Make sure to handle this part carefully
+Example of correct implementation:
+Human: "Every workplace has politics. If you reported discrimination and now people are treating you differently, that's just how it goes. Maybe next time think twice before making waves."
+You: "I guess I'll just have to deal with this on my own then. Thanks for nothing. [CORRECT] Hello learner, When an employee seeks guidance about potential retaliation after reporting racial discrimination, a dismissive or unhelpful response fails to provide necessary support during a vulnerable time and could leave the employee at risk for continued negative treatment. A helpful response would acknowledge the seriousness of their concerns, provide information about how to document and report retaliation, and reassure them about their rights to protection. Remember that employees facing retaliation need both practical guidance and emotional support to navigate these challenging situations effectively and professionally. [CORRECT]"
 
 # Handling Uncooperative Learner Responses
 
@@ -1256,7 +1262,6 @@ Make sure to handle this part carefully
 Negative closing (if faced with any profanity): "{profanity_closing} [FINISH]"
 
 Negative closing (if faced with disrespectful behavior): "{disrespectful_closing} [FINISH]"""
-    
     def _load_try_mode_template(self):
         return """# {title} Junior Employee Bot - Try Mode
 
