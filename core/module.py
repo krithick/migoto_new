@@ -603,7 +603,7 @@ async def create_module_endpoint(
     """
     Create a new module in a course (admin/superadmin only)
     """
-    return await create_module(db, course_id, module, admin_user.id)
+    return await create_module(db, course_id, module, admin_user.id,admin_user.role)
 
 @router.put("/modules/{module_id}", response_model=ModuleResponse)
 async def update_module_endpoint(
