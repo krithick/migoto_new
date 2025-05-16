@@ -1062,7 +1062,7 @@ class ScenarioPromptGenerator:
             "business_or_personal": "business",
             "background_story": "Joined the company 18 months ago after completing degree"
             }
-    async def _load_system_prompt(self):
+    def _load_system_prompt(self):
         return """You are an expert at creating detailed role-play scenario prompts for workplace training.
 Your task is to transform scenario descriptions into comprehensive role-play prompts that follow specific formats.
 You will create three distinct prompts for each scenario:
@@ -1073,7 +1073,7 @@ You will create three distinct prompts for each scenario:
 Follow the provided template structures exactly, maintaining all headings and special tags.
 Generate comprehensive, well-structured prompts that cover all aspects of the workplace issue."""
     
-    async def _load_learn_mode_template(self):
+    def _load_learn_mode_template(self):
         return """# {title} Trainer Bot - Learn Mode
 
 ## Core Character Rules
@@ -1152,7 +1152,7 @@ Generate comprehensive, well-structured prompts that cover all aspects of the wo
 
 - Acknowledge the challenges of these situations while providing clear guidance"""
     
-    async def _load_assess_mode_template(self):
+    def _load_assess_mode_template(self):
         return """# {title} Junior Employee Bot - Assessment Mode
 
 ## Core Character Rules
@@ -1262,7 +1262,7 @@ You: "I guess I'll just have to deal with this on my own then. Thanks for nothin
 Negative closing (if faced with any profanity): "{profanity_closing} [FINISH]"
 
 Negative closing (if faced with disrespectful behavior): "{disrespectful_closing} [FINISH]"""
-    async def _load_try_mode_template(self):
+    def _load_try_mode_template(self):
         return """# {title} Junior Employee Bot - Try Mode
 
     ## Core Character Rules
@@ -1415,7 +1415,7 @@ Negative closing (if faced with disrespectful behavior): "{disrespectful_closing
         Ensure the JSON is valid and complete. Provide substantial, specific content for each field.
         """
         
-        response = self.client.chat.completions.create(
+        response =await self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that extracts structured information from documents and returns it in valid JSON format."},
@@ -1451,11 +1451,11 @@ Negative closing (if faced with disrespectful behavior): "{disrespectful_closing
             specialization=scenario_info.get("specialization", "workplace issues"),
             conversation_flow=scenario_info.get("conversation_flow_trainer", "Begin by greeting the learner and establishing a supportive environment."),
             demographic_context=scenario_info.get("demographic_context", "Corporate environment with diverse professionals."),
-            areas_to_explore=await self._format_bullet_points(scenario_info.get("areas_to_explore", [])),
+            areas_to_explore= self._format_bullet_points(scenario_info.get("areas_to_explore", [])),
             issue_type=scenario_info.get("issue_type", "workplace issue"),
-            key_facts=await self._format_bullet_points(scenario_info.get("key_facts", [])),
-            dos=await self._format_bullet_points(scenario_info.get("dos", [])),
-            donts=await self._format_bullet_points(scenario_info.get("donts", [])),
+            key_facts= self._format_bullet_points(scenario_info.get("key_facts", [])),
+            dos= self._format_bullet_points(scenario_info.get("dos", [])),
+            donts= self._format_bullet_points(scenario_info.get("donts", [])),
             documentation_practices=scenario_info.get("documentation_practices", "Best practices for documentation."),
             positive_closing=scenario_info.get("positive_closing", "You've shown excellent understanding of this topic."),
             clarification_closing=scenario_info.get("clarification_closing", "These concepts can be complex, and it's good that you're asking questions."),
@@ -1554,12 +1554,12 @@ Negative closing (if faced with disrespectful behavior): "{disrespectful_closing
         """Generate the Try Mode prompt (Junior Employee role without feedback)"""
         
         # Format the template with extracted information
-        formatted_template = await self.try_mode_template.format(
+        formatted_template = self.try_mode_template.format(
             title=scenario_info.get("title", "Workplace Scenario"),
             employee_situation=scenario_info.get("employee_situation", "has observed a workplace issue"),
             conversation_flow=scenario_info.get("conversation_flow_employee", "Begin by greeting the learner and explaining your situation."),
             demographic_context=scenario_info.get("demographic_context", "Corporate environment with diverse professionals."),
-            areas_to_explore=await self._format_bullet_points(scenario_info.get("areas_to_explore", [])),
+            areas_to_explore= self._format_bullet_points(scenario_info.get("areas_to_explore", [])),
             issue_type=scenario_info.get("issue_type", "workplace issue"),
             emphasis_point=scenario_info.get("emphasis_point", "the impact on the workplace"),
             polite_repeat_example=scenario_info.get("polite_repeat_example", "I appreciate your response, but I'm still concerned about this situation."),
@@ -1605,7 +1605,7 @@ Negative closing (if faced with disrespectful behavior): "{disrespectful_closing
         
         return response.choices[0].message.content
     
-    async def _format_bullet_points(self, items):
+    def _format_bullet_points(self, items):
         """Format a list of items as bullet points"""
         if isinstance(items, list):
             return "\n".join([f"- {item}" for item in items])
@@ -1634,7 +1634,7 @@ Negative closing (if faced with disrespectful behavior): "{disrespectful_closing
             }
         
             # Apply personas to the prompts
-            learn_mode_prompt = await self.insert_persona(learn_mode_prompt, trainer_persona)
+            learn_mode_prompt =  self.insert_persona(learn_mode_prompt, trainer_persona)
             # assess_mode_prompt = self.insert_persona(assess_mode_prompt, persona)
             # try_mode_prompt = self.insert_persona(try_mode_prompt, persona)
         
@@ -1648,7 +1648,7 @@ Negative closing (if faced with disrespectful behavior): "{disrespectful_closing
             }
         except Exception as e:
             raise Exception(f"Error generating prompts: {str(e)}")  
-    async def insert_persona(self, prompt, persona_details):
+    def insert_persona(self, prompt, persona_details):
         """Insert persona details into a prompt, replacing [PERSONA_PLACEHOLDER]"""
         if not isinstance(persona_details, dict):
             return prompt  # Return original prompt if persona_details is not a dictionary
@@ -1704,7 +1704,7 @@ async def file_to_all_prompts(file: UploadFile = File(...)):
         
         # Extract text from file
         try:
-            extracted_text = extract_text_from_file(file_content, file_extension)
+            extracted_text = await extract_text_from_file(file_content, file_extension)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         
