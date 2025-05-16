@@ -267,7 +267,7 @@ async def chat_stream(
                     answer = result[0]
                 else:
                     emotion = "neutral"  # Default emotion if parsing fails
-                    answer = updated_message
+                    answer = re.sub(r"\[CORRECT\]","",updated_message)
                 
                 # Check if this is the end of the conversation
                 is_finished = "[FINISH]" in updated_message
