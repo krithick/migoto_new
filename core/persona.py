@@ -10,7 +10,7 @@ from models.user_models import UserDB,UserRole
 
 from core.user import get_current_user, get_admin_user, get_superadmin_user
 from dotenv import load_dotenv
-from openai import AzureOpenAI
+from openai import AzureOpenAI ,AsyncAzureOpenAI
 import os
 # Create router
 router = APIRouter(prefix="/personas", tags=["Personas"])
@@ -19,7 +19,7 @@ endpoint = os.getenv("endpoint")
 api_version =  os.getenv("api_version")
         
         
-azure_openai_client = AzureOpenAI(
+azure_openai_client = AsyncAzureOpenAI(
             api_key=api_key,
             api_version=api_version,
             azure_endpoint=endpoint
@@ -215,7 +215,7 @@ async def generate_persona(
     """
     
     try:
-        response = azure_openai_client.chat.completions.create(
+        response = await azure_openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": prompt},

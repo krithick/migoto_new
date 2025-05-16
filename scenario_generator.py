@@ -986,7 +986,7 @@ class ScenarioPromptGenerator:
     from scenario descriptions or documents.
     """
     
-    async def __init__(self, client, model="gpt-4o"):
+    def __init__(self, client, model="gpt-4o"):
         self.client = client
         self.model = model
         self.system_prompt = self._load_system_prompt()
