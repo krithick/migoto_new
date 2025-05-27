@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any ,List
 from uuid import UUID
 
 from src.core.events import Event
@@ -39,4 +39,12 @@ class CourseAssignedToUserEvent(Event):
     user_id: UUID
     course_id: UUID
     assigned_by: UUID
+    timestamp: datetime = field(default_factory=datetime.now)
+    
+@dataclass(kw_only=True)
+class AdminCreatedEvent(Event):
+    admin_id: UUID
+    email: str
+    managed_users: List[UUID]
+    created_by: UUID
     timestamp: datetime = field(default_factory=datetime.now)

@@ -14,7 +14,12 @@ class UserEventHandlers:
         # TODO: Send welcome email
         # TODO: Create default settings
         # TODO: Log to audit trail
-    
+    async def handle_admin_created(self, event: UserCreatedEvent):
+        """Handle user creation event"""
+        print(f"Admin created: {event.user_id} with email {event.email}")
+        # TODO: Send welcome email
+        # TODO: Create default settings
+        # TODO: Log to audit trail    
     async def handle_user_updated(self, event: UserUpdatedEvent):
         """Handle user update event"""
         print(f"User {event.user_id} updated: {event.updates}")

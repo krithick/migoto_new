@@ -80,3 +80,10 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_at: int
+
+class AdminCreateRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+    emp_id: str = Field(..., min_length=3)
+    username: str = Field(..., min_length=3)
+    managed_users: List[UUID] = Field(default_factory=list)

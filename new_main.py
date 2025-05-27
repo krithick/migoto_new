@@ -375,6 +375,7 @@ async def setup_event_handlers(container: Container):
     event_bus.subscribe(UserUpdatedEvent, user_event_handlers.handle_user_updated)
     event_bus.subscribe(UserDeletedEvent, user_event_handlers.handle_user_deleted)
     event_bus.subscribe(CourseAssignedToUserEvent, user_event_handlers.handle_course_assigned)
+    event_bus.subscribe(UserDeletedEvent, user_event_handlers.handle_admin_created)
 
 async def create_indexes(container: Container):
     """Create database indexes"""

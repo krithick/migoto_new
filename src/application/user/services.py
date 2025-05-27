@@ -17,7 +17,8 @@ from src.application.user.events import (
     UserCreatedEvent, 
     UserUpdatedEvent, 
     UserDeletedEvent,
-    UserPromotedEvent
+    UserPromotedEvent,
+    AdminCreatedEvent
 )
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -198,3 +199,30 @@ class UserService:
     
     def _verify_password(self, plain_password: str, hashed_password: str) -> bool:
         return pwd_context.verify(plain_password, hashed_password)
+    
+    async def create_admin(self,email: str,password: str,username:str,emp_id:str,managed_users: List[UUID],created_by: UUID)->User :
+        """ Create Admin user (SuperAdmin Only)"""
+        
+        creator = await self.repository.find_by_id(created_by)
+        
+        if not creator or creator.role != UserRole.SUPERADMIN:
+            raise UnauthorizedAccessException("Only superadmins can create admins")
+        
+        user= await self.create_user(email=email,
+                                                   password=password,
+                                                   username=username,
+                                                   emp_id=emp_id,
+                                                   role= UserRole.ADMIN,
+                                                   created_by=created_by)
+        
+        if managed_users:
+            for user_id in managed_users:
+                await self.repository.add_managed_user(user.id,user_id)
+        
+        await self.event_bus.publish(AdminCreatedEvent(
+        admin_id=user.id,
+        email=email,
+        managed_users=managed_users,
+        created_by=created_by
+    ))
+        return user

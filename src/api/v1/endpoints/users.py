@@ -6,7 +6,7 @@ from dependency_injector.wiring import inject, Provide
 from src.core.container import Container
 from src.api.v1.schemas.user_schemas import (
     UserCreateRequest, UserResponse, UserUpdateRequest,
-    UserWithCoursesResponse, AdminUserResponse
+    UserWithCoursesResponse, AdminUserResponse,AdminCreateRequest
 )
 from src.application.user.services import UserService
 from src.api.v1.dependencies.auth import get_current_user, require_admin, require_superadmin
@@ -132,4 +132,28 @@ async def delete_user(
     except UnauthorizedAccessException as e:
         raise HTTPException(status_code=403, detail=str(e))
     except UserDomainException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+
+@router.post("/admins", response_model=AdminUserResponse)
+@inject
+async def create_admin(
+    request: AdminCreateRequest,
+    current_user: User = Depends(require_superadmin),  # Only superadmin
+    service: UserService = Depends(Provide[Container.user_service])
+):
+    """Create new admin user (superadmin only)"""
+    try:
+        admin = await service.create_admin(
+            email=request.email,
+            password=request.password,
+            emp_id=request.emp_id,
+            username=request.username,
+            managed_users=request.managed_users,
+            created_by=current_user.id
+        )
+        return AdminUserResponse.from_entity(admin)
+    except UnauthorizedAccessException as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except DuplicateEmailException as e:
         raise HTTPException(status_code=400, detail=str(e))
