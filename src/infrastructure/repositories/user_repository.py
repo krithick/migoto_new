@@ -26,15 +26,33 @@ class UserRepository(BaseMongoRepository[User]):
         cursor = self.collection.find({"role": role.value}).skip(skip).limit(limit)
         return [self.mapper.from_dict(doc) async for doc in cursor]
     
-    async def find_by_admin(self, admin_id: UUID) -> List[User]:
-        """Find users managed by specific admin"""
-        # Find admin first to get their emp_id
-        admin = await self.find_by_id(admin_id)
-        if not admin or admin.role != UserRole.ADMIN:
-            return []
+    # async def find_by_admin(self, admin_id: UUID) -> List[User]:
+    #     """Find users managed by specific admin"""
+    #     # Find admin first to get their emp_id
+    #     admin = await self.find_by_id(admin_id)
+    #     if not admin or admin.role != UserRole.ADMIN:
+    #         return []
         
-        # Find users assigned to this admin
-        cursor = self.collection.find({"assignee_emp_id": admin.emp_id})
+    #     # Find users assigned to this admin
+    #     cursor = self.collection.find({"assignee_emp_id": admin.emp_id})
+    #     return [self.mapper.from_dict(doc) async for doc in cursor]
+    
+    async def find_by_admin(self, admin_id: UUID) -> List[User]:
+        """Find users managed by specific admin using managed_users field"""
+        # Get admin document
+        admin_doc = await self.collection.find_one({"_id": str(admin_id)})
+    
+        if not admin_doc or admin_doc.get("role") != UserRole.ADMIN.value:
+            return []
+    
+        # Get managed user IDs from admin document
+        managed_user_ids = admin_doc.get("managed_users", [])
+    
+        if not managed_user_ids:
+            return []
+    
+        # Find all users whose IDs are in managed_users list
+        cursor = self.collection.find({"_id": {"$in": managed_user_ids}})
         return [self.mapper.from_dict(doc) async for doc in cursor]
     
     async def add_managed_user(self, admin_id: UUID, user_id: UUID) -> bool:

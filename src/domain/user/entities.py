@@ -24,7 +24,7 @@ class User(BaseEntity):
     # Fields with defaults come after
     role: UserRole = UserRole.USER
     is_active: bool = True
-    assignee_emp_id: Optional[str] = None
+    # assignee_emp_id: Optional[str] = None
     assigned_courses: List[UUID] = field(default_factory=list)
     managed_users: List[UUID] = field(default_factory=list)
     
@@ -69,7 +69,7 @@ class User(BaseEntity):
             # Admin can manage users assigned to them
             return (
                 target_user.id in self.managed_users or
-                target_user.assignee_emp_id == self.emp_id or
+                # target_user.assignee_emp_id == self.emp_id or
                 target_user.id == self.id  # Can manage self
             )
         

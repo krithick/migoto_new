@@ -74,11 +74,11 @@ class UserService:
             raise DuplicateEmailException(f"Email {email} already registered")
         
         # Determine assignee if created by admin
-        assignee_emp_id = None
-        if created_by:
-            creator = await self.repository.find_by_id(created_by)
-            if creator and creator.role == UserRole.ADMIN:
-                assignee_emp_id = creator.emp_id
+        # assignee_emp_id = None
+        # if created_by:
+        #     creator = await self.repository.find_by_id(created_by)
+        #     if creator and creator.role == UserRole.ADMIN:
+        #         assignee_emp_id = creator.emp_id
         
         # Create user entity
         user = User(
@@ -87,7 +87,7 @@ class UserService:
             username=username,
             hashed_password=self._hash_password(password),
             role=role,
-            assignee_emp_id=assignee_emp_id,
+            # assignee_emp_id=assignee_emp_id,
             created_by=created_by
         )
         
@@ -95,7 +95,7 @@ class UserService:
         saved_user = await self.repository.create(user)
         
         # Update admin's managed users if applicable
-        if created_by and assignee_emp_id:
+        if created_by :
             await self.repository.add_managed_user(created_by, saved_user.id)
         
         # Publish event

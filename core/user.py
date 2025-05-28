@@ -173,17 +173,17 @@ async def create_user(db: Any, users: List[UserCreate], created_by: Optional[UUI
         user_dict = user.dict()
         hashed_password = get_password_hash(user_dict.pop("password"))
 
-        assignee_emp_id = None
+        # assignee_emp_id = None
 
         if created_by:
             admin = await get_user_by_id(db, created_by)
-            if admin and admin.role == UserRole.ADMIN:
-                assignee_emp_id = admin.emp_id
+            # if admin and admin.role == UserRole.ADMIN:
+            #     assignee_emp_id = admin.emp_id
 
         user_db = UserDB(
             **user_dict,
             hashed_password=hashed_password,
-            assignee_emp_id=assignee_emp_id,
+            # assignee_emp_id=assignee_emp_id,
             created_at=datetime.now(),
             updated_at=datetime.now()
         )

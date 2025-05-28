@@ -77,7 +77,7 @@ class UserResponse(UserBase):
     id: UUID
     role: UserRole
     emp_id: str
-    assignee_emp_id: Optional[str] = None
+    # assignee_emp_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     

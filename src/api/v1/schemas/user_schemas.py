@@ -36,7 +36,7 @@ class UserResponse(BaseModel):
     username: str
     role: UserRole
     is_active: bool
-    assignee_emp_id: Optional[str]
+    # assignee_emp_id: Optional[str]
     created_at: datetime
     updated_at: datetime
     
@@ -49,7 +49,7 @@ class UserResponse(BaseModel):
             username=user.username,
             role=user.role,
             is_active=user.is_active,
-            assignee_emp_id=user.assignee_emp_id,
+            # assignee_emp_id=user.assignee_emp_id,
             created_at=user.created_at,
             updated_at=user.updated_at
         )
