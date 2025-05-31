@@ -248,7 +248,7 @@ async def create_template(request: TemplateRequest):
         )
         
         # Call OpenAI to generate the template
-        response = azure_openai_client.chat.completions.create(
+        response = await azure_openai_client.chat.completions.create(
             model="gpt-4o",  # Use appropriate model
             messages=[
                 {"role": "system", "content": formatted_prompt},
