@@ -88,7 +88,10 @@ async def create_language(
         last_name="temp",
         role=UserRole.ADMIN,
         hashed_password="temp",
-        thumbnail_url="temp"
+        thumbnail_url="temp",
+        username="temp",
+        emp_id="temp",
+        company_id="906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
     ))
     
     if existing_language:

@@ -10,6 +10,9 @@ from models.modules_models import ModuleCreate, ModuleResponse,ModuleWithAssignm
 from core.user import get_current_user, get_admin_user, get_superadmin_user
 from core.course import get_course  # Import from course CRUD to check permissions
 from core.scenario_assignment import get_user_module_scenario_assignments
+
+from models.company_models import CompanyType, CompanyDB
+from models.modules_models import ContentVisibility, ModuleUpdate  
 # Create router
 router = APIRouter(tags=["Modules"])
 
@@ -18,57 +21,136 @@ async def get_database():
     from database import get_db  # Import your existing function
     return await get_db()
 
+async def get_company_by_id(db: Any, company_id: UUID) -> Optional[CompanyDB]:
+    """Get company by ID"""
+    company = await db.companies.find_one({"_id": str(company_id)})
+    if company:
+        return CompanyDB(**company)
+    return None
+
+async def get_company_hierarchy_type(db: Any, company_id: UUID) -> CompanyType:
+    """Get company type for hierarchy rules"""
+    company = await get_company_by_id(db, company_id)
+    return company.company_type if company else CompanyType.CLIENT
 # Module Any Operations
+# async def get_modules(
+#     db: Any, 
+#     skip: int = 0, 
+#     limit: int = 100,
+#     current_user: Optional[UserDB] = None
+# ) -> List[ModuleDB]:
+#     """
+#     Get a list of all modules with permission checks.
+#     - Admins/Superadmins: all modules
+#     - Regular users: only modules from assigned courses
+#     """
+#     if not current_user:
+#         return []
+    
+#     modules = []
+    
+#     # For admins and superadmins, return all modules
+#     if current_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN, UserRole.BOSS_ADMIN]:
+#         cursor = db.modules.find().skip(skip).limit(limit)
+#         async for document in cursor:
+#             modules.append(ModuleDB(**document))
+#     else:
+#         # For regular users, get only modules from assigned courses
+#         user_data = current_user.dict()
+#         assigned_course_ids = user_data.get("assigned_courses", [])
+        
+#         # Convert UUIDs to strings for MongoDB
+#         assigned_course_ids_str = [str(course_id) for course_id in assigned_course_ids]
+        
+#         if assigned_course_ids_str:
+#             # Get all courses assigned to user
+#             courses = []
+#             for course_id in assigned_course_ids_str:
+#                 course = await db.courses.find_one({"_id": course_id})
+#                 if course:
+#                     courses.append(course)
+            
+#             # Extract module IDs from all assigned courses
+#             module_ids = []
+#             for course in courses:
+#                 module_ids.extend(course.get("modules", []))
+            
+#             # Get modules by these IDs
+#             if module_ids:
+#                 cursor = db.modules.find({"_id": {"$in": module_ids}}).skip(skip).limit(limit)
+#                 async for document in cursor:
+#                     modules.append(ModuleDB(**document))
+    
+#     return modules
+
 async def get_modules(
     db: Any, 
     skip: int = 0, 
     limit: int = 100,
     current_user: Optional[UserDB] = None
 ) -> List[ModuleDB]:
-    """
-    Get a list of all modules with permission checks.
-    - Admins/Superadmins: all modules
-    - Regular users: only modules from assigned courses
-    """
+    """Get modules based on user's company hierarchy access"""
     if not current_user:
         return []
     
     modules = []
     
-    # For admins and superadmins, return all modules
-    if current_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
-        cursor = db.modules.find().skip(skip).limit(limit)
+    if current_user.role == UserRole.USER:
+        # Users only see assigned modules through module assignments
+        assignments_cursor = db.user_module_assignments.find({
+            "user_id": str(current_user.id),
+            "is_archived": False  # Don't show archived assignments
+        })
+        
+        assigned_module_ids = []
+        async for assignment in assignments_cursor:
+            assigned_module_ids.append(assignment["module_id"])
+        
+        if assigned_module_ids:
+            cursor = db.modules.find({
+                "_id": {"$in": assigned_module_ids},
+                "is_archived": False  # Don't show archived modules
+            }).skip(skip).limit(limit)
+            async for document in cursor:
+                modules.append(ModuleDB(**document))
+    
+    elif current_user.role == UserRole.BOSS_ADMIN:
+        # Boss admin sees ALL modules from ALL companies
+        cursor = db.modules.find({"is_archived": False}).skip(skip).limit(limit)
         async for document in cursor:
             modules.append(ModuleDB(**document))
-    else:
-        # For regular users, get only modules from assigned courses
-        user_data = current_user.dict()
-        assigned_course_ids = user_data.get("assigned_courses", [])
+    
+    else:  # ADMIN or SUPERADMIN
+        # Get user's company type
+        user_company_type = await get_company_hierarchy_type(db, current_user.company_id)
         
-        # Convert UUIDs to strings for MongoDB
-        assigned_course_ids_str = [str(course_id) for course_id in assigned_course_ids]
-        
-        if assigned_course_ids_str:
-            # Get all courses assigned to user
-            courses = []
-            for course_id in assigned_course_ids_str:
-                course = await db.courses.find_one({"_id": course_id})
-                if course:
-                    courses.append(course)
+        if user_company_type == CompanyType.MOTHER:
+            # MOTHER company admins see all modules
+            cursor = db.modules.find({"is_archived": False}).skip(skip).limit(limit)
+            async for document in cursor:
+                modules.append(ModuleDB(**document))
+        else:
+            # CLIENT/SUBSIDIARY company admins see:
+            # 1. Their own company modules
+            # 2. MOTHER company modules
             
-            # Extract module IDs from all assigned courses
-            module_ids = []
-            for course in courses:
-                module_ids.extend(course.get("modules", []))
+            # Get all MOTHER companies
+            mother_companies = []
+            mother_cursor = db.companies.find({"company_type": CompanyType.MOTHER})
+            async for company_doc in mother_cursor:
+                mother_companies.append(company_doc["_id"])
             
-            # Get modules by these IDs
-            if module_ids:
-                cursor = db.modules.find({"_id": {"$in": module_ids}}).skip(skip).limit(limit)
-                async for document in cursor:
-                    modules.append(ModuleDB(**document))
+            # Build query for accessible modules
+            accessible_companies = [str(current_user.company_id)] + mother_companies
+            
+            cursor = db.modules.find({
+                "company_id": {"$in": accessible_companies},
+                "is_archived": False
+            }).skip(skip).limit(limit)
+            async for document in cursor:
+                modules.append(ModuleDB(**document))
     
     return modules
-
 async def get_module(
     db: Any, 
     module_id: UUID, 
@@ -85,9 +167,20 @@ async def get_module(
         return None
     
     # If admin or superadmin, allow access
-    if current_user and current_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
+    # if current_user and current_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
+    #     return ModuleDB(**module)
+    # Replace with:
+    if current_user and current_user.role == UserRole.BOSS_ADMIN:
         return ModuleDB(**module)
+    elif current_user and current_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
+        # Check company hierarchy access
+        module_company_id = UUID(module["company_id"])
+        user_company_type = await get_company_hierarchy_type(db, current_user.company_id)
     
+        # Same company or MOTHER company access
+        if (current_user.company_id == module_company_id or 
+            await get_company_hierarchy_type(db, module_company_id) == CompanyType.MOTHER):
+            return ModuleDB(**module)
     # For regular users, check if module belongs to an assigned course
     if current_user:
         user_data = current_user.dict()
@@ -326,7 +419,7 @@ async def create_module(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     
     creator = UserDB(**creator)
-    
+    creator_company_id = UUID(creator.company_id)
     # If creator is admin (not superadmin), check if they created the course
     if creator.role == UserRole.ADMIN and course.get("created_by") != str(created_by):
         raise HTTPException(
@@ -336,17 +429,26 @@ async def create_module(
     
     # Create ModuleDB model
     module_dict = module.dict()
-    
     module_db = ModuleDB(
-        **module_dict,
-        creater_role=role,
-        created_by=created_by,  # Set the creator
-        created_at=datetime.now(),
-        updated_at=datetime.now()
-    )
+    **module_dict,
+    creater_role=role,
+    created_by=created_by,
+    company_id=creator_company_id,  # ADD THIS LINE
+    visibility=ContentVisibility.CREATOR_ONLY,  # ADD THIS LINE
+    created_at=datetime.now(),
+    updated_at=datetime.now()
+)    
+    # module_db = ModuleDB(
+    #     **module_dict,
+    #     creater_role=role,
+    #     created_by=created_by,  # Set the creator
+    #     created_at=datetime.now(),
+    #     updated_at=datetime.now()
+    # )
     
     # Insert into database
     module_dict = module_db.dict(by_alias=True)
+    module_dict["company_id"] = str(module_dict["company_id"])
     
     # Always use string for _id in MongoDB
     if "_id" in module_dict:
@@ -427,49 +529,105 @@ async def update_module(
         return ModuleDB(**updated_module)
     return None
 
-async def delete_module(db: Any, module_id: UUID, deleted_by: UUID) -> bool:
-    """
-    Delete a module with permission checks
-    """
-    # Get the module to delete - use string representation
+# async def delete_module(db: Any, module_id: UUID, deleted_by: UUID) -> bool:
+#     """
+#     Delete a module with permission checks
+#     """
+#     # Get the module to delete - use string representation
+#     module = await db.modules.find_one({"_id": str(module_id)})
+#     if not module:
+#         return False
+    
+#     # Get the user making the deletion - use string representation
+#     deleter = await db.users.find_one({"_id": str(deleted_by)})
+#     if not deleter:
+#         return False
+    
+#     # Convert deleter to UserDB for role checking
+#     deleter = UserDB(**deleter)
+    
+#     # Check permissions - compare string representations
+#     if deleter.role == UserRole.ADMIN:
+#         # Admin can only delete modules they created
+#         if module.get("created_by") != str(deleted_by):
+#             raise HTTPException(
+#                 status_code=status.HTTP_403_FORBIDDEN,
+#                 detail="Admins can only delete modules they created"
+#             )
+#     elif deleter.role != UserRole.SUPERADMIN:
+#         # Regular users cannot delete modules
+#         raise HTTPException(
+#             status_code=status.HTTP_403_FORBIDDEN,
+#             detail="Not authorized to delete modules"
+#         )
+    
+#     # Remove module from any courses - use string representation
+#     await db.courses.update_many(
+#         {"modules": str(module_id)},
+#         {"$pull": {"modules": str(module_id)}}
+#     )
+    
+#     # Delete the module - use string representation
+#     result = await db.modules.delete_one({"_id": str(module_id)})
+    
+#     return result.deleted_count > 0
+
+async def archive_module(db: Any, module_id: UUID, archived_by: UUID, reason: str = "Manual archive") -> bool:
+    """Archive a module (soft delete) instead of hard deletion"""
+    # Get the module
     module = await db.modules.find_one({"_id": str(module_id)})
     if not module:
         return False
     
-    # Get the user making the deletion - use string representation
-    deleter = await db.users.find_one({"_id": str(deleted_by)})
+    # Get the user making the archive
+    deleter = await db.users.find_one({"_id": str(archived_by)})
     if not deleter:
         return False
     
-    # Convert deleter to UserDB for role checking
     deleter = UserDB(**deleter)
     
-    # Check permissions - compare string representations
+    # Check permissions (same as your existing logic)
     if deleter.role == UserRole.ADMIN:
-        # Admin can only delete modules they created
-        if module.get("created_by") != str(deleted_by):
+        if module.get("created_by") != str(archived_by):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Admins can only delete modules they created"
+                detail="Admins can only archive modules they created"
             )
-    elif deleter.role != UserRole.SUPERADMIN:
-        # Regular users cannot delete modules
+    elif deleter.role != UserRole.SUPERADMIN and deleter.role != UserRole.BOSS_ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete modules"
+            detail="Not authorized to archive modules"
         )
     
-    # Remove module from any courses - use string representation
-    await db.courses.update_many(
-        {"modules": str(module_id)},
-        {"$pull": {"modules": str(module_id)}}
+    # Archive the module
+    await db.modules.update_one(
+        {"_id": str(module_id)},
+        {"$set": {
+            "is_archived": True,
+            "archived_at": datetime.now(),
+            "archived_by": str(archived_by),
+            "archived_reason": reason,
+            "updated_at": datetime.now()
+        }}
     )
     
-    # Delete the module - use string representation
-    result = await db.modules.delete_one({"_id": str(module_id)})
+    # Archive all assignments for this module
+    await db.user_module_assignments.update_many(
+        {"module_id": str(module_id), "is_archived": False},
+        {"$set": {
+            "is_archived": True,
+            "archived_at": datetime.now(),
+            "archived_by": str(archived_by),
+            "archived_reason": f"Module archived: {reason}"
+        }}
+    )
     
-    return result.deleted_count > 0
+    return True
 
+# Keep delete_module as a wrapper
+async def delete_module(db: Any, module_id: UUID, deleted_by: UUID) -> bool:
+    """Delete a module - now just calls archive_module"""
+    return await archive_module(db, module_id, deleted_by, "Module deleted")
 async def reorder_module_scenarios(
     db: Any, 
     module_id: UUID, 
@@ -620,20 +778,31 @@ async def update_module_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Module not found")
     return updated_module
 
-@router.delete("/modules/{module_id}", response_model=Dict[str, bool])
+# @router.delete("/modules/{module_id}", response_model=Dict[str, bool])
+# async def delete_module_endpoint(
+#     module_id: UUID,
+#     db: Any = Depends(get_database),
+#     admin_user: UserDB = Depends(get_admin_user)  # Only admins and superadmins can delete modules
+# ):
+#     """
+#     Delete a module by ID (admin/superadmin only, with ownership checks for admins)
+#     """
+#     deleted = await delete_module(db, module_id, admin_user.id)
+#     if not deleted:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Module not found")
+#     return {"success": True}
+
 async def delete_module_endpoint(
     module_id: UUID,
+    archive_reason: str = Body("Manual deletion", embed=True),  # ADD THIS
     db: Any = Depends(get_database),
-    admin_user: UserDB = Depends(get_admin_user)  # Only admins and superadmins can delete modules
+    admin_user: UserDB = Depends(get_admin_user)
 ):
-    """
-    Delete a module by ID (admin/superadmin only, with ownership checks for admins)
-    """
-    deleted = await delete_module(db, module_id, admin_user.id)
-    if not deleted:
+    """Archive a module (soft delete) with company hierarchy permission checks"""
+    archived = await archive_module(db, module_id, admin_user.id, archive_reason)  # CHANGE THIS
+    if not archived:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Module not found")
-    return {"success": True}
-
+    return {"success": True, "archived": True}  # UPDATE RESPONSE
 @router.put("/modules/{module_id}/reorder", response_model=ModuleResponse)
 async def reorder_module_scenarios_endpoint(
     module_id: UUID,
@@ -648,3 +817,103 @@ async def reorder_module_scenarios_endpoint(
     if not updated_module:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Module not found")
     return updated_module
+
+
+@router.get("/modules/assignable", response_model=List[ModuleResponse])
+async def get_assignable_modules_endpoint(
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """Get modules that current admin can assign to users"""
+    # This would use the new company hierarchy logic
+    modules = await get_modules(db, 0, 1000, admin_user)  # Get all accessible modules
+    return modules
+
+@router.put("/modules/{module_id}/visibility", response_model=ModuleResponse)
+async def update_module_visibility_endpoint(
+    module_id: UUID,
+    visibility_data: Dict[str, str] = Body(..., example={"visibility": "company_wide"}),
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """Update module visibility (creator_only vs company_wide)"""
+    new_visibility = visibility_data.get("visibility")
+    
+    if new_visibility not in [ContentVisibility.CREATOR_ONLY, ContentVisibility.COMPANY_WIDE]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid visibility. Must be 'creator_only' or 'company_wide'"
+        )
+    
+    module_updates = {"visibility": new_visibility}
+    updated_module = await update_module(db, module_id, module_updates, admin_user.id)
+    if not updated_module:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Module not found")
+    return updated_module
+
+# async def can_user_assign_module(db: Any, user: UserDB, module: ModuleDB) -> bool:
+#     """
+#     Check if user can ASSIGN a specific module based on:
+#     1. Company hierarchy rules
+#     2. Content visibility settings
+#     3. User role permissions
+#     """
+#     # Users cannot assign modules
+#     if user.role == UserRole.USER:
+#         return False
+    
+#     # Boss admin can assign any module
+#     if user.role == UserRole.BOSS_ADMIN:
+#         return True
+    
+#     # Check if module is archived
+#     if module.is_archived:
+#         return False
+    
+#     # Check company hierarchy access
+#     user_company_type = await get_company_hierarchy_type(db, user.company_id)
+#     module_company_type = await get_company_hierarchy_type(db, module.company_id)
+    
+#     # Same company assignment
+#     if user.company_id == module.company_id:
+#         # Check visibility rules
+#         if module.visibility == ContentVisibility.CREATOR_ONLY:
+#             return module.created_by == user.id
+#         elif module.visibility == ContentVisibility.COMPANY_WIDE:
+#             return True  # Any admin/superadmin in same company can assign
+    
+#     # Cross-company assignment (MOTHER → CLIENT/SUBSIDIARY)
+#     elif module_company_type == CompanyType.MOTHER:
+#         # MOTHER company modules can be assigned by any admin/superadmin
+#         # regardless of visibility setting
+#         return True
+    
+#     # All other cases: no access
+#     return False
+
+# REPLACE this function:
+async def can_user_assign_module(db: Any, user: UserDB, module: ModuleDB) -> bool:
+    if user.role == UserRole.USER:
+        return False
+    if user.role == UserRole.BOSS_ADMIN:
+        return True
+    if module.is_archived:
+        return False
+    
+    # CRITICAL FIX: Convert all UUIDs to strings
+    user_company_str = str(user.company_id)
+    module_company_str = str(module.company_id)
+    user_id_str = str(user.id)
+    created_by_str = str(module.created_by)
+    
+    if user_company_str == module_company_str:
+        if module.visibility == ContentVisibility.CREATOR_ONLY:
+            return user_id_str == created_by_str  # FIXED
+        elif module.visibility == ContentVisibility.COMPANY_WIDE:
+            return True
+    
+    module_company_type = await get_company_hierarchy_type(db, module.company_id)
+    if module_company_type == CompanyType.MOTHER:
+        return True
+    
+    return False

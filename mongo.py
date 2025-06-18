@@ -56,6 +56,7 @@ class MongoDB:
         self.avatar_interactions = self.db.avatar_interactions
         self.users = self.db.users
         self.file_uploads = self.db.file_uploads
+        self.companies = self.db.companies
         
         # Existing course assignment collection
         self.user_course_assignments = self.db.user_course_assignments

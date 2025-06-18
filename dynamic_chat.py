@@ -134,6 +134,7 @@ class DynamicChatHandler:
         print(self.config)
         if self.config.persona_id:
             try:
+                print(self.config.persona_id,"self.config.persona_id")
                 persona = await self.db.personas.find_one({"_id": str(self.config.persona_id)})
                 language = await self.db.languages.find_one({"_id": str(self.config.language_id)})
                 print("language",language)

@@ -34,11 +34,26 @@ class ScenarioAssignmentBase(BaseModel):
 
 # Create model (used when creating a new assignment)
 class ScenarioAssignmentCreate(ScenarioAssignmentBase):
+    # Company context will be auto-filled during assignment creation
     pass
 
 # Database model (returned when reading from DB)
 class ScenarioAssignmentDB(ScenarioAssignmentBase):
     id: UUID = Field(default_factory=uuid4, alias="_id")
+    
+    # Company hierarchy context - tracks assignment flow
+    assigned_by_company: UUID                    # Which company's admin made this assignment
+    source_company: UUID                        # Which company owns the scenario being assigned
+    assignment_context: str                     # "internal" or "cross_company"
+    
+    # Assignment tracking
+    assigned_by: UUID                           # Which admin/superadmin made the assignment
+    
+    # Soft deletion for assignment history
+    is_archived: bool = False                   # When assignment is "removed" but kept for history
+    archived_at: Optional[datetime] = None     # When was assignment archived
+    archived_by: Optional[UUID] = None         # Who archived the assignment
+    archived_reason: Optional[str] = None      # Why was assignment removed
     
     class Config:
         populate_by_name = True
@@ -57,6 +72,10 @@ class ScenarioAssignmentUpdate(BaseModel):
     assigned_modes: Optional[List[ScenarioModeType]] = None
     mode_progress: Optional[Dict[ScenarioModeType, ModeProgressUpdate]] = None
     
+    # Archive operations
+    is_archived: Optional[bool] = None
+    archived_reason: Optional[str] = None
+    
     @validator('assigned_modes')
     def validate_assigned_modes(cls, v):
         """Validate that assigned modes are valid ScenarioModeType values"""
@@ -67,6 +86,16 @@ class ScenarioAssignmentUpdate(BaseModel):
 # Response model (returned by API)
 class ScenarioAssignmentResponse(ScenarioAssignmentBase):
     id: UUID
+    
+    # Company context for transparency
+    assigned_by_company: UUID
+    source_company: UUID
+    assignment_context: str
+    assigned_by: UUID
+    
+    # Archive status
+    is_archived: bool = False
+    archived_at: Optional[datetime] = None
     
     class Config:
         populate_by_name = True
@@ -81,6 +110,8 @@ class BulkScenarioAssignmentCreate(BaseModel):
     assigned_modes: Optional[Dict[UUID, List[ScenarioModeType]]] = None
     operation: str = Field(..., description="Either 'add' or 'remove'")
     
+    # Company context will be auto-filled during bulk assignment
+    
     @validator('operation')
     def validate_operation(cls, v):
         if v not in ['add', 'remove']:
@@ -89,3 +120,27 @@ class BulkScenarioAssignmentCreate(BaseModel):
     
     class Config:
         json_encoders = {UUID: str}
+
+# Assignment context helper enum
+class AssignmentContext:
+    """
+    Assignment Context Rules:
+    
+    INTERNAL: 
+    - Admin assigns scenario from their own company to their users
+    - source_company == assigned_by_company
+    - Most common scenario
+    
+    CROSS_COMPANY:
+    - Admin assigns MOTHER company scenario to their users
+    - source_company (MOTHER) != assigned_by_company (CLIENT/SUBSIDIARY)
+    - Enabled by company hierarchy rules
+    
+    Usage in assignment creation:
+    if source_scenario.company_id == assigning_admin.company_id:
+        assignment_context = "internal"
+    else:
+        assignment_context = "cross_company"
+    """
+    INTERNAL = "internal"
+    CROSS_COMPANY = "cross_company"

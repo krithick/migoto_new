@@ -37,6 +37,7 @@ from core.file_upload import router as upload_router
 from core.course_assignment_router import router as course_assignment_router
 from core.analysis_report import router as analysis_report_router
 from core.dashboard import router as dashboard_router
+from core.companies import router as companies_router
 
 # from core.structure import router as new_router
 app = FastAPI(title="Role-Play Scenario Generator API",debug=True)
@@ -61,6 +62,7 @@ app.include_router(upload_router)
 app.include_router(course_assignment_router)
 app.include_router(analysis_report_router)
 app.include_router(dashboard_router)
+app.include_router(companies_router)
 
 # app.include_router(new_router)
 
@@ -330,7 +332,7 @@ async def migrate_course_assignments(db: Any):
         user_count += 1
         
         # Use user creation date as the assignment date (best guess)
-        assignment_date = user.get("created_at", datetime.datetime.now())
+        assignment_date = user.get("created_at", datetime.now())
         
         # Create assignment records
         for course_id in assigned_courses:
@@ -416,8 +418,8 @@ async def startup_event():
     # await create_default_superadmin(db)
     # await migrate_course_assignments(db)
     # await migrate_avatar_models(db)
-    await bot_factory.initialize_bots()
-    await bot_factory_analyser.initialize_bots_analyser()
+    # await bot_factory.initialize_bots()
+    # await bot_factory_analyser.initialize_bots_analyser()
 async def get_db():
     return db
 # Dependency to get database
@@ -545,5 +547,397 @@ async def get_session_analysis(
     return analysis
 
 # 
+
+from models.company_models import CompanyDB, CompanyType, CompanyStatus
+from models.user_models import BossAdminDB, UserRole, AccountType
+from uuid import UUID
+from datetime import datetime, timedelta
+# Add this to your main.py file
+
+async def migrate_user_hierarchy_and_companies(db):
+    """
+    Comprehensive migration script to:
+    1. Create mother company and boss admin
+    2. Create companies for existing superadmins
+    3. Migrate existing users to new hierarchy structure
+    4. Update all documents with new fields
+    """
+    print("Starting user hierarchy and company migration...")
+    
+    try:
+        # Step 1: Create the mother company
+        mother_company_id = await create_mother_company(db)
+        print(f"✅ Created mother company: {mother_company_id}")
+        
+        # Step 2: Create the boss admin
+        boss_admin_id = await create_boss_admin(db, mother_company_id)
+        print(f"✅ Created boss admin: {boss_admin_id}")
+        
+        # Step 3: Handle existing superadmins
+        migrated_superadmins = await migrate_existing_superadmins(db, boss_admin_id)
+        print(f"✅ Migrated {len(migrated_superadmins)} superadmins with their companies")
+        
+        # Step 4: Migrate remaining users
+        migrated_users = await migrate_remaining_users(db, migrated_superadmins)
+        print(f"✅ Migrated {migrated_users} remaining users")
+        
+        # Step 5: Update company statistics
+        await update_company_statistics(db)
+        print("✅ Updated company statistics")
+        
+        print("🎉 Migration completed successfully!")
+        
+        # Print summary
+        await print_migration_summary(db)
+        
+    except Exception as e:
+        print(f"❌ Migration failed: {str(e)}")
+        raise
+
+async def create_mother_company(db):
+    """Create the mother company for the boss admin"""
+    from models.company_models import CompanyDB, CompanyType, CompanyStatus
+    
+    # Check if mother company already exists
+    existing_mother = await db.companies.find_one({"company_type": "mother"})
+    if existing_mother:
+        print("Mother company already exists, skipping creation")
+        return existing_mother["_id"]
+    
+    mother_company = CompanyDB(
+        name="NovacTech Solutions (Mother Company)",
+        description="Mother company managing all client organizations",
+        industry="Technology Solutions",
+        location="Global",
+        contact_email="admin@novactech.com",
+        company_type=CompanyType.MOTHER,
+        status=CompanyStatus.ACTIVE,
+        created_at=datetime.now(),
+        updated_at=datetime.now()
+    )
+    
+    company_dict = mother_company.dict(by_alias=True)
+    company_dict["_id"] = str(company_dict["_id"])
+    
+    result = await db.companies.insert_one(company_dict)
+    return str(result.inserted_id)
+
+async def create_boss_admin(db, mother_company_id):
+    """Create the boss admin user"""
+    import os
+    from models.user_models import BossAdminDB, UserRole, AccountType
+    
+    # Check if boss admin already exists
+    existing_boss = await db.users.find_one({"role": "boss_admin"})
+    if existing_boss:
+        print("Boss admin already exists, skipping creation")
+        return existing_boss["_id"]
+    
+    # Get boss admin credentials from environment
+    boss_email = os.getenv("BOSS_ADMIN_EMAIL", "boss@novactech.com")
+    boss_password = os.getenv("BOSS_ADMIN_PASSWORD", "BossAdmin@123!")
+    
+    # Check if email is already taken
+    existing_user = await db.users.find_one({"email": boss_email})
+    if existing_user:
+        # Update existing user to boss admin
+        hashed_password = get_password_hash(boss_password)
+        await db.users.update_one(
+            {"_id": existing_user["_id"]},
+            {"$set": {
+                "role": UserRole.BOSS_ADMIN,
+                "company_id": mother_company_id,
+                "account_type": AccountType.REGULAR,
+                "can_create_companies": True,
+                "can_view_all_analytics": True,
+                "managed_companies": [],
+                "managed_users": [],
+                "hashed_password": hashed_password,
+                "updated_at": datetime.now()
+            }}
+        )
+        return existing_user["_id"]
+    
+    boss_admin = BossAdminDB(
+        email=boss_email,
+        emp_id="BOSS001",
+        username="Boss Admin",
+        role=UserRole.BOSS_ADMIN,
+        hashed_password=get_password_hash(boss_password),
+        company_id=UUID(mother_company_id),
+        account_type=AccountType.REGULAR,
+        is_active=True,
+        can_create_companies=True,
+        can_view_all_analytics=True,
+        managed_companies=[],
+        managed_users=[],
+        assigned_courses=[],
+        created_at=datetime.now(),
+        updated_at=datetime.now()
+    )
+    
+    boss_dict = boss_admin.dict(by_alias=True)
+    boss_dict["_id"] = str(boss_dict["_id"])
+    boss_dict["company_id"] = str(boss_dict["company_id"])
+    
+    result = await db.users.insert_one(boss_dict)
+    
+    # Update mother company with boss admin info
+    await db.companies.update_one(
+        {"_id": mother_company_id},
+        {"$set": {
+            "created_by": str(result.inserted_id),
+            "total_users": 1,
+            "total_superadmins": 0,
+            "total_admins": 0
+        }}
+    )
+    
+    print(f"Boss admin created with email: {boss_email}")
+    return str(result.inserted_id)
+
+async def migrate_existing_superadmins(db, boss_admin_id):
+    """Find existing superadmins and create companies for them"""
+    from models.company_models import CompanyDB, CompanyType, CompanyStatus
+    from models.user_models import UserRole, AccountType
+    
+    migrated_superadmins = []
+    
+    # Find all existing superadmins
+    superadmins_cursor = db.users.find({"role": "superadmin"})
+    superadmin_count = 0
+    
+    async for superadmin_doc in superadmins_cursor:
+        superadmin_count += 1
+        superadmin_id = superadmin_doc["_id"]
+        superadmin_email = superadmin_doc.get("email", f"superadmin{superadmin_count}@company.com")
+        superadmin_name = superadmin_doc.get("username", f"SuperAdmin {superadmin_count}")
+        
+        # Create a company for this superadmin
+        company_name = f"Company {superadmin_count} ({superadmin_name})"
+        
+        company = CompanyDB(
+            name=company_name,
+            description=f"Company managed by {superadmin_name}",
+            industry="Business",
+            location="Office Location",
+            contact_email=superadmin_email,
+            company_type=CompanyType.CLIENT,
+            status=CompanyStatus.ACTIVE,
+            created_by=UUID(boss_admin_id),
+            created_at=datetime.now(),
+            updated_at=datetime.now()
+        )
+        
+        company_dict = company.dict(by_alias=True)
+        company_dict["_id"] = str(company_dict["_id"])
+        
+        company_result = await db.companies.insert_one(company_dict)
+        company_id = str(company_result.inserted_id)
+        
+        # Update superadmin with company_id and new fields
+        update_data = {
+            "company_id": company_id,
+            "account_type": AccountType.REGULAR,
+            "demo_expires_at": None,
+            "can_access_analytics": True,
+            "updated_at": datetime.now()
+        }
+        
+        # Add missing fields if they don't exist
+        if "managed_users" not in superadmin_doc:
+            update_data["managed_users"] = []
+        if "assigned_courses" not in superadmin_doc:
+            update_data["assigned_courses"] = []
+        if "assignee_emp_id" not in superadmin_doc:
+            update_data["assignee_emp_id"] = None
+        
+        await db.users.update_one(
+            {"_id": superadmin_id},
+            {"$set": update_data}
+        )
+        
+        migrated_superadmins.append({
+            "user_id": superadmin_id,
+            "company_id": company_id,
+            "email": superadmin_email
+        })
+        
+        print(f"  - Created company '{company_name}' for superadmin {superadmin_email}")
+    
+    # Update boss admin's managed_companies
+    if migrated_superadmins:
+        managed_companies = [sa["company_id"] for sa in migrated_superadmins]
+        await db.users.update_one(
+            {"_id": boss_admin_id},
+            {"$set": {"managed_companies": managed_companies}}
+        )
+    
+    return migrated_superadmins
+
+async def migrate_remaining_users(db, migrated_superadmins):
+    """Migrate all remaining users (admins and regular users)"""
+    from models.user_models import AccountType
+    
+    migrated_count = 0
+    
+    # Create a mapping of existing admins to their potential superadmins
+    # This is a best-effort assignment based on existing managed_users relationships
+    
+    # Find all users that aren't superadmins or boss_admin
+    remaining_users_cursor = db.users.find({
+        "role": {"$nin": ["superadmin", "boss_admin"]},
+        "company_id": {"$exists": False}
+    })
+    
+    # Default company assignment strategy
+    default_company_id = None
+    if migrated_superadmins:
+        default_company_id = migrated_superadmins[0]["company_id"]  # Assign to first company
+    
+    async for user_doc in remaining_users_cursor:
+        user_id = user_doc["_id"]
+        
+        # Try to find which superadmin this user belongs to
+        assigned_company_id = default_company_id
+        assigned_by_superadmin = None
+        
+        # Check if any superadmin has this user in managed_users
+        for superadmin_info in migrated_superadmins:
+            superadmin = await db.users.find_one({"_id": superadmin_info["user_id"]})
+            if superadmin and "managed_users" in superadmin:
+                if user_id in superadmin.get("managed_users", []):
+                    assigned_company_id = superadmin_info["company_id"]
+                    assigned_by_superadmin = superadmin_info["user_id"]
+                    break
+        
+        # If still no company assigned, assign to first available company
+        if not assigned_company_id and migrated_superadmins:
+            assigned_company_id = migrated_superadmins[0]["company_id"]
+        
+        # Update user with new fields
+        update_data = {
+            "company_id": assigned_company_id,
+            "account_type": AccountType.REGULAR,
+            "demo_expires_at": None,
+            "can_access_analytics": False,
+            "updated_at": datetime.now()
+        }
+        
+        # Add missing fields if they don't exist
+        if "assigned_courses" not in user_doc:
+            update_data["assigned_courses"] = []
+        if "assignee_emp_id" not in user_doc:
+            update_data["assignee_emp_id"] = None
+        if user_doc.get("role") == "admin" and "managed_users" not in user_doc:
+            update_data["managed_users"] = []
+        
+        await db.users.update_one(
+            {"_id": user_id},
+            {"$set": update_data}
+        )
+        
+        migrated_count += 1
+        
+        if migrated_count % 10 == 0:
+            print(f"  - Migrated {migrated_count} users...")
+    
+    return migrated_count
+
+async def update_company_statistics(db):
+    """Update statistics for all companies"""
+    companies_cursor = db.companies.find()
+    
+    async for company_doc in companies_cursor:
+        company_id = company_doc["_id"]
+        
+        # Count users in this company
+        total_users = await db.users.count_documents({"company_id": company_id})
+        total_admins = await db.users.count_documents({
+            "company_id": company_id,
+            "role": "admin"
+        })
+        total_superadmins = await db.users.count_documents({
+            "company_id": company_id,
+            "role": "superadmin"
+        })
+        
+        # Update company statistics
+        await db.companies.update_one(
+            {"_id": company_id},
+            {"$set": {
+                "total_users": total_users,
+                "total_admins": total_admins,
+                "total_superadmins": total_superadmins,
+                "total_courses": 0,  # TODO: Update when courses have company_id
+                "total_modules": 0,   # TODO: Update when modules have company_id
+                "total_scenarios": 0, # TODO: Update when scenarios have company_id
+                "updated_at": datetime.now()
+            }}
+        )
+
+async def print_migration_summary(db):
+    """Print a summary of the migration"""
+    print("\n" + "="*50)
+    print("MIGRATION SUMMARY")
+    print("="*50)
+    
+    # Count companies
+    total_companies = await db.companies.count_documents({})
+    mother_companies = await db.companies.count_documents({"company_type": "mother"})
+    client_companies = await db.companies.count_documents({"company_type": "client"})
+    
+    print(f"Companies: {total_companies} total ({mother_companies} mother, {client_companies} client)")
+    
+    # Count users by role
+    boss_admins = await db.users.count_documents({"role": "boss_admin"})
+    superadmins = await db.users.count_documents({"role": "superadmin"})
+    admins = await db.users.count_documents({"role": "admin"})
+    users = await db.users.count_documents({"role": "user"})
+    
+    print(f"Users: {boss_admins} boss admins, {superadmins} superadmins, {admins} admins, {users} regular users")
+    
+    # Count demo users
+    demo_users = await db.users.count_documents({"account_type": "demo"})
+    print(f"Demo users: {demo_users}")
+    
+    # Show companies and their user counts
+    print("\nCompany Details:")
+    companies_cursor = db.companies.find()
+    async for company in companies_cursor:
+        print(f"  - {company['name']}: {company.get('total_users', 0)} users")
+    
+    print("="*50)
+
+# Add this to your existing startup event in main.py
+async def startup_event_updated():
+    """Updated startup event with migration"""
+    try:
+        # Run existing migrations first
+        await create_default_superadmin(db)
+        await migrate_course_assignments(db)
+        await migrate_avatar_models(db)
+        
+        # Run new hierarchy migration
+        await migrate_user_hierarchy_and_companies(db)
+        
+        # Initialize bots
+        await bot_factory.initialize_bots()
+        await bot_factory_analyser.initialize_bots_analyser()
+        
+        print("✅ All startup tasks completed successfully!")
+        
+    except Exception as e:
+        print(f"❌ Startup failed: {str(e)}")
+        # Don't raise here so the app can still start
+        print("⚠️  App starting with potential migration issues")
+
+# Replace your existing @app.on_event("startup") with:
+@app.on_event("startup")
+async def startup_event():
+    """Initialize bots and run migrations when application starts"""
+    # await startup_event_updated()
+    await bot_factory.initialize_bots()
+    await bot_factory_analyser.initialize_bots_analyser()
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=9000, reload=True)

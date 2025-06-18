@@ -4,20 +4,78 @@ from datetime import datetime
 from fastapi import HTTPException, status
 from models.scenario_assignment_models import (
     ScenarioAssignmentCreate, ScenarioAssignmentDB, ScenarioAssignmentUpdate,
-    BulkScenarioAssignmentCreate, ScenarioModeType, ModeProgressUpdate
+    BulkScenarioAssignmentCreate, ScenarioModeType, ModeProgressUpdate,
+    AssignmentContext
 )
 from models.user_models import UserDB, UserRole
+from models.company_models import CompanyType, CompanyDB
 
-# Create a scenario assignment
+# Company hierarchy helper functions
+async def get_company_by_id(db: Any, company_id: UUID) -> Optional[CompanyDB]:
+    """Get company by ID"""
+    company = await db.companies.find_one({"_id": str(company_id)})
+    if company:
+        return CompanyDB(**company)
+    return None
+
+async def get_company_hierarchy_type(db: Any, company_id: UUID) -> CompanyType:
+    """Get company type for hierarchy rules"""
+    company = await get_company_by_id(db, company_id)
+    return company.company_type if company else CompanyType.CLIENT
+
+# async def determine_assignment_context(
+#     db: Any, 
+#     assigning_admin_company: UUID, 
+#     scenario_company: UUID
+# ) -> str:
+#     """
+#     Determine assignment context based on company hierarchy:
+    
+#     INTERNAL: Admin assigns scenario from their own company
+#     CROSS_COMPANY: Admin assigns MOTHER company scenario to their users
+#     """
+#     if assigning_admin_company == scenario_company:
+#         return AssignmentContext.INTERNAL
+    
+#     # Check if scenario is from MOTHER company
+#     scenario_company_type = await get_company_hierarchy_type(db, scenario_company)
+#     if scenario_company_type == CompanyType.MOTHER:
+#         return AssignmentContext.CROSS_COMPANY
+    
+#     # This shouldn't happen if access control is working properly
+#     raise HTTPException(
+#         status_code=status.HTTP_403_FORBIDDEN,
+#         detail="Invalid assignment: Cannot assign scenario from different non-mother company"
+#     )
+async def determine_assignment_context(db, assigning_admin_company, content_company):
+    # CRITICAL FIX: Convert to strings for consistent comparison
+    admin_company_str = str(assigning_admin_company)
+    content_company_str = str(content_company)
+    
+    if admin_company_str == content_company_str:
+        return AssignmentContext.INTERNAL
+    
+    # Check if content is from MOTHER company
+    content_company_doc = await db.companies.find_one({"_id": content_company_str})
+    if content_company_doc and content_company_doc.get("company_type") == CompanyType.MOTHER:
+        return AssignmentContext.CROSS_COMPANY
+    
+    # CRITICAL FIX: Add proper error handling
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Invalid assignment: Cannot assign content from different non-mother company"
+    )
+# Create a scenario assignment with company context
 async def create_scenario_assignment(
     db: Any,
     user_id: UUID,
     course_id: UUID,
     module_id: UUID,
     scenario_id: UUID,
-    assigned_modes: List[ScenarioModeType] = None
+    assigned_modes: List[ScenarioModeType] = None,
+    assigned_by: Optional[UUID] = None
 ) -> ScenarioAssignmentDB:
-    """Assign a scenario to a user and record the assignment"""
+    """Assign a scenario to a user with full company context tracking"""
     
     if assigned_modes is None:
         assigned_modes = [
@@ -26,42 +84,88 @@ async def create_scenario_assignment(
             ScenarioModeType.ASSESS_MODE
         ]
     
-    # Check if assignment already exists
+    # If no assigned_by provided, this is a system assignment (fallback)
+    if not assigned_by:
+        assigned_by = user_id  # Fallback to user themselves
+    
+    # Get assigning admin info
+    admin = await db.users.find_one({"_id": str(assigned_by)})
+    if not admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid assigning user"
+        )
+    
+    admin_user = UserDB(**admin)
+    
+    # Check if assignment already exists (including archived ones)
     existing = await db.user_scenario_assignments.find_one({
         "user_id": str(user_id),
         "scenario_id": str(scenario_id)
     })
     
     if existing:
-        # If it exists but modes have changed, update it
-        if set(existing.get("assigned_modes", [])) != set(mode.value for mode in assigned_modes):
-            update_data = {"assigned_modes": [mode.value for mode in assigned_modes]}
-            
-            # Update the mode_progress to include any new modes
-            mode_progress = existing.get("mode_progress", {})
+        existing_assignment = ScenarioAssignmentDB(**existing)
+        if existing_assignment.is_archived:
+            # Reactivate archived assignment with new context
+            # Initialize mode progress for new modes
+            mode_progress = {}
             for mode in assigned_modes:
-                if mode.value not in mode_progress:
-                    if not mode_progress:
-                        mode_progress = {}
-                    mode_progress[mode.value] = {"completed": False, "completed_date": None}
-            
-            if mode_progress:
-                update_data["mode_progress"] = mode_progress
+                mode_progress[mode.value] = {"completed": False, "completed_date": None}
             
             await db.user_scenario_assignments.update_one(
-                {"_id": existing["_id"]},
-                {"$set": update_data}
+                {"_id": str(existing_assignment.id)},
+                {"$set": {
+                    "is_archived": False,
+                    "archived_at": None,
+                    "archived_by": None,
+                    "archived_reason": None,
+                    "assigned_by": str(assigned_by),
+                    "assigned_by_company": str(admin_user.company_id),
+                    "assigned_modes": [mode.value for mode in assigned_modes],
+                    "mode_progress": mode_progress,
+                    "assigned_date": datetime.now(),
+                    "completed": False,
+                    "completed_date": None
+                }}
             )
+            reactivated = await db.user_scenario_assignments.find_one({"_id": str(existing_assignment.id)})
+            return ScenarioAssignmentDB(**reactivated)
+        else:
+            # Assignment already exists - update modes if they've changed
+            current_modes = set(existing.get("assigned_modes", []))
+            new_modes = set(mode.value for mode in assigned_modes)
             
-            updated = await db.user_scenario_assignments.find_one({"_id": existing["_id"]})
-            return ScenarioAssignmentDB(**updated)
-        
-        return ScenarioAssignmentDB(**existing)
+            if current_modes != new_modes:
+                # Update the mode_progress to include any new modes
+                mode_progress = existing.get("mode_progress", {})
+                for mode in assigned_modes:
+                    if mode.value not in mode_progress:
+                        if not mode_progress:
+                            mode_progress = {}
+                        mode_progress[mode.value] = {"completed": False, "completed_date": None}
+                
+                # Update assignment
+                await db.user_scenario_assignments.update_one(
+                    {"_id": existing["_id"]},
+                    {"$set": {
+                        "assigned_modes": [mode.value for mode in assigned_modes],
+                        "mode_progress": mode_progress,
+                        "assigned_by": str(assigned_by),
+                        "assigned_by_company": str(admin_user.company_id)
+                    }}
+                )
+                
+                updated = await db.user_scenario_assignments.find_one({"_id": existing["_id"]})
+                return ScenarioAssignmentDB(**updated)
+            
+            return existing_assignment
     
     # Verify that the user has access to the module
     module_assignment = await db.user_module_assignments.find_one({
         "user_id": str(user_id),
-        "module_id": str(module_id)
+        "module_id": str(module_id),
+        "is_archived": False
     })
     
     if not module_assignment:
@@ -78,26 +182,64 @@ async def create_scenario_assignment(
             detail=f"Scenario with ID {scenario_id} does not belong to module with ID {module_id}"
         )
     
+    # Get scenario info
+    scenario = await db.scenarios.find_one({"_id": str(scenario_id)})
+    if not scenario:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Scenario with ID {scenario_id} not found"
+        )
+    
+    # Check if scenario is archived
+    if scenario.get("is_archived", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot assign archived scenario"
+        )
+    
+    # Validate assignment permissions
+    from core.scenario import can_user_assign_scenario, ScenarioDB
+    scenario_obj = ScenarioDB(**scenario)
+    
+    if admin_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN] and not await can_user_assign_scenario(db, admin_user, scenario_obj):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to assign this scenario"
+        )
+    
+    # Determine assignment context
+    scenario_company_id = UUID(scenario["company_id"])
+    assignment_context = await determine_assignment_context(
+        db, admin_user.company_id, scenario_company_id
+    )
+    
     # Initialize mode progress
     mode_progress = {}
     for mode in assigned_modes:
         mode_progress[mode.value] = {"completed": False, "completed_date": None}
     
-    # Create assignment record
+    # Create assignment record with full company context
     assignment = ScenarioAssignmentCreate(
         user_id=user_id,
         course_id=course_id,
         module_id=module_id,
         scenario_id=scenario_id,
         assigned_date=datetime.now(),
-        assigned_modes=[mode for mode in assigned_modes],
+        assigned_modes=assigned_modes,
         completed=False,
         completed_date=None,
         mode_progress=mode_progress
     )
     
-    # Convert to DB model
-    assignment_db = ScenarioAssignmentDB(**assignment.dict())
+    # Convert to DB model with company context
+    assignment_db = ScenarioAssignmentDB(
+        **assignment.dict(),
+        assigned_by=assigned_by,
+        assigned_by_company=admin_user.company_id,
+        source_company=scenario_company_id,
+        assignment_context=assignment_context
+    )
+    
     assignment_dict = assignment_db.dict(by_alias=True)
     
     # Convert UUIDs to strings for MongoDB
@@ -107,6 +249,9 @@ async def create_scenario_assignment(
     assignment_dict["course_id"] = str(assignment_dict["course_id"])
     assignment_dict["module_id"] = str(assignment_dict["module_id"])
     assignment_dict["scenario_id"] = str(assignment_dict["scenario_id"])
+    assignment_dict["assigned_by"] = str(assignment_dict["assigned_by"])
+    assignment_dict["assigned_by_company"] = str(assignment_dict["assigned_by_company"])
+    assignment_dict["source_company"] = str(assignment_dict["source_company"])
     
     # Convert ScenarioModeType enum values to strings
     assignment_dict["assigned_modes"] = [mode.value for mode in assignment_dict["assigned_modes"]]
@@ -117,17 +262,33 @@ async def create_scenario_assignment(
     
     return ScenarioAssignmentDB(**created_assignment)
 
-# Bulk create scenario assignments
+# Bulk create scenario assignments with company context
 async def bulk_create_scenario_assignments(
     db: Any,
-    bulk_assignment: BulkScenarioAssignmentCreate
+    bulk_assignment: BulkScenarioAssignmentCreate,
+    assigned_by: Optional[UUID] = None
 ) -> List[ScenarioAssignmentDB]:
-    """Create multiple scenario assignments at once"""
+    """Create multiple scenario assignments at once with company context tracking"""
+    
+    # If no assigned_by provided, get from context or use user_id as fallback
+    if not assigned_by:
+        assigned_by = bulk_assignment.user_id  # Fallback
+    
+    # Get assigning admin info
+    admin = await db.users.find_one({"_id": str(assigned_by)})
+    if not admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid assigning user"
+        )
+    
+    admin_user = UserDB(**admin)
     
     # Verify that the user has access to the module
     module_assignment = await db.user_module_assignments.find_one({
         "user_id": str(bulk_assignment.user_id),
-        "module_id": str(bulk_assignment.module_id)
+        "module_id": str(bulk_assignment.module_id),
+        "is_archived": False
     })
     
     if not module_assignment:
@@ -147,7 +308,7 @@ async def bulk_create_scenario_assignments(
     # Convert scenario IDs to strings
     scenario_ids_str = [str(scenario_id) for scenario_id in bulk_assignment.scenario_ids]
     
-    # Verify all scenarios belong to the module
+    # Verify all scenarios belong to the module and get scenario info
     module_scenario_ids = module.get("scenarios", [])
     invalid_scenarios = [s_id for s_id in scenario_ids_str if s_id not in module_scenario_ids]
     
@@ -156,6 +317,23 @@ async def bulk_create_scenario_assignments(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"The following scenarios do not belong to the module: {', '.join(invalid_scenarios)}"
         )
+    
+    # Get scenarios info for permission checking and company context
+    scenarios_info = {}
+    for scenario_id in scenario_ids_str:
+        scenario = await db.scenarios.find_one({"_id": scenario_id})
+        if scenario and not scenario.get("is_archived", False):
+            scenarios_info[scenario_id] = scenario
+    
+    # Validate assignment permissions for each scenario
+    from core.scenario import can_user_assign_scenario, ScenarioDB
+    for scenario_id, scenario_doc in scenarios_info.items():
+        scenario_obj = ScenarioDB(**scenario_doc)
+        if admin_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN] and not await can_user_assign_scenario(db, admin_user, scenario_obj):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"You are not authorized to assign scenario {scenario_id}"
+            )
     
     if bulk_assignment.operation == "add":
         # Find existing assignments for these scenarios
@@ -168,108 +346,179 @@ async def bulk_create_scenario_assignments(
         
         results = []
         
-        # Update existing assignments if modes have changed
-        if bulk_assignment.assigned_modes:
-            for assignment in existing_assignments:
-                scenario_id = UUID(assignment["scenario_id"])
-                if scenario_id in bulk_assignment.assigned_modes:
-                    assigned_modes = bulk_assignment.assigned_modes[scenario_id]
+        # Reactivate archived assignments and update existing ones if modes have changed
+        for assignment in existing_assignments:
+            scenario_id = assignment["scenario_id"]
+            scenario_uuid = UUID(scenario_id)
+            
+            # Determine assigned modes for this scenario
+            if bulk_assignment.assigned_modes and scenario_uuid in bulk_assignment.assigned_modes:
+                assigned_modes = bulk_assignment.assigned_modes[scenario_uuid]
+            else:
+                assigned_modes = [
+                    ScenarioModeType.LEARN_MODE,
+                    ScenarioModeType.TRY_MODE,
+                    ScenarioModeType.ASSESS_MODE
+                ]
+            
+            if assignment.get("is_archived", False):
+                # Reactivate archived assignment
+                mode_progress = {}
+                for mode in assigned_modes:
+                    mode_progress[mode.value] = {"completed": False, "completed_date": None}
+                
+                scenario_company_id = UUID(scenarios_info[scenario_id]["company_id"])
+                assignment_context = await determine_assignment_context(
+                    db, admin_user.company_id, scenario_company_id
+                )
+                
+                await db.user_scenario_assignments.update_one(
+                    {"_id": assignment["_id"]},
+                    {"$set": {
+                        "is_archived": False,
+                        "archived_at": None,
+                        "archived_by": None,
+                        "archived_reason": None,
+                        "assigned_by": str(assigned_by),
+                        "assigned_by_company": str(admin_user.company_id),
+                        "assignment_context": assignment_context,
+                        "assigned_modes": [mode.value for mode in assigned_modes],
+                        "mode_progress": mode_progress,
+                        "assigned_date": datetime.now()
+                    }}
+                )
+                
+                updated = await db.user_scenario_assignments.find_one({"_id": assignment["_id"]})
+                results.append(ScenarioAssignmentDB(**updated))
+            else:
+                # Update existing active assignment if modes have changed
+                existing_modes = set(assignment.get("assigned_modes", []))
+                new_modes = set(mode.value for mode in assigned_modes)
+                
+                if existing_modes != new_modes:
+                    # Initialize mode progress for new modes
+                    mode_progress = assignment.get("mode_progress", {})
+                    for mode in assigned_modes:
+                        if mode.value not in mode_progress:
+                            if not mode_progress:
+                                mode_progress = {}
+                            mode_progress[mode.value] = {"completed": False, "completed_date": None}
                     
-                    # Convert modes to strings for comparison
-                    existing_modes = set(assignment.get("assigned_modes", []))
-                    new_modes = set(mode.value for mode in assigned_modes)
+                    scenario_company_id = UUID(scenarios_info[scenario_id]["company_id"])
+                    assignment_context = await determine_assignment_context(
+                        db, admin_user.company_id, scenario_company_id
+                    )
                     
-                    if existing_modes != new_modes:
-                        # Initialize mode progress for new modes
-                        mode_progress = assignment.get("mode_progress", {})
-                        for mode in assigned_modes:
-                            if mode.value not in mode_progress:
-                                if not mode_progress:
-                                    mode_progress = {}
-                                mode_progress[mode.value] = {"completed": False, "completed_date": None}
-                        
-                        # Update assignment
-                        await db.user_scenario_assignments.update_one(
-                            {"_id": assignment["_id"]},
-                            {"$set": {
-                                "assigned_modes": [mode.value for mode in assigned_modes],
-                                "mode_progress": mode_progress
-                            }}
-                        )
-                        
-                        updated = await db.user_scenario_assignments.find_one({"_id": assignment["_id"]})
-                        results.append(ScenarioAssignmentDB(**updated))
-                    else:
-                        results.append(ScenarioAssignmentDB(**assignment))
+                    # Update assignment
+                    await db.user_scenario_assignments.update_one(
+                        {"_id": assignment["_id"]},
+                        {"$set": {
+                            "assigned_modes": [mode.value for mode in assigned_modes],
+                            "mode_progress": mode_progress,
+                            "assigned_by": str(assigned_by),
+                            "assigned_by_company": str(admin_user.company_id),
+                            "assignment_context": assignment_context
+                        }}
+                    )
+                    
+                    updated = await db.user_scenario_assignments.find_one({"_id": assignment["_id"]})
+                    results.append(ScenarioAssignmentDB(**updated))
+                else:
+                    results.append(ScenarioAssignmentDB(**assignment))
         
-        # Filter out scenarios that are already assigned
-        new_scenario_ids = [s_id for s_id in scenario_ids_str if s_id not in existing_scenario_ids]
+        # Filter out scenarios that are already assigned (active)
+        active_existing = [a["scenario_id"] for a in existing_assignments if not a.get("is_archived", False)]
+        new_scenario_ids = [s_id for s_id in scenario_ids_str if s_id not in active_existing]
         
         # Create new assignments
         for scenario_id_str in new_scenario_ids:
-            scenario_id = UUID(scenario_id_str)
-            
-            # Default to all modes unless specifically set
-            assigned_modes = bulk_assignment.assigned_modes.get(scenario_id, [
-                ScenarioModeType.LEARN_MODE,
-                ScenarioModeType.TRY_MODE,
-                ScenarioModeType.ASSESS_MODE
-            ]) if bulk_assignment.assigned_modes else [
-                ScenarioModeType.LEARN_MODE,
-                ScenarioModeType.TRY_MODE,
-                ScenarioModeType.ASSESS_MODE
-            ]
-            
-            # Initialize mode progress
-            mode_progress = {}
-            for mode in assigned_modes:
-                mode_progress[mode.value] = {"completed": False, "completed_date": None}
-            
-            assignment = ScenarioAssignmentCreate(
-                user_id=bulk_assignment.user_id,
-                course_id=bulk_assignment.course_id,
-                module_id=bulk_assignment.module_id,
-                scenario_id=scenario_id,
-                assigned_date=datetime.now(),
-                assigned_modes=assigned_modes,
-                completed=False,
-                completed_date=None,
-                mode_progress=mode_progress
-            )
-            
-            # Convert to DB model
-            assignment_db = ScenarioAssignmentDB(**assignment.dict())
-            assignment_dict = assignment_db.dict(by_alias=True)
-            
-            # Convert UUIDs to strings for MongoDB
-            assignment_dict["_id"] = str(uuid4())
-            assignment_dict["user_id"] = str(assignment_dict["user_id"])
-            assignment_dict["course_id"] = str(assignment_dict["course_id"])
-            assignment_dict["module_id"] = str(assignment_dict["module_id"])
-            assignment_dict["scenario_id"] = str(assignment_dict["scenario_id"])
-            
-            # Convert ScenarioModeType enum values to strings
-            assignment_dict["assigned_modes"] = [mode.value for mode in assignment_dict["assigned_modes"]]
-            
-            # Insert into database
-            result = await db.user_scenario_assignments.insert_one(assignment_dict)
-            created_assignment = await db.user_scenario_assignments.find_one({"_id": str(result.inserted_id)})
-            
-            results.append(ScenarioAssignmentDB(**created_assignment))
+            if scenario_id_str in scenarios_info:
+                scenario_id = UUID(scenario_id_str)
+                scenario_company_id = UUID(scenarios_info[scenario_id_str]["company_id"])
+                assignment_context = await determine_assignment_context(
+                    db, admin_user.company_id, scenario_company_id
+                )
+                
+                # Default to all modes unless specifically set
+                assigned_modes = bulk_assignment.assigned_modes.get(scenario_id, [
+                    ScenarioModeType.LEARN_MODE,
+                    ScenarioModeType.TRY_MODE,
+                    ScenarioModeType.ASSESS_MODE
+                ]) if bulk_assignment.assigned_modes else [
+                    ScenarioModeType.LEARN_MODE,
+                    ScenarioModeType.TRY_MODE,
+                    ScenarioModeType.ASSESS_MODE
+                ]
+                
+                # Initialize mode progress
+                mode_progress = {}
+                for mode in assigned_modes:
+                    mode_progress[mode.value] = {"completed": False, "completed_date": None}
+                
+                assignment = ScenarioAssignmentCreate(
+                    user_id=bulk_assignment.user_id,
+                    course_id=bulk_assignment.course_id,
+                    module_id=bulk_assignment.module_id,
+                    scenario_id=scenario_id,
+                    assigned_date=datetime.now(),
+                    assigned_modes=assigned_modes,
+                    completed=False,
+                    completed_date=None,
+                    mode_progress=mode_progress
+                )
+                
+                # Convert to DB model with company context
+                assignment_db = ScenarioAssignmentDB(
+                    **assignment.dict(),
+                    assigned_by=assigned_by,
+                    assigned_by_company=admin_user.company_id,
+                    source_company=scenario_company_id,
+                    assignment_context=assignment_context
+                )
+                assignment_dict = assignment_db.dict(by_alias=True)
+                
+                # Convert UUIDs to strings for MongoDB
+                assignment_dict["_id"] = str(uuid4())
+                assignment_dict["user_id"] = str(assignment_dict["user_id"])
+                assignment_dict["course_id"] = str(assignment_dict["course_id"])
+                assignment_dict["module_id"] = str(assignment_dict["module_id"])
+                assignment_dict["scenario_id"] = str(assignment_dict["scenario_id"])
+                assignment_dict["assigned_by"] = str(assignment_dict["assigned_by"])
+                assignment_dict["assigned_by_company"] = str(assignment_dict["assigned_by_company"])
+                assignment_dict["source_company"] = str(assignment_dict["source_company"])
+                
+                # Convert ScenarioModeType enum values to strings
+                assignment_dict["assigned_modes"] = [mode.value for mode in assignment_dict["assigned_modes"]]
+                
+                # Insert into database
+                result = await db.user_scenario_assignments.insert_one(assignment_dict)
+                created_assignment = await db.user_scenario_assignments.find_one({"_id": str(result.inserted_id)})
+                
+                results.append(ScenarioAssignmentDB(**created_assignment))
         
         return results
             
     elif bulk_assignment.operation == "remove":
-        # Delete the assignments
-        result = await db.user_scenario_assignments.delete_many({
-            "user_id": str(bulk_assignment.user_id),
-            "scenario_id": {"$in": scenario_ids_str}
-        })
+        # Archive the assignments instead of deleting
+        result = await db.user_scenario_assignments.update_many(
+            {
+                "user_id": str(bulk_assignment.user_id),
+                "scenario_id": {"$in": scenario_ids_str},
+                "is_archived": False
+            },
+            {"$set": {
+                "is_archived": True,
+                "archived_at": datetime.now(),
+                "archived_by": str(assigned_by),
+                "archived_reason": "Bulk removal"
+            }}
+        )
         
-        # Return remaining assignments for this module
+        # Return remaining active assignments for this module
         remaining = await db.user_scenario_assignments.find({
             "user_id": str(bulk_assignment.user_id),
-            "module_id": str(bulk_assignment.module_id)
+            "module_id": str(bulk_assignment.module_id),
+            "is_archived": False
         }).to_list(length=None)
         
         return [ScenarioAssignmentDB(**assignment) for assignment in remaining]
@@ -283,12 +532,17 @@ async def bulk_create_scenario_assignments(
 # Get all scenario assignments for a user
 async def get_user_scenario_assignments(
     db: Any,
-    user_id: UUID
+    user_id: UUID,
+    include_archived: bool = False
 ) -> List[ScenarioAssignmentDB]:
     """Get all scenario assignments for a user"""
     
+    query = {"user_id": str(user_id)}
+    if not include_archived:
+        query["is_archived"] = False
+    
     assignments = []
-    cursor = db.user_scenario_assignments.find({"user_id": str(user_id)})
+    cursor = db.user_scenario_assignments.find(query)
     async for document in cursor:
         assignments.append(ScenarioAssignmentDB(**document))
     
@@ -298,15 +552,20 @@ async def get_user_scenario_assignments(
 async def get_user_module_scenario_assignments(
     db: Any,
     user_id: UUID,
-    module_id: UUID
+    module_id: UUID,
+    include_archived: bool = False
 ) -> List[ScenarioAssignmentDB]:
     """Get all scenario assignments for a user within a specific module"""
     
-    assignments = []
-    cursor = db.user_scenario_assignments.find({
+    query = {
         "user_id": str(user_id),
         "module_id": str(module_id)
-    })
+    }
+    if not include_archived:
+        query["is_archived"] = False
+    
+    assignments = []
+    cursor = db.user_scenario_assignments.find(query)
     async for document in cursor:
         assignments.append(ScenarioAssignmentDB(**document))
     
@@ -363,6 +622,13 @@ async def update_scenario_assignment(
     
     if not assignment:
         return None
+    
+    # Don't allow updates to archived assignments
+    if assignment.get("is_archived", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot update archived assignment"
+        )
     
     # Prepare update data
     update_dict = {}
@@ -423,6 +689,13 @@ async def update_scenario_assignment_by_id(
     
     if not assignment:
         return None
+    
+    # Don't allow updates to archived assignments
+    if assignment.get("is_archived", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot update archived assignment"
+        )
     
     # Prepare update data
     update_dict = {}
@@ -485,7 +758,8 @@ async def update_mode_progress(
     # Find the assignment
     assignment = await db.user_scenario_assignments.find_one({
         "user_id": str(user_id),
-        "scenario_id": str(scenario_id)
+        "scenario_id": str(scenario_id),
+        "is_archived": False
     })
     
     if not assignment:
@@ -546,20 +820,45 @@ async def update_mode_progress(
     
     return ScenarioAssignmentDB(**assignment)
 
-# Delete a scenario assignment
+# Archive a scenario assignment (soft delete)
+async def archive_scenario_assignment(
+    db: Any,
+    user_id: UUID,
+    scenario_id: UUID,
+    archived_by: UUID,
+    reason: str = "Manual removal"
+) -> bool:
+    """Archive a scenario assignment instead of deleting it"""
+    
+    assignment = await db.user_scenario_assignments.find_one({
+        "user_id": str(user_id),
+        "scenario_id": str(scenario_id)
+    })
+    
+    if not assignment:
+        return False
+    
+    # Archive the assignment
+    result = await db.user_scenario_assignments.update_one(
+        {"_id": assignment["_id"]},
+        {"$set": {
+            "is_archived": True,
+            "archived_at": datetime.now(),
+            "archived_by": str(archived_by),
+            "archived_reason": reason
+        }}
+    )
+    
+    return result.modified_count > 0
+
+# Delete a scenario assignment (now just calls archive)
 async def delete_scenario_assignment(
     db: Any,
     user_id: UUID,
     scenario_id: UUID
 ) -> bool:
-    """Delete a scenario assignment"""
-    
-    result = await db.user_scenario_assignments.delete_one({
-        "user_id": str(user_id),
-        "scenario_id": str(scenario_id)
-    })
-    
-    return result.deleted_count > 0
+    """Delete a scenario assignment - now archives instead"""
+    return await archive_scenario_assignment(db, user_id, scenario_id, user_id, "Direct deletion")
 
 # Check if a scenario is assigned to a user
 async def is_scenario_assigned(
@@ -567,11 +866,12 @@ async def is_scenario_assigned(
     user_id: UUID,
     scenario_id: UUID
 ) -> bool:
-    """Check if a scenario is assigned to a user"""
+    """Check if a scenario is assigned to a user (active assignment only)"""
     
     assignment = await db.user_scenario_assignments.find_one({
         "user_id": str(user_id),
-        "scenario_id": str(scenario_id)
+        "scenario_id": str(scenario_id),
+        "is_archived": False
     })
     
     return assignment is not None
@@ -587,7 +887,8 @@ async def is_mode_assigned(
     
     assignment = await db.user_scenario_assignments.find_one({
         "user_id": str(user_id),
-        "scenario_id": str(scenario_id)
+        "scenario_id": str(scenario_id),
+        "is_archived": False
     })
     
     if not assignment:
@@ -599,13 +900,16 @@ async def is_mode_assigned(
 # Get completion stats for a user's scenarios
 async def get_user_scenario_completion_stats(
     db: Any,
-    user_id: UUID
+    user_id: UUID,
+    include_archived: bool = False
 ) -> Dict[str, Any]:
     """Get completion statistics for a user's assigned scenarios"""
     
-    assignments = await db.user_scenario_assignments.find({
-        "user_id": str(user_id)
-    }).to_list(length=None)
+    query = {"user_id": str(user_id)}
+    if not include_archived:
+        query["is_archived"] = False
+    
+    assignments = await db.user_scenario_assignments.find(query).to_list(length=None)
     
     total_scenarios = len(assignments)
     completed_scenarios = sum(1 for a in assignments if a.get("completed", False))
@@ -627,9 +931,17 @@ async def get_user_scenario_completion_stats(
                 if mode in mode_progress and mode_progress[mode].get("completed", False):
                     mode_stats[mode]["completed"] += 1
     
+    # Company context statistics
+    internal_assignments = sum(1 for a in assignments if a.get("assignment_context") == "internal")
+    cross_company_assignments = sum(1 for a in assignments if a.get("assignment_context") == "cross_company")
+    
     return {
         "total_scenarios": total_scenarios,
         "completed_scenarios": completed_scenarios,
         "completion_percentage": (completed_scenarios / total_scenarios * 100) if total_scenarios > 0 else 0,
-        "mode_stats": mode_stats
+        "mode_stats": mode_stats,
+        "assignment_context_stats": {
+            "internal": internal_assignments,
+            "cross_company": cross_company_assignments
+        }
     }

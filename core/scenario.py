@@ -16,6 +16,9 @@ from core.user import get_current_user, get_admin_user, get_superadmin_user
 from core.module import get_module  # Import from module CRUD to check permissions
 from core.scenario_assignment import get_scenario_assignment
 
+from models.company_models import CompanyType, CompanyDB
+from models.scenario_models import ContentVisibility, ScenarioUpdate  # Add these to your imports
+
 # Create router
 router = APIRouter(tags=["Scenarios"])
 
@@ -24,85 +27,264 @@ async def get_database():
     from database import get_db  # Import your existing function
     return await get_db()
 
+async def get_company_by_id(db: Any, company_id: UUID) -> Optional[CompanyDB]:
+    """Get company by ID"""
+    company = await db.companies.find_one({"_id": str(company_id)})
+    if company:
+        return CompanyDB(**company)
+    return None
+
+async def get_company_hierarchy_type(db: Any, company_id: UUID) -> CompanyType:
+    """Get company type for hierarchy rules"""
+    company = await get_company_by_id(db, company_id)
+    return company.company_type if company else CompanyType.CLIENT
+
+# async def can_user_assign_scenario(db: Any, user: UserDB, scenario: ScenarioDB) -> bool:
+#     """Check if user can ASSIGN a specific scenario based on company hierarchy"""
+#     if user.role == UserRole.USER:
+#         return False
+#     if user.role == UserRole.BOSS_ADMIN:
+#         return True
+#     if scenario.is_archived:
+#         return False
+    
+#     # Check company hierarchy access
+#     scenario_company_type = await get_company_hierarchy_type(db, scenario.company_id)
+    
+#     # Same company assignment
+#     if user.company_id == scenario.company_id:
+#         if scenario.visibility == ContentVisibility.CREATOR_ONLY:
+#             return scenario.created_by == user.id
+#         elif scenario.visibility == ContentVisibility.COMPANY_WIDE:
+#             return True
+    
+#     # Cross-company assignment (MOTHER → CLIENT/SUBSIDIARY)
+#     elif scenario_company_type == CompanyType.MOTHER:
+#         return True
+    
+#     return False
+async def can_user_assign_scenario(db: Any, user: UserDB, scenario: ScenarioDB) -> bool:
+    if user.role == UserRole.USER:
+        return False
+    if user.role == UserRole.BOSS_ADMIN:
+        return True
+    if scenario.is_archived:
+        return False
+    
+    # CRITICAL FIX: Convert all UUIDs to strings
+    user_company_str = str(user.company_id)
+    scenario_company_str = str(scenario.company_id)
+    user_id_str = str(user.id)
+    created_by_str = str(scenario.created_by)
+    
+    if user_company_str == scenario_company_str:
+        if scenario.visibility == ContentVisibility.CREATOR_ONLY:
+            return user_id_str == created_by_str  # FIXED
+        elif scenario.visibility == ContentVisibility.COMPANY_WIDE:
+            return True
+    
+    scenario_company_type = await get_company_hierarchy_type(db, scenario.company_id)
+    if scenario_company_type == CompanyType.MOTHER:
+        return True
+    
+    return False
+
+async def get_assignable_scenarios_for_user(db: Any, user: UserDB) -> List[ScenarioDB]:
+    """Get scenarios that user can ASSIGN to others"""
+    if user.role == UserRole.USER:
+        return []
+    
+    # Get all scenarios user can access
+    scenarios = []
+    
+    if user.role == UserRole.BOSS_ADMIN:
+        cursor = db.scenarios.find({"is_archived": False})
+        async for document in cursor:
+            scenarios.append(ScenarioDB(**document))
+    else:
+        user_company_type = await get_company_hierarchy_type(db, user.company_id)
+        
+        if user_company_type == CompanyType.MOTHER:
+            cursor = db.scenarios.find({"is_archived": False})
+            async for document in cursor:
+                scenarios.append(ScenarioDB(**document))
+        else:
+            # Get MOTHER companies
+            mother_companies = []
+            mother_cursor = db.companies.find({"company_type": CompanyType.MOTHER})
+            async for company_doc in mother_cursor:
+                mother_companies.append(company_doc["_id"])
+            
+            accessible_companies = [str(user.company_id)] + mother_companies
+            cursor = db.scenarios.find({
+                "company_id": {"$in": accessible_companies},
+                "is_archived": False
+            })
+            async for document in cursor:
+                scenarios.append(ScenarioDB(**document))
+    
+    # Filter to only assignable ones
+    assignable_scenarios = []
+    for scenario in scenarios:
+        if await can_user_assign_scenario(db, user, scenario):
+            assignable_scenarios.append(scenario)
+    
+    return assignable_scenarios
+
 # Scenario Any Operations
+# async def get_scenarios(
+#     db: Any, 
+#     skip: int = 0, 
+#     limit: int = 100,
+#     current_user: Optional[UserDB] = None
+# ) -> List[ScenarioDB]:
+#     """
+#     Get a list of all scenarios with permission checks.
+#     - Admins/Superadmins: all scenarios
+#     - Regular users: only scenarios from modules in assigned courses
+#     """
+#     if not current_user:
+#         return []
+    
+#     scenarios = []
+    
+#     # For admins and superadmins, return all scenarios
+#     if current_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
+#         cursor = db.scenarios.find().skip(skip).limit(limit)
+#         async for document in cursor:
+#             scenarios.append(ScenarioDB(**document))
+#     else:
+#         # For regular users, get only scenarios from modules in assigned courses
+#         user_data = current_user.dict()
+#         assigned_course_ids = user_data.get("assigned_courses", [])
+#         assigned_course_ids_str = [str(course_id) for course_id in assigned_course_ids]
+#         if assigned_course_ids_str:
+#             # Get all courses assigned to user
+#             courses = []
+#             for course_id in assigned_course_ids_str:
+#                 course = await db.courses.find_one({"_id": str(course_id)})
+#                 if course:
+#                     courses.append(course)
+            
+#             # Extract module IDs from all assigned courses
+#             module_ids = []
+#             for course in courses:
+#                 module_ids.extend(course.get("modules", []))
+            
+#             # Get modules by these IDs
+#             print(module_ids,"module_ids")
+#             modules = []
+#             for module_id in module_ids:
+#                 module = await db.modules.find_one({"_id": str(module_id)})
+#                 if module:
+#                     modules.append(module)
+#             print(modules,"modules")
+            
+#             # Extract scenario IDs from all modules
+#             scenario_ids = []
+#             for module in modules:
+#                 scenario_ids.extend(module.get("scenarios", []))
+#             print(scenario_ids,"scenario_ids",type(scenario_ids[0]))
+#             # Get scenarios by these IDs - convert UUIDs to strings for MongoDB
+#             if scenario_ids:
+#                 # Convert all UUIDs to strings
+#                 scenario_ids_str = [str(s_id) for s_id in scenario_ids]
+#                 cursor = db.scenarios.find({"_id": {"$in": scenario_ids_str}}).skip(skip).limit(limit)
+#                 async for document in cursor:
+#                     scenarios.append(ScenarioDB(**document))
+    
+#     return scenarios
+
+# 
 async def get_scenarios(
     db: Any, 
     skip: int = 0, 
     limit: int = 100,
     current_user: Optional[UserDB] = None
 ) -> List[ScenarioDB]:
-    """
-    Get a list of all scenarios with permission checks.
-    - Admins/Superadmins: all scenarios
-    - Regular users: only scenarios from modules in assigned courses
-    """
+    """Get scenarios based on user's company hierarchy access"""
     if not current_user:
         return []
     
     scenarios = []
     
-    # For admins and superadmins, return all scenarios
-    if current_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
-        cursor = db.scenarios.find().skip(skip).limit(limit)
+    if current_user.role == UserRole.USER:
+        # Users only see assigned scenarios
+        assignments_cursor = db.user_scenario_assignments.find({
+            "user_id": str(current_user.id),
+            "is_archived": False
+        })
+        
+        assigned_scenario_ids = []
+        async for assignment in assignments_cursor:
+            assigned_scenario_ids.append(assignment["scenario_id"])
+        
+        if assigned_scenario_ids:
+            cursor = db.scenarios.find({
+                "_id": {"$in": assigned_scenario_ids},
+                "is_archived": False
+            }).skip(skip).limit(limit)
+            async for document in cursor:
+                scenarios.append(ScenarioDB(**document))
+    
+    elif current_user.role == UserRole.BOSS_ADMIN:
+        cursor = db.scenarios.find({"is_archived": False}).skip(skip).limit(limit)
         async for document in cursor:
             scenarios.append(ScenarioDB(**document))
-    else:
-        # For regular users, get only scenarios from modules in assigned courses
-        user_data = current_user.dict()
-        assigned_course_ids = user_data.get("assigned_courses", [])
-        assigned_course_ids_str = [str(course_id) for course_id in assigned_course_ids]
-        if assigned_course_ids_str:
-            # Get all courses assigned to user
-            courses = []
-            for course_id in assigned_course_ids_str:
-                course = await db.courses.find_one({"_id": str(course_id)})
-                if course:
-                    courses.append(course)
+    
+    else:  # ADMIN or SUPERADMIN
+        user_company_type = await get_company_hierarchy_type(db, current_user.company_id)
+        
+        if user_company_type == CompanyType.MOTHER:
+            cursor = db.scenarios.find({"is_archived": False}).skip(skip).limit(limit)
+            async for document in cursor:
+                scenarios.append(ScenarioDB(**document))
+        else:
+            # Get MOTHER companies
+            mother_companies = []
+            mother_cursor = db.companies.find({"company_type": CompanyType.MOTHER})
+            async for company_doc in mother_cursor:
+                mother_companies.append(company_doc["_id"])
             
-            # Extract module IDs from all assigned courses
-            module_ids = []
-            for course in courses:
-                module_ids.extend(course.get("modules", []))
+            accessible_companies = [str(current_user.company_id)] + mother_companies
             
-            # Get modules by these IDs
-            print(module_ids,"module_ids")
-            modules = []
-            for module_id in module_ids:
-                module = await db.modules.find_one({"_id": str(module_id)})
-                if module:
-                    modules.append(module)
-            print(modules,"modules")
-            
-            # Extract scenario IDs from all modules
-            scenario_ids = []
-            for module in modules:
-                scenario_ids.extend(module.get("scenarios", []))
-            print(scenario_ids,"scenario_ids",type(scenario_ids[0]))
-            # Get scenarios by these IDs - convert UUIDs to strings for MongoDB
-            if scenario_ids:
-                # Convert all UUIDs to strings
-                scenario_ids_str = [str(s_id) for s_id in scenario_ids]
-                cursor = db.scenarios.find({"_id": {"$in": scenario_ids_str}}).skip(skip).limit(limit)
-                async for document in cursor:
-                    scenarios.append(ScenarioDB(**document))
+            cursor = db.scenarios.find({
+                "company_id": {"$in": accessible_companies},
+                "is_archived": False
+            }).skip(skip).limit(limit)
+            async for document in cursor:
+                scenarios.append(ScenarioDB(**document))
     
     return scenarios
-
+# 
+# async def get_scenario(
+#     db: Any, 
+#     scenario_id: UUID, 
+#     current_user: Optional[UserDB] = None
+# ) -> Optional[ScenarioDB]:
+#     """
+#     Get a scenario by ID with permission checks:
+#     - Admins/Superadmins: can access all scenarios
+#     - Regular users: can only access scenarios from modules in assigned courses
+#     """
+#     scenario = await db.scenarios.find_one({"_id": str(scenario_id)})
+#     print(scenario)
+#     if not scenario:
+#         return None
 async def get_scenario(
     db: Any, 
     scenario_id: UUID, 
     current_user: Optional[UserDB] = None
 ) -> Optional[ScenarioDB]:
-    """
-    Get a scenario by ID with permission checks:
-    - Admins/Superadmins: can access all scenarios
-    - Regular users: can only access scenarios from modules in assigned courses
-    """
+    """Get a scenario by ID with permission checks"""
     scenario = await db.scenarios.find_one({"_id": str(scenario_id)})
-    print(scenario)
     if not scenario:
         return None
     
+    # ADD THIS: Check if archived
+    if scenario.get("is_archived", False):
+        if not current_user or current_user.role != UserRole.BOSS_ADMIN:
+            return None    
     # If admin or superadmin, allow access
     if current_user and current_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
         return ScenarioDB(**scenario)
@@ -413,101 +595,6 @@ async def get_full_scenario(
     
     print(scenario_dict)
     return scenario_dict
-# async def create_scenario(
-#     db: Any, 
-#     module_id: UUID, 
-#     scenario: ScenarioCreate, 
-#     created_by: UUID
-# ) -> ScenarioDB:
-#     """
-#     Create a new scenario within a module
-#     """
-#     # First check if module exists - convert UUID to string for MongoDB
-#     module = await db.modules.find_one({"_id": str(module_id)})
-#     if not module:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Module not found")
-    
-#     # Check if creator has permission to modify the module - convert UUID to string for MongoDB
-#     creator = await db.users.find_one({"_id": str(created_by)})
-#     if not creator:
-#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-    
-#     creator = UserDB(**creator)
-    
-#     # If creator is admin (not superadmin), check if they created the module
-#     if creator.role == UserRole.ADMIN and module.get("created_by") != created_by:
-#         raise HTTPException(
-#             status_code=status.HTTP_403_FORBIDDEN,
-#             detail="Admins can only add scenarios to modules they created"
-#         )
-    
-#     # Validate that at least one mode is provided
-#     if not any([scenario.learn_mode, scenario.try_mode, scenario.assess_mode]):
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail="At least one mode (learn, try, or assess) must be provided"
-#         )
-    
-#     # Create ScenarioDB model
-#     scenario_dict = scenario.dict()
-    
-#     # Add creator and timestamps
-#     scenario_db = ScenarioDB(
-#         **scenario_dict,
-#         created_by=created_by,
-#         created_at=datetime.now(),
-#         updated_at=datetime.now()
-#     )
-    
-#     # Process the scenario for database insertion
-#     scenario_dict = scenario_db.dict(by_alias=True)
-#     if scenario_dict.get("_id") is None:
-#         scenario_dict.pop("_id", None)
-#     else:
-#         scenario_dict["_id"] = UUID(str(scenario_dict["_id"]))
-    
-#     # Process learn mode if present
-#     if "learn_mode" in scenario_dict and scenario_dict["learn_mode"]:
-#         if "avatar_interaction" in scenario_dict["learn_mode"]:
-#             avatar_id = scenario_dict["learn_mode"]["avatar_interaction"]
-#             scenario_dict["learn_mode"]["avatar_interaction"] = UUID(str(avatar_id)) if not isinstance(avatar_id, UUID) else avatar_id
-        
-#         # Convert video and document UUIDs - NOW IN LEARN MODE
-#         if "videos" in scenario_dict["learn_mode"] and scenario_dict["learn_mode"]["videos"]:
-#             scenario_dict["learn_mode"]["videos"] = [UUID(str(video_id)) if not isinstance(video_id, UUID) else video_id 
-#                                                 for video_id in scenario_dict["learn_mode"]["videos"]]
-        
-#         if "documents" in scenario_dict["learn_mode"] and scenario_dict["learn_mode"]["documents"]:
-#             scenario_dict["learn_mode"]["documents"] = [UUID(str(doc_id)) if not isinstance(doc_id, UUID) else doc_id 
-#                                                     for doc_id in scenario_dict["learn_mode"]["documents"]]
-    
-#     # Process try mode if present
-#     if "try_mode" in scenario_dict and scenario_dict["try_mode"]:
-#         if "avatar_interaction" in scenario_dict["try_mode"]:
-#             avatar_id = scenario_dict["try_mode"]["avatar_interaction"]
-#             scenario_dict["try_mode"]["avatar_interaction"] = UUID(str(avatar_id)) if not isinstance(avatar_id, UUID) else avatar_id
-        
-#         # No need to convert video and document UUIDs in try_mode anymore
-    
-#     # Process assess mode if present
-#     if "assess_mode" in scenario_dict and scenario_dict["assess_mode"]:
-#         if "avatar_interaction" in scenario_dict["assess_mode"]:
-#             avatar_id = scenario_dict["assess_mode"]["avatar_interaction"]
-#             scenario_dict["assess_mode"]["avatar_interaction"] = UUID(str(avatar_id)) if not isinstance(avatar_id, UUID) else avatar_id
-    
-#     # Insert scenario into database
-#     result = await db.scenarios.insert_one(scenario_dict)
-    
-#     # Update the module to include this scenario - convert UUIDs to strings for MongoDB
-#     await db.modules.update_one(
-#         {"_id": str(module_id)},
-#         {"$push": {"scenarios": str(result.inserted_id)}}
-#     )
-    
-#     created_scenario = await db.scenarios.find_one({"_id": result.inserted_id})
-#     print(created_scenario,"created_scenario",ScenarioDB(**created_scenario))
-#     return ScenarioDB(**created_scenario)
-#     # return ScenarioDB(**created_scenario)
 
 async def create_scenario(
     db: Any, 
@@ -529,7 +616,8 @@ async def create_scenario(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     
     creator = UserDB(**creator)
-    
+    # ADD THIS: Get creator's company
+    creator_company_id = UUID(creator.company_id)    
     # If creator is admin (not superadmin), check if they created the module
     if creator.role == UserRole.ADMIN and module.get("created_by") != str(created_by):
         raise HTTPException(
@@ -548,13 +636,21 @@ async def create_scenario(
     scenario_dict = scenario.dict()
     
     # Add creator and timestamps
+    # scenario_db = ScenarioDB(
+    #     **scenario_dict,
+    #     created_by=created_by,
+    #     created_at=datetime.now(),
+    #     updated_at=datetime.now()
+    # )
     scenario_db = ScenarioDB(
         **scenario_dict,
         created_by=created_by,
+        company_id=creator_company_id,  # ADD THIS
+        visibility=ContentVisibility.CREATOR_ONLY,  # ADD THIS
         created_at=datetime.now(),
         updated_at=datetime.now()
     )
-    
+        
     # Process the scenario for database insertion
     scenario_dict = scenario_db.dict(by_alias=True)
     
@@ -737,7 +833,55 @@ async def delete_scenario(db: Any, scenario_id: UUID, deleted_by: UUID) -> bool:
     result = await db.scenarios.delete_one({"_id": str(scenario_id)})
     
     return result.deleted_count > 0
-
+async def archive_scenario(db: Any, scenario_id: UUID, archived_by: UUID, reason: str = "Manual archive") -> bool:
+    """Archive a scenario (soft delete) instead of hard deletion"""
+    scenario = await db.scenarios.find_one({"_id": str(scenario_id)})
+    if not scenario:
+        return False
+    
+    # Check permissions (same as your delete_scenario logic)
+    deleter = await db.users.find_one({"_id": str(archived_by)})
+    if not deleter:
+        return False
+    
+    deleter = UserDB(**deleter)
+    
+    if deleter.role == UserRole.ADMIN:
+        if scenario.get("created_by") != str(archived_by):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Admins can only archive scenarios they created"
+            )
+    elif deleter.role != UserRole.SUPERADMIN and deleter.role != UserRole.BOSS_ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to archive scenarios"
+        )
+    
+    # Archive the scenario
+    await db.scenarios.update_one(
+        {"_id": str(scenario_id)},
+        {"$set": {
+            "is_archived": True,
+            "archived_at": datetime.now(),
+            "archived_by": str(archived_by),
+            "archived_reason": reason,
+            "updated_at": datetime.now()
+        }}
+    )
+    
+    # Archive all assignments for this scenario
+    await db.user_scenario_assignments.update_many(
+        {"scenario_id": str(scenario_id), "is_archived": False},
+        {"$set": {
+            "is_archived": True,
+            "archived_at": datetime.now(),
+            "archived_by": str(archived_by),
+            "archived_reason": f"Scenario archived: {reason}"
+        }}
+    )
+    
+    return True
 async def update_scenario_mode(
     db: Any, 
     scenario_id: UUID, 
@@ -921,20 +1065,31 @@ async def update_scenario_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")
     return updated_scenario
 
+# @router.delete("/scenarios/{scenario_id}", response_model=Dict[str, bool])
+# async def delete_scenario_endpoint(
+#     scenario_id: UUID,
+#     db: Any = Depends(get_database),
+#     admin_user: UserDB = Depends(get_admin_user)  # Only admins and superadmins can delete scenarios
+# ):
+#     """
+#     Delete a scenario by ID (admin/superadmin only, with ownership checks for admins)
+#     """
+#     deleted = await delete_scenario(db, scenario_id, admin_user.id)
+#     if not deleted:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")
+#     return {"success": True}
 @router.delete("/scenarios/{scenario_id}", response_model=Dict[str, bool])
 async def delete_scenario_endpoint(
     scenario_id: UUID,
+    archive_reason: str = Body("Manual deletion", embed=True),  # ADD THIS
     db: Any = Depends(get_database),
-    admin_user: UserDB = Depends(get_admin_user)  # Only admins and superadmins can delete scenarios
+    admin_user: UserDB = Depends(get_admin_user)
 ):
-    """
-    Delete a scenario by ID (admin/superadmin only, with ownership checks for admins)
-    """
-    deleted = await delete_scenario(db, scenario_id, admin_user.id)
-    if not deleted:
+    """Archive a scenario by ID (admin/superadmin only, with ownership checks for admins)"""
+    archived = await archive_scenario(db, scenario_id, admin_user.id, archive_reason)  # CHANGE THIS
+    if not archived:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")
-    return {"success": True}
-
+    return {"success": True, "archived": True}  # CHANGE THIS
 @router.put("/scenarios/{scenario_id}/{mode_type}", response_model=ScenarioResponse)
 async def update_scenario_mode_endpoint(
     scenario_id: UUID,
@@ -950,3 +1105,46 @@ async def update_scenario_mode_endpoint(
     if not updated_scenario:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")
     return updated_scenario
+
+
+@router.get("/assignable", response_model=List[ScenarioResponse])
+async def get_assignable_scenarios_endpoint(
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """Get scenarios that current admin can assign to users"""
+    return await get_assignable_scenarios_for_user(db, admin_user)
+
+@router.put("/scenarios/{scenario_id}/visibility", response_model=ScenarioResponse)
+async def update_scenario_visibility_endpoint(
+    scenario_id: UUID,
+    visibility_data: Dict[str, str] = Body(..., example={"visibility": "company_wide"}),
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """Update scenario visibility (creator_only vs company_wide)"""
+    new_visibility = visibility_data.get("visibility")
+    
+    if new_visibility not in [ContentVisibility.CREATOR_ONLY, ContentVisibility.COMPANY_WIDE]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid visibility. Must be 'creator_only' or 'company_wide'"
+        )
+    
+    scenario_updates = {"visibility": new_visibility}
+    updated_scenario = await update_scenario(db, scenario_id, scenario_updates, admin_user.id)
+    if not updated_scenario:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")
+    return updated_scenario
+
+@router.get("/scenarios/{scenario_id}/with-assignment", response_model=Dict[str, Any])
+async def get_scenario_with_assignment_endpoint(
+    scenario_id: UUID,
+    db: Any = Depends(get_database),
+    current_user: UserDB = Depends(get_current_user)
+):
+    """Get a scenario with assignment data for current user"""
+    scenario = await get_full_scenario(db, scenario_id, current_user)
+    if not scenario:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found or access denied")
+    return scenario
