@@ -501,25 +501,55 @@ import re
 import uuid
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, File, UploadFile, Body
-
+from database import db
 router = APIRouter()
 
 # In-memory storage for demo (replace with your actual database)
 scenario_storage = {}
 
+# async def extract_text_from_docx(file_content):
+#     """Extract text from .docx file content"""
+#     try:
+#         with io.BytesIO(file_content) as f:
+#             doc = docx.Document(f)
+#             text = ""
+#             for para in doc.paragraphs:
+#                 text += para.text + "\n"
+#         return text.strip()
+#     except Exception as e:
+#         print(f"Error extracting text from docx: {str(e)}")
+#         return None
+
 async def extract_text_from_docx(file_content):
-    """Extract text from .docx file content"""
+    """Enhanced DOCX extraction with better error handling and table support"""
     try:
         with io.BytesIO(file_content) as f:
             doc = docx.Document(f)
-            text = ""
+            text_parts = []
+            
+            # Extract paragraphs
             for para in doc.paragraphs:
-                text += para.text + "\n"
-        return text.strip()
+                if para.text.strip():
+                    text_parts.append(para.text.strip())
+            
+            # Extract tables (important for your structured document)
+            for table in doc.tables:
+                for row in table.rows:
+                    row_text = []
+                    for cell in row.cells:
+                        if cell.text.strip():
+                            row_text.append(cell.text.strip())
+                    if row_text:
+                        text_parts.append(" | ".join(row_text))
+            
+            full_text = "\n".join(text_parts)
+            print(f"Extracted {len(full_text)} characters from DOCX")
+            return full_text if full_text.strip() else None
+            
     except Exception as e:
-        print(f"Error extracting text from docx: {str(e)}")
+        print(f"DOCX extraction error: {str(e)}")
+        print(f"Error type: {type(e).__name__}")
         return None
-
 async def extract_text_from_pdf(file_content):
     """Extract text from PDF file content using pypdf"""
     try:
@@ -853,9 +883,31 @@ Throughout the conversation, try to naturally cover any four of these topics (no
         """Extract structured information from any type of scenario document using LLM"""
         
         extraction_prompt = f"""
-        Analyze the following scenario document and extract key information in a structured JSON format.
-        This could be ANY type of scenario: sales training, customer service, education, product demonstration, etc.
-        
+      You are an expert instructional designer and training scenario architect. Analyze this document to create a sophisticated, psychologically-informed training scenario.
+
+CONTEXT ANALYSIS:
+1. Identify the emotional stakes involved for all parties
+2. Map the customer journey and decision-making process
+3. Recognize cultural and demographic factors
+4. Understand business objectives and competitive landscape
+
+PERSONA DEVELOPMENT:
+- Create realistic personas with detailed backgrounds, motivations, and constraints
+- Include specific demographic details, family situations, and decision-making patterns
+- Add emotional states, past experiences, and current life circumstances
+- Consider cultural sensitivity and regional variations
+
+KNOWLEDGE BASE SOPHISTICATION:
+- Provide specific, actionable guidance rather than generic advice
+- Include industry-specific best practices and methodologies
+- Add competitive differentiation strategies
+- Incorporate psychological principles of persuasion and trust-building
+
+SCENARIO REALISM:
+- Design emotionally authentic interactions that reflect real customer journeys
+- Include challenging but realistic objections and concerns
+- Create multi-layered conversations that test various skills
+- Add coaching opportunities and learning moments
         Document content:
         ```
         {scenario_document}
@@ -940,6 +992,10 @@ Throughout the conversation, try to naturally cover any four of these topics (no
         }}
         
         Provide comprehensive, scenario-specific content for each field.
+        
+Generate a comprehensive training scenario with the depth and sophistication of professional corporate training programs. Focus on creating realistic, challenging, and educationally valuable experiences.
+
+Return in the specified JSON format with rich, detailed content in each section.
         """
         
         try:
@@ -1113,7 +1169,29 @@ Throughout the conversation, try to naturally cover any four of these topics (no
                 return self._get_mock_personas(template_data)
             
             persona_prompt = f"""
-            Create detailed personas based on the template definitions provided.
+           You are a psychology-informed persona architect creating realistic characters for professional training.
+
+PERSONA DEPTH REQUIREMENTS:
+- Full demographic profile (age, profession, family situation, location)
+- Psychological profile (personality traits, decision-making style, communication preferences)
+- Current life context (what's happening in their life that affects this interaction)
+- Past experiences that influence their behavior and expectations
+- Specific concerns, fears, and motivations related to this scenario
+- Cultural background and how it influences their approach
+- Economic situation and how it affects their decision-making
+
+REALISM STANDARDS:
+- Base personas on real customer archetypes from this industry
+- Include authentic emotional responses and behavioral patterns
+- Add specific details that make the character memorable and relatable
+- Include contradictions and complexities that real people have
+- Consider how their background affects their communication style
+
+TRAINING VALUE:
+- Design personas that will challenge learners appropriately
+- Include both typical and edge-case characteristics
+- Create opportunities for empathy building and perspective-taking
+- Add details that will help learners practice active listening and adaptation
             Generate personas for both Learn Mode and Assessment Mode.
             
             Template Data:
@@ -1154,6 +1232,8 @@ Throughout the conversation, try to naturally cover any four of these topics (no
             }}
             
             Provide ONLY the JSON with realistic, detailed personas.
+            Create personas that feel like real people with real stories, not generic customer types.
+
             """
             
             response = await self.client.chat.completions.create(
@@ -1163,7 +1243,7 @@ Throughout the conversation, try to naturally cover any four of these topics (no
                     {"role": "user", "content": persona_prompt}
                 ],
                 temperature=0.7,
-                max_tokens=2000
+                max_tokens=15000
             )
             
             response_text = response.choices[0].message.content
@@ -1535,15 +1615,15 @@ async def generate_final_prompts(template_data: Dict[str, Any] = Body(...)):
         try_mode_prompt = await generator.generate_try_mode_from_template(template_data)
         
         # Apply personas to prompts
-        learn_mode_prompt = generator.insert_persona(learn_mode_prompt, personas.get("learn_mode_expert", {}))
-        assess_mode_prompt = generator.insert_persona(assess_mode_prompt, personas.get("assess_mode_character", {}))
-        try_mode_prompt = generator.insert_persona(try_mode_prompt, personas.get("assess_mode_character", {}))
+        # learn_mode_prompt = generator.insert_persona(learn_mode_prompt, personas.get("learn_mode_expert", {}))
+        # assess_mode_prompt = generator.insert_persona(assess_mode_prompt, personas.get("assess_mode_character", {}))
+        # try_mode_prompt = generator.insert_persona(try_mode_prompt, personas.get("assess_mode_character", {}))
         
         # Apply language instructions
-        language_data = template_data.get("general_info", {})
-        learn_mode_prompt = generator.insert_language_instructions(learn_mode_prompt, language_data)
-        assess_mode_prompt = generator.insert_language_instructions(assess_mode_prompt, language_data)
-        try_mode_prompt = generator.insert_language_instructions(try_mode_prompt, language_data)
+        # language_data = template_data.get("general_info", {})
+        # learn_mode_prompt = generator.insert_language_instructions(learn_mode_prompt, language_data)
+        # assess_mode_prompt = generator.insert_language_instructions(assess_mode_prompt, language_data)
+        # try_mode_prompt = generator.insert_language_instructions(try_mode_prompt, language_data)
         
         return ScenarioResponse(
             learn_mode=learn_mode_prompt,
@@ -1637,232 +1717,6 @@ async def regenerate_prompts(template_data: Dict[str, Any] = Body(...)):
         print(f"Error in regenerate_prompts: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Storage and Management Endpoints
-
-# @router.post("/save-scenario")
-# async def save_scenario(
-#     scenario_data: Dict[str, Any] = Body(...),
-#     title: str = Body(...),
-#     tags: List[str] = Body(default=[])
-# ):
-#     """
-#     Save complete scenario for later editing.
-#     """
-#     try:
-#         scenario_id = scenario_data.get('id') or str(uuid.uuid4())
-#         current_time = datetime.now().isoformat()
-        
-#         # Determine if this is an update or new save
-#         is_update = scenario_id in scenario_storage
-#         version = scenario_storage[scenario_id].get('version', 0) + 1 if is_update else 1
-        
-#         saved_scenario = {
-#             "id": scenario_id,
-#             "title": title,
-#             "domain": scenario_data.get("template_data", {}).get("general_info", {}).get("domain", "General"),
-#             "original_description": scenario_data.get("original_description", ""),
-#             "template_data": scenario_data.get("template_data", {}),
-#             "generated_prompts": scenario_data.get("generated_prompts", {}),
-#             "personas": scenario_data.get("personas", {}),
-#             "created_date": scenario_storage.get(scenario_id, {}).get("created_date", current_time),
-#             "last_modified": current_time,
-#             "version": version,
-#             "tags": tags
-#         }
-        
-#         scenario_storage[scenario_id] = saved_scenario
-        
-#         return {
-#             "message": "Scenario updated successfully" if is_update else "Scenario saved successfully",
-#             "scenario_id": scenario_id,
-#             "version": version,
-#             "is_update": is_update,
-#             "saved_data": saved_scenario
-#         }
-#     except Exception as e:
-#         print(f"Error in save_scenario: {str(e)}")
-#         raise HTTPException(status_code=500, detail=str(e))
-
-# @router.get("/load-scenario/{scenario_id}")
-# async def load_scenario(scenario_id: str):
-#     """
-#     Load a saved scenario for editing and regeneration.
-#     """
-#     try:
-#         if scenario_id not in scenario_storage:
-#             raise HTTPException(status_code=404, detail="Scenario not found")
-        
-#         scenario = scenario_storage[scenario_id]
-        
-#         return {
-#             "scenario_id": scenario_id,
-#             "title": scenario["title"],
-#             "domain": scenario["domain"],
-#             "original_description": scenario["original_description"],
-#             "template_data": scenario["template_data"],
-#             "generated_prompts": scenario["generated_prompts"],
-#             "personas": scenario["personas"],
-#             "created_date": scenario["created_date"],
-#             "last_modified": scenario["last_modified"],
-#             "version": scenario["version"],
-#             "tags": scenario["tags"]
-#         }
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         print(f"Error in load_scenario: {str(e)}")
-#         raise HTTPException(status_code=500, detail=str(e))
-
-# @router.get("/list-scenarios", response_model=ScenarioListResponse)
-# async def list_scenarios(
-#     domain: Optional[str] = None,
-#     tag: Optional[str] = None,
-#     search: Optional[str] = None,
-#     limit: int = 50,
-#     offset: int = 0
-# ):
-#     """
-#     List saved scenarios with optional filtering.
-#     """
-#     try:
-#         scenarios = list(scenario_storage.values())
-        
-#         # Apply filters
-#         if domain:
-#             scenarios = [s for s in scenarios if s["domain"].lower() == domain.lower()]
-        
-#         if tag:
-#             scenarios = [s for s in scenarios if tag.lower() in [t.lower() for t in s["tags"]]]
-        
-#         if search:
-#             search_lower = search.lower()
-#             scenarios = [s for s in scenarios if 
-#                         search_lower in s["title"].lower() or 
-#                         search_lower in s["domain"].lower() or
-#                         search_lower in s.get("original_description", "").lower()]
-        
-#         # Sort by last modified (newest first)
-#         scenarios.sort(key=lambda x: x["last_modified"], reverse=True)
-        
-#         # Apply pagination
-#         total_count = len(scenarios)
-#         scenarios = scenarios[offset:offset + limit]
-        
-#         # Format for response
-#         scenario_list = [{
-#             "id": s["id"],
-#             "title": s["title"],
-#             "domain": s["domain"],
-#             "created_date": s["created_date"],
-#             "last_modified": s["last_modified"],
-#             "version": s["version"],
-#             "tags": s["tags"],
-#             "has_prompts": bool(s.get("generated_prompts"))
-#         } for s in scenarios]
-        
-#         return ScenarioListResponse(
-#             scenarios=scenario_list,
-#             total_count=total_count
-#         )
-#     except Exception as e:
-#         print(f"Error in list_scenarios: {str(e)}")
-#         raise HTTPException(status_code=500, detail=str(e))
-
-# @router.post("/update-scenario/{scenario_id}")
-# async def update_scenario(
-#     scenario_id: str,
-#     updated_template: Dict[str, Any] = Body(...),
-#     regenerate_prompts: bool = Body(default=True)
-# ):
-#     """
-#     Update an existing scenario's template data and optionally regenerate prompts.
-#     """
-#     try:
-#         if scenario_id not in scenario_storage:
-#             raise HTTPException(status_code=404, detail="Scenario not found")
-        
-#         current_scenario = scenario_storage[scenario_id]
-        
-#         # Update template data
-#         current_scenario["template_data"] = updated_template
-#         current_scenario["last_modified"] = datetime.now().isoformat()
-#         current_scenario["version"] += 1
-        
-#         result = {
-#             "message": "Scenario template updated successfully",
-#             "scenario_id": scenario_id,
-#             "version": current_scenario["version"],
-#             "updated_template": updated_template
-#         }
-        
-#         # Optionally regenerate prompts
-#         if regenerate_prompts:
-#             generator = EnhancedScenarioGenerator(azure_openai_client)
-            
-#             # Use existing personas or generate new ones
-#             personas = current_scenario.get("personas", {})
-#             if not personas:
-#                 personas = await generator.generate_personas_from_template(updated_template)
-            
-#             # Generate new prompts
-#             learn_mode_prompt = await generator.generate_learn_mode_from_template(updated_template)
-#             assess_mode_prompt = await generator.generate_assess_mode_from_template(updated_template)
-#             try_mode_prompt = await generator.generate_try_mode_from_template(updated_template)
-            
-#             # Apply personas and language instructions
-#             learn_mode_prompt = generator.insert_persona(learn_mode_prompt, personas.get("learn_mode_expert", {}))
-#             assess_mode_prompt = generator.insert_persona(assess_mode_prompt, personas.get("assess_mode_character", {}))
-#             try_mode_prompt = generator.insert_persona(try_mode_prompt, personas.get("assess_mode_character", {}))
-            
-#             language_data = updated_template.get("general_info", {})
-#             learn_mode_prompt = generator.insert_language_instructions(learn_mode_prompt, language_data)
-#             assess_mode_prompt = generator.insert_language_instructions(assess_mode_prompt, language_data)
-#             try_mode_prompt = generator.insert_language_instructions(try_mode_prompt, language_data)
-            
-#             # Update stored prompts
-#             current_scenario["generated_prompts"] = {
-#                 "learn_mode": learn_mode_prompt,
-#                 "assess_mode": assess_mode_prompt,
-#                 "try_mode": try_mode_prompt
-#             }
-#             current_scenario["personas"] = personas
-            
-#             result["regenerated_prompts"] = current_scenario["generated_prompts"]
-        
-#         # Save updated scenario
-#         scenario_storage[scenario_id] = current_scenario
-        
-#         return result
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         print(f"Error in update_scenario: {str(e)}")
-#         raise HTTPException(status_code=500, detail=str(e))
-
-# @router.delete("/delete-scenario/{scenario_id}")
-# async def delete_scenario(scenario_id: str):
-#     """
-#     Delete a saved scenario.
-#     """
-#     try:
-#         if scenario_id not in scenario_storage:
-#             raise HTTPException(status_code=404, detail="Scenario not found")
-        
-#         deleted_scenario = scenario_storage.pop(scenario_id)
-        
-#         return {
-#             "message": "Scenario deleted successfully",
-#             "deleted_scenario": {
-#                 "id": deleted_scenario["id"],
-#                 "title": deleted_scenario["title"],
-#                 "domain": deleted_scenario["domain"]
-#             }
-#         }
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         print(f"Error in delete_scenario: {str(e)}")
-#         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/save-template-to-db")
 async def save_template_to_db(
@@ -1997,91 +1851,145 @@ async def generate_personas_from_template_endpoint(template_data: Dict[str, Any]
         print(f"Error in generate_personas_from_template_endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# @router.post("/file-to-template")
+# async def file_to_template(file: UploadFile = File(...)):
+#     """
+#     Upload scenario document file and analyze to template structure.
+#     Supports .txt, .docx, and .pdf files with proper text extraction.
+#     """
+#     try:
+#         # Read file content
+#         content = await file.read()
+        
+#         # Extract text based on file type
+#         scenario_text = ""
+        
+#         if file.filename.endswith('.txt'):
+#             scenario_text = content.decode('utf-8')
+            
+#         elif file.filename.endswith(('.doc', '.docx')):
+#             # Use proper docx extraction
+#             scenario_text = await extract_text_from_docx(content)
+#             if scenario_text is None:
+#                 raise HTTPException(status_code=400, detail="Failed to extract text from Word document")
+                
+#         elif file.filename.endswith('.pdf'):
+#             # Use PDF extraction
+#             scenario_text = await extract_text_from_pdf(content)
+#             if scenario_text is None:
+#                 raise HTTPException(status_code=400, detail="Failed to extract text from PDF document")
+                
+#         else:
+#             # Try generic text extraction for other file types
+#             try:
+#                 scenario_text = content.decode('utf-8')
+#             except UnicodeDecodeError:
+#                 scenario_text = content.decode('utf-8', errors='ignore')
+        
+#         # Validate that we have meaningful content
+#         if not scenario_text or len(scenario_text.strip()) < 10:
+#             raise HTTPException(
+#                 status_code=400, 
+#                 detail=f"File appears to be empty or contains insufficient content. Extracted {len(scenario_text)} characters."
+#             )
+        
+#         # Log for debugging
+#         print(f"File processed successfully:")
+#         print(f"- Filename: {file.filename}")
+#         print(f"- Content-Type: {file.content_type}")
+#         print(f"- Original size: {len(content)} bytes")
+#         print(f"- Extracted text length: {len(scenario_text)} characters")
+#         print(f"- Text preview: {scenario_text[:300]}...")
+        
+#         # Use the same extraction logic as analyze-scenario
+#         generator = EnhancedScenarioGenerator(azure_openai_client)  # Replace with your actual client
+#         template_data = await generator.extract_scenario_info(scenario_text)
+        
+#         # Add file metadata to the response
+#         template_data["file_metadata"] = {
+#             "filename": file.filename,
+#             "original_size": len(content),
+#             "extracted_text_length": len(scenario_text),
+#             "file_type": file.content_type,
+#             "extraction_method": "docx" if file.filename.endswith(('.doc', '.docx')) 
+#                                else "pdf" if file.filename.endswith('.pdf') 
+#                                else "text"
+#         }
+        
+#         return TemplateAnalysisResponse(
+#             general_info=template_data.get("general_info", {}),
+#             context_overview=template_data.get("context_overview", {}),
+#             persona_definitions=template_data.get("persona_definitions", {}),
+#             dialogue_flow=template_data.get("dialogue_flow", {}),
+#             knowledge_base=template_data.get("knowledge_base", {}),
+#             variations_challenges=template_data.get("variations_challenges", {}),
+#             success_metrics=template_data.get("success_metrics", {}),
+#             feedback_mechanism=template_data.get("feedback_mechanism", {})
+#         )
+        
+#     except HTTPException:
+#         raise
+#     except Exception as e:
+#         print(f"Error in file_to_template: {str(e)}")
+#         print(f"File details - Name: {file.filename}, Content-Type: {file.content_type}")
+#         if 'scenario_text' in locals():
+#             print(f"Extracted text preview: {scenario_text[:200]}")
+#         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
 @router.post("/file-to-template")
 async def file_to_template(file: UploadFile = File(...)):
-    """
-    Upload scenario document file and analyze to template structure.
-    Supports .txt, .docx, and .pdf files with proper text extraction.
-    """
     try:
-        # Read file content
+        print(f"Processing file: {file.filename}")
+        print(f"Content type: {file.content_type}")
+        
         content = await file.read()
+        print(f"File size: {len(content)} bytes")
         
-        # Extract text based on file type
+        # Process based on file type
         scenario_text = ""
+        extraction_method = "unknown"
         
-        if file.filename.endswith('.txt'):
+        if file.filename.lower().endswith('.txt'):
             scenario_text = content.decode('utf-8')
+            extraction_method = "text"
             
-        elif file.filename.endswith(('.doc', '.docx')):
-            # Use proper docx extraction
+        elif file.filename.lower().endswith(('.doc', '.docx')):
             scenario_text = await extract_text_from_docx(content)
+            extraction_method = "docx"
+            
             if scenario_text is None:
-                raise HTTPException(status_code=400, detail="Failed to extract text from Word document")
-                
-        elif file.filename.endswith('.pdf'):
-            # Use PDF extraction
-            scenario_text = await extract_text_from_pdf(content)
-            if scenario_text is None:
-                raise HTTPException(status_code=400, detail="Failed to extract text from PDF document")
-                
+                # Try alternative extraction
+                print("Primary DOCX extraction failed, trying alternative...")
+                try:
+                    scenario_text = content.decode('utf-8', errors='ignore')
+                    extraction_method = "fallback_text"
+                except:
+                    raise HTTPException(400, "Could not extract text from DOCX file")
+        
+        # Validate extraction
+        if not scenario_text or len(scenario_text.strip()) < 50:
+            raise HTTPException(400, f"Insufficient content extracted. Got {len(scenario_text)} characters")
+        
+        print(f"Successfully extracted {len(scenario_text)} characters using {extraction_method}")
+        print(f"Content preview: {scenario_text[:300]}...")
+        
+        # Process with LLM
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        
+        # Check if client is properly initialized
+        if generator.client is None:
+            print("WARNING: LLM client not initialized, using enhanced mock data")
+            template_data = generator._get_enhanced_mock_template_data(scenario_text)
         else:
-            # Try generic text extraction for other file types
-            try:
-                scenario_text = content.decode('utf-8')
-            except UnicodeDecodeError:
-                scenario_text = content.decode('utf-8', errors='ignore')
+            template_data = await generator.extract_scenario_info(scenario_text)
         
-        # Validate that we have meaningful content
-        if not scenario_text or len(scenario_text.strip()) < 10:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"File appears to be empty or contains insufficient content. Extracted {len(scenario_text)} characters."
-            )
-        
-        # Log for debugging
-        print(f"File processed successfully:")
-        print(f"- Filename: {file.filename}")
-        print(f"- Content-Type: {file.content_type}")
-        print(f"- Original size: {len(content)} bytes")
-        print(f"- Extracted text length: {len(scenario_text)} characters")
-        print(f"- Text preview: {scenario_text[:300]}...")
-        
-        # Use the same extraction logic as analyze-scenario
-        generator = EnhancedScenarioGenerator(azure_openai_client)  # Replace with your actual client
-        template_data = await generator.extract_scenario_info(scenario_text)
-        
-        # Add file metadata to the response
-        template_data["file_metadata"] = {
-            "filename": file.filename,
-            "original_size": len(content),
-            "extracted_text_length": len(scenario_text),
-            "file_type": file.content_type,
-            "extraction_method": "docx" if file.filename.endswith(('.doc', '.docx')) 
-                               else "pdf" if file.filename.endswith('.pdf') 
-                               else "text"
-        }
-        
-        return TemplateAnalysisResponse(
-            general_info=template_data.get("general_info", {}),
-            context_overview=template_data.get("context_overview", {}),
-            persona_definitions=template_data.get("persona_definitions", {}),
-            dialogue_flow=template_data.get("dialogue_flow", {}),
-            knowledge_base=template_data.get("knowledge_base", {}),
-            variations_challenges=template_data.get("variations_challenges", {}),
-            success_metrics=template_data.get("success_metrics", {}),
-            feedback_mechanism=template_data.get("feedback_mechanism", {})
-        )
+        return template_data
         
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error in file_to_template: {str(e)}")
-        print(f"File details - Name: {file.filename}, Content-Type: {file.content_type}")
-        if 'scenario_text' in locals():
-            print(f"Extracted text preview: {scenario_text[:200]}")
-        raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
-
+        print(f"File processing error: {str(e)}")
+        print(f"Error type: {type(e).__name__}")
+        raise HTTPException(500, f"File processing failed: {str(e)}")
 @router.get("/template-schema")
 async def get_template_schema():
     """
