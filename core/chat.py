@@ -34,6 +34,7 @@ async def initialize_chat(
     avatar_interaction_id: UUID = Form(...),
     mode: str = Form(...),  # "learn_mode", "try_mode", or "assess_mode"
     persona_id: Optional[UUID] = Form(None),
+    avatar_id: Optional[UUID] = Form(None),
     language_id: Optional[UUID] = Form(None),
     db: Any = Depends(get_db),
     current_user: UserDB = Depends(get_current_user)  # Add this dependency
@@ -106,7 +107,7 @@ async def initialize_chat(
                 )
     
     # Initialize chat session
-    session = await initialize_chat_session(db, avatar_interaction_id=avatar_interaction_id, mode=mode, persona_id=persona_id, language_id=language_id,current_user=current_user.id)
+    session = await initialize_chat_session(db, avatar_interaction_id=avatar_interaction_id, mode=mode, persona_id=persona_id,avatar_id=avatar_id, language_id=language_id,current_user=current_user.id)
     
     # Return session information
     return {
@@ -115,6 +116,7 @@ async def initialize_chat(
         "avatar_interaction_id": str(avatar_interaction_id),
         "mode": mode,
         "persona_id": str(persona_id) if persona_id else None,
+        "avatar_id": str(avatar_id) if avatar_id else None,
         "language_id": str(language_id) if language_id else None,
         "created_at": session.created_at
     }

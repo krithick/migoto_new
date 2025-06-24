@@ -144,7 +144,7 @@ class DynamicChatHandler:
                     persona_context = self.format_persona_context(scenario_prompt=self.config.system_prompt,persona=persona_obj,language=language_obj)
                     # Add persona information to system prompt
                     contents[0]["content"] = persona_context
-                    # print("actual scenariossss",persona_context)
+                    print("actual scenariossss",persona_context)
             except Exception as e:
                 print(f"Error loading persona: {e}")
         
@@ -293,6 +293,7 @@ async def initialize_chat_session(
     mode: str,
     current_user : UUID,
     persona_id: Optional[UUID] = None,
+    avatar_id: Optional[UUID] = None,
     language_id : Optional[UUID] = None,
     
 ) -> ChatSession:
@@ -322,7 +323,7 @@ async def initialize_chat_session(
         extra=str(uuid4()),
         scenario_name=scenario_name,
         avatar_interaction=str(avatar_interaction_id),  # Add this line
-        avatar_id=str(avatar_interaction.get("avatars", [""])[0]),
+        avatar_id=str(avatar_id) if avatar_id else None,
         persona_id=str(persona_id) if persona_id else None,
         user_id=str(current_user),
         # persona_settings={
