@@ -153,7 +153,7 @@ async def chat(
     # Get the appropriate chat handler - use the mode from the avatar_interaction document
     # You'll need to fetch the avatar_interaction to determine the mode
     persona_id=await db.avatars.find_one({"_id": session.avatar_id})
-    print(persona_id[persona_id],"self.config.persona_idasdasdsd")
+    print(persona_id["_id"],"self.config.persona_idasdasdsd")
     avatar_interaction = await db.avatar_interactions.find_one({"_id": avatar_interaction_id})
     mode = avatar_interaction["mode"] if avatar_interaction else "try_mode"  # Default to try_mode
     language_id=session.language_id
@@ -161,7 +161,7 @@ async def chat(
     handler = await chat_factory.get_chat_handler(
         avatar_interaction_id=UUID(avatar_interaction_id),
         mode=mode,
-        persona_id=UUID(persona_id) if persona_id else None,
+        persona_id=UUID(persona_id["_id"]) if persona_id else None,
         language_id=language_id 
     )
     

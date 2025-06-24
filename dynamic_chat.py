@@ -131,20 +131,20 @@ class DynamicChatHandler:
         # Add system prompt
         contents.append({"role": "system", "content": self.config.system_prompt})
         # Get persona if available
-        print(self.config)
+        # print(self.config)
         if self.config.persona_id:
             try:
                 print(self.config.persona_id,"self.config.persona_id")
                 persona = await self.db.personas.find_one({"_id": str(self.config.persona_id)})
                 language = await self.db.languages.find_one({"_id": str(self.config.language_id)})
-                print("language",language)
+                # print("language",language)
                 if persona:
                     persona_obj = PersonaDB(**persona)
                     language_obj= LanguageDB(**language)
-                    persona_context = self.format_persona_context(self.config.system_prompt,persona_obj,language_obj)
+                    persona_context = self.format_persona_context(scenario_prompt=self.config.system_prompt,persona=persona_obj,language=language_obj)
                     # Add persona information to system prompt
                     contents[0]["content"] = persona_context
-                    print("actual scenariossss",persona_context)
+                    # print("actual scenariossss",persona_context)
             except Exception as e:
                 print(f"Error loading persona: {e}")
         
@@ -181,11 +181,12 @@ class DynamicChatHandler:
 - Language instructions: {language.prompt}
 
 """
+        # print(language.name,language.prompt,"language_markdown",language,"language")
         # Add background story if available
         if persona.background_story:
             persona_markdown += f"- Background: {persona.background_story}\n"
     # Replace placeholders
-        scenario_prompt = scenario_prompt.replace("[LANGUAGE_PLACEHOLDER]", language_markdown)
+        scenario_prompt = scenario_prompt.replace("[LANGUAGE_INSTRUCTIONS]", language_markdown)
         scenario_prompt = scenario_prompt.replace("[PERSONA_PLACEHOLDER]", persona_markdown)
         return scenario_prompt
     
