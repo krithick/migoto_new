@@ -1627,8 +1627,8 @@ async def generate_final_prompts(template_data: Dict[str, Any] = Body(...)):
         
         return ScenarioResponse(
             learn_mode=learn_mode_prompt,
-            assess_mode=assess_mode_prompt,
-            try_mode=try_mode_prompt,
+            try_mode=assess_mode_prompt,
+            assess_mode=try_mode_prompt,
             scenario_title=template_data.get("context_overview", {}).get("scenario_title", "Training Scenario"),
             extracted_info=template_data,
             generated_persona=personas
@@ -1743,16 +1743,21 @@ async def save_template_to_db(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+def convert_objectid(document):
+    """Convert ObjectId to str in a MongoDB document"""
+    if document and "_id" in document:
+        document["_id"] = str(document["_id"])
+    return document
 @router.get("/load-template-from-db/{template_id}")
 async def load_template_from_db(template_id: str):
     """Load template data from database"""
     try:
-        template = db.templates.find_one({"id": template_id})
+        template = await db.templates.find_one({"id": template_id})
+        print(template,"template")
         if not template:
             raise HTTPException(status_code=404, detail="Template not found")
         
-        return template
+        return convert_objectid(template)
     except HTTPException:
         raise
     except Exception as e:
@@ -1760,13 +1765,12 @@ async def load_template_from_db(template_id: str):
 
 @router.get("/list-templates-from-db")
 async def list_templates_from_db():
-    """List all templates from database"""
     try:
-        templates = list(db.templates.find({}, {"_id": 0}))
+        cursor = db.templates.find({}, {"_id": 0})
+        templates = await cursor.to_list(length=100)
         return {"templates": templates}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 @router.put("/update-template-in-db/{template_id}")
 async def update_template_in_db(
     template_id: str,
