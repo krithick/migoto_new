@@ -25,6 +25,8 @@ from database import get_db
 from openai import AsyncAzureOpenAI
 import os
 from models.language_models import LanguageDB
+from core.azure_search_manager import AzureVectorSearchManager, EnhancedFactChecker
+
 # Cache configuration
 CACHE_EXPIRY_MINUTES = 30  # How long to keep inactive handlers in cache
 
@@ -53,27 +55,79 @@ class DynamicChatHandler:
         self.llm_client = llm_client
         self.db = db
         self.last_used = datetime.now()
-        
-    async def process_message(self, 
-                              message: str, 
-                              conversation_history: List[Message],
-                              name: Optional[str] = None) -> AsyncGenerator:
-        """Process a message and generate a streaming response"""
+        self.vector_search = AzureVectorSearchManager()
+        self.fact_checker = EnhancedFactChecker(self.vector_search, llm_client)
+        self.knowledge_base_id = None
+        self.fact_checking_enabled = False
+    async def initialize_fact_checking(self, session_id: str):
+        """Initialize fact-checking if this session supports it"""
+        try:
+            # Get knowledge base ID from session
+            knowledge_base_id = await self._get_knowledge_base_for_session(session_id)
+            
+            if knowledge_base_id:
+                self.knowledge_base_id = knowledge_base_id
+                # Check if this is try_mode (only mode that needs fact-checking)
+                avatar_interaction = await self.db.avatar_interactions.find_one(
+                    {"_id": str(self.config.avatar_interaction_id)}
+                )
+                # self.fact_checking_enabled = (
+                #     avatar_interaction and 
+                #     avatar_interaction.get("mode") == "try_mode"
+                # )
+                self.fact_checking_enabled = (
+                    avatar_interaction and 
+                    avatar_interaction.get("mode") in ["try_mode", "learn_mode"]  # Both modes use knowledge base
+                    )
+                print("self.fact_checking_enabled",self.fact_checking_enabled)
+            else:
+                raise Exception("no knowledge id")
+        except Exception as e:
+            print(f"Error initializing fact-checking: {e}")
+            self.fact_checking_enabled = False
+    
+    async def _get_knowledge_base_for_session(self, session_id: str) -> Optional[str]:
+        """Get knowledge base ID from session"""
+        try:
+            session = await self.db.sessions.find_one({"_id": session_id})
+            # print("session",session)
+            if not session:
+                return None
+            
+            avatar_interaction_id = session.get("avatar_interaction")
+            if not avatar_interaction_id:
+                return None
+            # Find scenario containing this avatar interaction
+            scenario = await self.db.scenarios.find_one({
+                "$or": [
+                    {"learn_mode.avatar_interaction": avatar_interaction_id},
+                    {"try_mode.avatar_interaction": avatar_interaction_id},
+                    {"assess_mode.avatar_interaction": avatar_interaction_id}
+                ]
+            })
+            template = await self.db.templates.find_one({"id":scenario.get("template_id")})
+            # print("session",template)
+            if not template:
+                print("no template found")
+                
+            return template.get("knowledge_base_id") if template else None
+            
+        except Exception as e:
+            print(f"Error getting knowledge base: {e}")
+            return None           
+    
+    async def process_message(self, message: str, conversation_history: List[Message], name: Optional[str] = None) -> AsyncGenerator:
+        """Enhanced process_message with fact-checking for try_mode"""
         self.last_used = datetime.now()
         
         # Format conversation for LLM
         contents = await self.format_conversation(conversation_history)
-        
-        # Add the current message
-        contents.append({
-            "role": "user",
-            "content": message
-        })
+        contents.append({"role": "user", "content": message})
         
         try:
             # Get streaming response from LLM
             response = await self.llm_client.chat.completions.create(
-                model="gpt-4o",  # Or use config.llm_model if available
+                model="gpt-4o",
                 messages=contents,
                 temperature=0.7,
                 max_tokens=1000,
@@ -81,49 +135,393 @@ class DynamicChatHandler:
                 stream_options={"include_usage": True}
             )
             
-            async def generate():
-                res = ""
-                async for i in response:
-                    if len(i.choices) > 0:
-                        chunk_text = i.choices[0].delta.content
-                        finish_reason = i.choices[0].finish_reason
-                        
-                        if chunk_text:
-                            res += chunk_text
-                            # Apply name replacement if provided
-                            if name:
-                                updated_text = self.replace_name(res, name)
-                            else:
-                                updated_text = res
-                                
-                            yield {"chunk": updated_text, "finish": None, "usage": None}
-                            
-                        if finish_reason == "stop":
-                            if res.strip():
-                                if name:
-                                    updated_text = self.replace_name(res, name)
-                                else:
-                                    updated_text = res
-                                yield {"chunk": updated_text, "finish": "stop", "usage": None}
-                    
-                    # Handle usage statistics
-                    if hasattr(i, 'usage') and i.usage is not None:
-                        yield {
-                            "chunk": res,
-                            "finish": "stop",
-                            "usage": {
-                                "completion_tokens": i.usage.completion_tokens,
-                                "prompt_tokens": i.usage.prompt_tokens,
-                                "total_tokens": i.usage.total_tokens
-                            }
-                        }
-            
-            return generate()
-            
+
+            if self.config.mode == "try_mode" and self.knowledge_base_id:
+                # TRY MODE: Fact-check AI responses for accuracy
+                return await self._process_with_fact_checking(response,message,conversation_history, name)
+            elif self.config.mode == "learn_mode" and self.knowledge_base_id:
+                # LEARN MODE: Enhance responses with knowledge base
+                return await self._process_with_knowledge_base(response, message, conversation_history, name)
+            else:
+                # ASSESS MODE: Simple natural responses
+                return await self._process_normal_stream(response, name)
+                
         except Exception as e:
             print(f"Error getting LLM response: {e}")
             raise HTTPException(status_code=500, detail=f"Error generating response: {str(e)}")
     
+
+
+    async def _process_with_fact_checking(self, response, user_message: str,conversation_history: List[Message], name: Optional[str]):
+        """Process response with fact-checking - ensure final response has complete data"""
+    
+        # Fact-check the user's message
+        coaching_feedback = await self._check_user_response_accuracy(user_message,conversation_history, self.knowledge_base_id)
+    
+        # Collect AI's full response
+        full_response = ""
+        usage_info = None
+
+        async for chunk in response:
+            if len(chunk.choices) > 0 and chunk.choices[0].delta.content:
+                full_response += chunk.choices[0].delta.content
+        
+            if hasattr(chunk, 'usage') and chunk.usage:
+                usage_info = chunk.usage
+    
+        # Stream with complete coaching data
+        async def fact_checked_generator():
+            if name:
+                final_response = self.replace_name(full_response, name)
+            else:
+                final_response = full_response
+        
+            # Add coaching feedback if needed
+            if coaching_feedback:
+                final_response = f"{final_response} [CORRECT] {coaching_feedback} [CORRECT]"
+        
+            # Stream in chunks ensuring final chunk has complete data
+            words = final_response.split()
+            current_text = ""
+        
+            for i, word in enumerate(words):
+                current_text += word + " "
+            
+                if i % 3 == 0 or i == len(words) - 1:
+                    is_final = i == len(words) - 1
+                
+                    # For final chunk, include all metadata
+                    if is_final:
+                        yield {
+                        "chunk": current_text.strip(),
+                        "finish": "stop",
+                        "usage": usage_info,
+                        "fact_check_summary": {
+                            "user_response_checked": True,
+                            "coaching_provided": coaching_feedback is not None,
+                            "coaching_content": coaching_feedback  # ✅ Include the actual coaching
+                        }
+                    }
+                    else:
+                        yield {
+                        "chunk": current_text.strip(),
+                        "finish": None,
+                        "usage": None
+                    }
+                
+                    if is_final:
+                        break
+    
+        return fact_checked_generator() 
+# 
+
+    async def _check_user_response_accuracy(self, user_message: str,conversation_history: List[Message], knowledge_base_id: str) -> Optional[str]:
+        """Simple fact-checking against Cloudnine documents"""
+    
+        try:
+            language_instructions = await self._get_language_instructions()
+            # Search for relevant info in documents
+            
+            search_results = await self.vector_search.vector_search(
+            user_message, knowledge_base_id, top_k=3, openai_client=self.llm_client
+            )
+        
+            if not search_results:
+                return None
+        
+            # Build context from search results
+            context = "\n".join([result['content'] for result in search_results])
+            convo_context = ""
+            for msg in conversation_history[-4:]:  # Last 4 messages for context
+                role = "Customer" if msg.role == self.config.bot_role else "Learner"
+                convo_context += f"{role}: {msg.content}\n"
+
+            # Direct fact-check prompt
+        #     fact_check_prompt = f"""
+        #     Check if this user response contains any factual errors about Cloudnine maternity packages:
+        
+        #     USER RESPONSE: "{user_message}"
+        
+        # OFFICIAL CLOUDNINE INFORMATION:
+        # {context}
+        
+        # If there are any factual errors, respond with:
+        # "INCORRECT: [specific correction with correct information]"
+        
+        # If response is accurate, respond with:
+        # "CORRECT"
+        
+        # If user is being unhelpful/dismissive/vague, respond with:
+        # "UNHELPFUL: [guidance on what proper response should include]"
+        # """
+            fact_check_prompt = f"""
+            {language_instructions}
+You are a training coach reviewing a learner's response in a customer service conversation.
+
+RECENT CONVERSATION:
+{convo_context}
+LEARNER'S LATEST RESPONSE: "{user_message}"
+
+OFFICIAL COMPANY INFORMATION:
+{context}
+
+Analyze the learner's response in context of:
+1. What the customer was asking/needing
+2. How the conversation has progressed  
+3. Whether the response is accurate and helpful
+
+If INCORRECT INFORMATION:
+"Based on the customer's question about [specific topic], you said '[wrong thing]', but our official information shows [correct facts]. You should respond: '[specific better response that addresses their actual question]'."
+
+If UNHELPFUL/INAPPROPRIATE FOR CONTEXT:
+"The customer was [asking/expressing concern about X], but your response '{user_message}' doesn't address their need. You should [specific actions] to properly help them with their [specific concern]."
+
+If ACCURATE AND HELPFUL:
+"CORRECT"
+
+Focus on how well the response serves the customer's actual need in this conversation moment.
+"""
+            response = await self.llm_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": fact_check_prompt}],
+            temperature=0.1,
+            max_tokens=200
+            )
+        
+            result = response.choices[0].message.content.strip()
+            print("resullttt",result,fact_check_prompt)
+            # if result.startswith("INCORRECT:") or result.startswith("UNHELPFUL:"):
+            #     return result.split(":", 1)[1].strip()  # Return just the correction
+        
+            # return None  # No coaching needed
+                
+            if result.strip() == "CORRECT":
+                return None
+            else:
+                return result
+        except Exception as e:
+            print(f"Fact-checking error: {e}")
+            return None
+    async def _get_language_instructions(self) -> str:
+        """Get language instructions from session"""
+        try:
+            if not hasattr(self, 'config') or not self.config.language_id:
+                return "Provide coaching feedback in clear, professional language."
+        
+            # Get language from database
+            language = await self.db.languages.find_one({"_id": str(self.config.language_id)})
+        
+            if language and language.get("prompt"):
+                return language["prompt"]
+            else:
+                return "Provide coaching feedback in clear, professional language."
+            
+        except Exception as e:
+            print(f"Error getting language instructions: {e}")
+            return "Provide coaching feedback in clear, professional language."    
+# 
+    async def _process_normal_stream(self, response, name: Optional[str]):
+        """Process normal streaming response (learn/assess modes)"""
+        async def normal_generator():
+            full_response = ""
+            
+            async for chunk in response:
+                if len(chunk.choices) > 0:
+                    chunk_text = chunk.choices[0].delta.content
+                    finish_reason = chunk.choices[0].finish_reason
+                    
+                    if chunk_text:
+                        full_response += chunk_text
+                        
+                        # Apply name replacement
+                        if name:
+                            updated_text = self.replace_name(full_response, name)
+                        else:
+                            updated_text = full_response
+                        
+                        yield {"chunk": updated_text, "finish": None, "usage": None}
+                    
+                    if finish_reason == "stop":
+                        if name:
+                            final_text = self.replace_name(full_response, name)
+                        else:
+                            final_text = full_response
+                        
+                        yield {"chunk": final_text, "finish": "stop", "usage": None}
+                
+                # Handle usage statistics
+                if hasattr(chunk, 'usage') and chunk.usage:
+                    yield {
+                        "chunk": full_response,
+                        "finish": "stop", 
+                        "usage": {
+                            "completion_tokens": chunk.usage.completion_tokens,
+                            "prompt_tokens": chunk.usage.prompt_tokens,
+                            "total_tokens": chunk.usage.total_tokens
+                        }
+                    }
+        
+        return normal_generator()
+    
+    async def _apply_fact_check_corrections(self, response: str, fact_checks: List) -> str:
+        """Apply corrections based on fact-check results"""
+        
+        incorrect_checks = [
+            fc for fc in fact_checks 
+            if fc.result in ["INCORRECT", "PARTIALLY_CORRECT"]
+        ]
+        
+        if not incorrect_checks:
+            return response
+        
+        # Build correction prompt
+        corrections = []
+        for fc in incorrect_checks:
+            if hasattr(fc, 'suggested_correction') and fc.suggested_correction:
+                corrections.append(f"Issue: {fc.explanation}\nCorrection: {fc.suggested_correction}")
+        
+        if not corrections:
+            return response
+        
+        correction_prompt = f"""
+        The following response contains factual errors. Please provide a corrected version:
+        
+        ORIGINAL RESPONSE:
+        {response}
+        
+        CORRECTIONS NEEDED:
+        {chr(10).join(corrections)}
+        
+        Provide a corrected response that:
+        1. Maintains the same conversational tone
+        2. Incorporates the factual corrections
+        3. Flows naturally without obvious correction markers
+        """
+        
+        try:
+            correction_response = await self.llm_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You provide factually corrected responses while maintaining natural conversation flow."},
+                    {"role": "user", "content": correction_prompt}
+                ],
+                temperature=0.2,
+                max_tokens=1000
+            )
+            
+            return correction_response.choices[0].message.content
+            
+        except Exception as e:
+            print(f"Error applying corrections: {e}")
+            return response  # Fallback to original
+    
+    def _calculate_accuracy(self, fact_checks: List) -> float:
+        """Calculate accuracy percentage from fact checks"""
+        if not fact_checks:
+            return 100.0
+        
+        correct_count = len([fc for fc in fact_checks if fc.result == "CORRECT"])
+        return round((correct_count / len(fact_checks)) * 100, 2) 
+    
+    async def _generate_coaching_if_needed(self, user_message: str, fact_checks: List) -> Optional[str]:
+        """Generate coaching feedback if user's response needs correction"""
+    
+        # Check if user provided unhelpful or incorrect responses
+        incorrect_checks = [
+        fc for fc in fact_checks 
+        if fc.result in ["INCORRECT", "PARTIALLY_CORRECT", "UNCLEAR"]
+    ]
+    
+        # Also check for unhelpful responses (short, dismissive, etc.)
+        is_unhelpful = await self._is_response_unhelpful(user_message)
+    
+        if not incorrect_checks and not is_unhelpful:
+            return None  # No coaching needed
+    
+        # Build coaching feedback
+        coaching_parts = []
+    
+        if incorrect_checks:
+            # Address factual errors
+            coaching_parts.append("There are some factual inaccuracies in your response.")
+        
+            for fc in incorrect_checks[:2]:  # Limit to 2 main corrections
+                if hasattr(fc, 'suggested_correction') and fc.suggested_correction:
+                    coaching_parts.append(f"Regarding {fc.claim.get('claim_text', 'this point')}: {fc.suggested_correction}")
+    
+        if is_unhelpful:
+            # Address unhelpful response patterns
+            coaching_parts.append("The response could be more helpful and constructive.")
+            coaching_parts.append("Consider providing specific guidance, asking clarifying questions, and showing empathy for the customer's situation.")
+    
+        # Format final coaching message
+        coaching_message = f"Dear learner, {' '.join(coaching_parts)} Please try to provide more comprehensive and accurate guidance."
+    
+        return coaching_message
+
+    async def _is_response_unhelpful(self, user_message: str) -> bool:
+        """Check if user response is unhelpful based on patterns"""
+    
+        message_lower = user_message.lower().strip()
+    
+        # Check for dismissive/unhelpful patterns
+        unhelpful_patterns = [
+        len(message_lower) < 10,  # Too short
+        message_lower in ["no", "i don't know", "not sure", "maybe", "idk"],
+        "figure it out" in message_lower,
+        "not my problem" in message_lower,
+        "don't care" in message_lower,
+        message_lower.startswith("just ") and len(message_lower) < 20,
+    ]
+    
+        return any(unhelpful_patterns)    
+   
+   
+    
+    async def _process_with_knowledge_base(self, response, user_message: str, conversation_history: List[Message], name: Optional[str]):
+
+        """Process response with knowledge base enhancement for learn mode"""
+    
+        # For learn mode, we enhance the AI expert's responses with knowledge base info
+        # This is simpler than fact-checking - just add relevant context
+    
+        async def knowledge_enhanced_generator():
+            full_response = ""
+            usage_info = None
+
+            async for chunk in response:
+                if len(chunk.choices) > 0 and chunk.choices[0].delta.content:
+                    full_response += chunk.choices[0].delta.content
+            
+                if hasattr(chunk, 'usage') and chunk.usage:
+                    usage_info = chunk.usage
+        
+        # Apply name replacement
+            if name:
+                final_response = self.replace_name(full_response, name)
+            else:
+                final_response = full_response
+        
+            # Stream the response (could enhance with knowledge base context here)
+            words = final_response.split()
+            current_text = ""
+        
+            for i, word in enumerate(words):
+                current_text += word + " "
+            
+                if i % 3 == 0 or i == len(words) - 1:
+                    is_final = i == len(words) - 1
+                
+                    yield {
+                    "chunk": current_text.strip(),
+                    "finish": "stop" if is_final else None,
+                    "usage": usage_info if is_final else None
+                }
+                
+                    if is_final:
+                        break
+    
+        return knowledge_enhanced_generator()
     async def format_conversation(self, conversation_history: List[Message]) -> List[Dict[str, str]]:
         """Format conversation history for the LLM"""
         contents = []
@@ -144,7 +542,7 @@ class DynamicChatHandler:
                     persona_context = self.format_persona_context(scenario_prompt=self.config.system_prompt,persona=persona_obj,language=language_obj)
                     # Add persona information to system prompt
                     contents[0]["content"] = persona_context
-                    print("actual scenariossss",persona_context)
+                    # print("actual scenariossss",persona_context)
             except Exception as e:
                 print(f"Error loading persona: {e}")
         
@@ -195,7 +593,103 @@ class DynamicChatHandler:
         if "[Your Name]" in original_text:
             return original_text.replace("[Your Name]", name)
         return original_text
+# learn 
+    async def _generate_enhanced_expert_response(self, user_message: str, conversation_history: List[Message], enhanced_context: str) -> Any:
+        """Generate AI expert response enhanced with specific knowledge base information"""
+    
+        try:
+            # Format conversation for LLM with enhanced knowledge
+            contents = await self.format_conversation(conversation_history)
+        
+            # Add the enhanced knowledge to the system prompt
+            if contents and contents[0]["role"] == "system":
+                # Inject knowledge into existing system prompt
+                original_system = contents[0]["content"]
+                enhanced_system = f"{original_system}\n\n{enhanced_context}\n\nUSE THIS SPECIFIC INFORMATION when teaching and answering questions. Provide concrete examples and accurate details from the company information above."
+                contents[0]["content"] = enhanced_system
+        
+            # Add the current user message
+            contents.append({"role": "user", "content": user_message})
+        
+            # Generate enhanced response
+            enhanced_response = await self.llm_client.chat.completions.create(
+            model="gpt-4o",
+            messages=contents,
+            temperature=0.7,
+            max_tokens=1000,
+            stream=True,
+            stream_options={"include_usage": True}
+            )
+        
+            return enhanced_response
+        
+        except Exception as e:
+            print(f"Error generating enhanced response: {e}")
+            return None
 
+    async def _stream_enhanced_response(self, enhanced_response, name: Optional[str]):
+        """Stream the enhanced expert response"""
+    
+        if not enhanced_response:
+            # Fallback to basic response if enhancement failed
+            return self._create_fallback_response(name)
+    
+        async def enhanced_generator():
+            full_response = ""
+        
+            async for chunk in enhanced_response:
+                if len(chunk.choices) > 0:
+                    chunk_text = chunk.choices[0].delta.content
+                    finish_reason = chunk.choices[0].finish_reason
+                
+                    if chunk_text:
+                        full_response += chunk_text
+                    
+                        # Apply name replacement
+                        if name:
+                            updated_text = self.replace_name(full_response, name)
+                        else:
+                            updated_text = full_response
+                    
+                        yield {"chunk": updated_text, "finish": None, "usage": None}
+                
+                    if finish_reason == "stop":
+                        if name:
+                            final_text = self.replace_name(full_response, name)
+                        else:
+                            final_text = full_response
+                    
+                        yield {"chunk": final_text, "finish": "stop", "usage": None}
+            
+                # Handle usage statistics
+                if hasattr(chunk, 'usage') and chunk.usage:
+                    yield {
+                    "chunk": full_response,
+                    "finish": "stop", 
+                    "usage": {
+                        "completion_tokens": chunk.usage.completion_tokens,
+                        "prompt_tokens": chunk.usage.prompt_tokens,
+                        "total_tokens": chunk.usage.total_tokens
+                    },
+                    "knowledge_enhancement": {
+                        "enhanced_with_documents": True,
+                        "knowledge_base_used": self.knowledge_base_id
+                    }
+                    }
+    
+        return enhanced_generator()
+
+    async def _create_fallback_response(self, name: Optional[str]):
+        """Create a simple fallback response if enhancement fails"""
+        async def fallback_generator():
+            fallback_text = "I'm here to help you learn. Could you please rephrase your question?"
+            if name:
+                fallback_text = self.replace_name(fallback_text, name)
+        
+            yield {"chunk": fallback_text, "finish": "stop", "usage": None}
+    
+        return fallback_generator() 
+# 
 
 class DynamicChatFactory:
     """
@@ -353,10 +847,22 @@ async def get_chat_session(db: Any, id: str) -> Optional[ChatSession]:
     return None
 
 
+# async def update_chat_session(db: Any, session: ChatSession):
+#     """Update a chat session in the database"""
+#     session.last_updated = datetime.now()
+#     # await db.sessions.update_one(
+#     #     {"_id": str(session.id)},
+#     #     {"$set": session.dict()}
+#     # )
+#     await db.sessions.update_one(
+#     {"_id": str(session.id)},
+#     {"$set": session.model_dump() if hasattr(session, 'model_dump') else session.dict()}
+# )
 async def update_chat_session(db: Any, session: ChatSession):
     """Update a chat session in the database"""
     session.last_updated = datetime.now()
+    
     await db.sessions.update_one(
         {"_id": str(session.id)},
-        {"$set": session.dict()}
+        {"$set": session.to_mongo_dict()}
     )

@@ -41,7 +41,7 @@ class ScenarioBase(BaseModel):
     learn_mode: LearnModeCreate 
     try_mode: TryModeCreate 
     assess_mode: AssessModeCreate 
-
+    template_id: Optional[str]
 class ScenarioCreate(ScenarioBase):
     # Company will be auto-filled from creator's company
     # Visibility defaults to CREATOR_ONLY
@@ -91,7 +91,7 @@ class ScenarioResponse(BaseModel):
     created_by: UUID
     created_at: datetime
     updated_at: datetime
-    
+    template_id: Optional[str]
     # Company hierarchy fields
     company_id: UUID
     visibility: ContentVisibility

@@ -57,14 +57,28 @@ class MongoDB:
         self.users = self.db.users
         self.file_uploads = self.db.file_uploads
         self.companies = self.db.companies
-        
+        self.templates=self.db.templates
+        self.enhanced_scenarios = self.db.enhanced_scenarios
+        self.knowledge_bases = self.db.knowledge_bases
+        self.document_metadata = self.db.document_metadata
+        self.processing_jobs = self.db.processing_jobs
+        self.conversation_analytics = self.db.conversation_analytics
+        self.fact_check_results = self.db.fact_check_results
+        self.document_chunks = self.db.document_chunks
+        self.audit_logs = self.db.audit_logs
+        self.archived_sessions = self.db.archived_sessions        
+        self.supporting_documents = self.db.supporting_documents        
         # Existing course assignment collection
         self.user_course_assignments = self.db.user_course_assignments
         
         # New collections for module and scenario assignments
         self.user_module_assignments = self.db.user_module_assignments
         self.user_scenario_assignments = self.db.user_scenario_assignments
-        
+    def __getitem__(self, collection_name: str):
+        """Enable dict-style access for enhanced system compatibility"""
+        if hasattr(self, collection_name):
+            return getattr(self, collection_name)
+        return self.db[collection_name]        
     # Existing functions
     async def create_session(self, session: ChatSession) -> str:
         await self.sessions.insert_one(session.dict())

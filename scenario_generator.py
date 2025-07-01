@@ -25,471 +25,6 @@ azure_openai_client = AsyncAzureOpenAI(
             api_version=api_version,
             azure_endpoint=endpoint
         )
-class TemplateRequest(BaseModel):
-    scenario_description: str = Field(..., 
-        description="One-line description of the scenario (e.g., 'HR POSH evaluator' or 'customer opening bank account')",
-        example="Hotel concierge helping an upset guest with a room problem")
-    language_mix: Optional[str] = Field(None,
-        description="Optional language mixing requirement (e.g., 'Hindi-English' or 'French-English')",
-        example="Spanish-English")
-
-class TemplateResponse(BaseModel):
-    template: Dict[str, Any]
-    template_markdown: str
-    scenario_type: str
-
-class ScenarioRequest(BaseModel):
-    template: Dict[str, Any] = Field(..., 
-        description="The template with placeholder values filled in")
-
-class ScenarioResponse(BaseModel):
-    scenario_prompt: str
-    scenario_name: str
-    bot_role: str
-    user_role: str
-
-class TemplateFormField(BaseModel):
-    name: str
-    description: str
-    type: str = "text"  # text, textarea, number, select
-    options: Optional[List[str]] = None  # For select fields
-    required: bool = True
-    default_value: Optional[str] = None
-    placeholder: Optional[str] = None
-    
-class TemplateFormResponse(BaseModel):
-    fields: List[TemplateFormField]
-    template_structure: str
-
-# Template for creating a template from a one-liner
-TEMPLATE_CREATION_PROMPT = """
-Create a template structure for a role-play scenario based on this description: "{scenario_description}".
-{language_instruction}
-
-The template should follow this JSON structure (with placeholder values):
-
-```json
-{{
-  "SCENARIO_NAME": "Human-readable name for this scenario",
-  "CUSTOMER_ROLE": "Description of who the bot is playing",
-  "SERVICE_PROVIDER_ROLE": "Description of who the bot is talking to",
-  "MAX_RESPONSE_LENGTH": "50",
-  "PERSONA_PLACEHOLDER": "**DO NOT REPLACE THIS TAG - IT WILL BE FILLED FROM PERSONA DOCUMENT**",
-  "LANGUAGE_PLACEHOLDER": "**DO NOT REPLACE THIS TAG - IT WILL BE FILLED FROM LANGUAGE DOCUMENT**",
-  "CONVERSATION_STARTER": "How to begin the conversation",
-  "KEY_DETAILS_TO_INTRODUCE": "What details to gradually introduce",
-  "INITIAL_INQUIRY": "First question or request",
-  "DEMOGRAPHIC_DESCRIPTION": "Details about the demographic context",
-  "TOPICS": [
-    "TOPIC_1", 
-    "TOPIC_2",
-    "TOPIC_3",
-    "TOPIC_4",
-    "TOPIC_5", 
-    "TOPIC_6",
-    "TOPIC_7",
-    "TOPIC_8"
-  ],
-  "PRODUCT_OR_SERVICE_NAME": "Name of product or service to fact-check",
-  "FACTS": [
-    "FACT_1",
-    "FACT_2",
-    "FACT_3",
-    "FACT_4",
-    "FACT_5",
-    "FACT_6",
-    "FACT_7",
-    "FACT_8"
-  ],
-  "EXAMPLE_CUSTOMER_RESPONSE": "Example of customer response when fact is wrong",
-  "EXAMPLE_CORRECTION": "Example of correction feedback",
-  "EXAMPLE_UNCOOPERATIVE_RESPONSE": "Example of response to uncooperative behavior",
-  "EXAMPLE_UNCOOPERATIVE_CORRECTION": "Example of correction for uncooperative behavior",
-  "EXAMPLE_POLITE_REPEAT": "Example of politely repeating a request",
-  "EXAMPLE_DISAPPOINTMENT_CLOSING": "Example of expressing disappointment",
-  "PRODUCT_TYPE": "Type of product or recommendation",
-  "NEEDS_TYPE": "Type of needs or requirements",
-  "KEY_FEATURES": "Important features to focus on",
-  "IMPORTANT_POLICIES": "Policies to understand",
-  "POSITIVE_CLOSING_TEXT": "Text for positive closing",
-  "NEGATIVE_CLOSING_NEEDS_TEXT": "Text for negative closing due to needs not met",
-  "NEGATIVE_CLOSING_SERVICE_TEXT": "Text for negative closing due to poor service",
-  "NEUTRAL_CLOSING_TEXT": "Text for neutral closing"
-}}
-```
-
-Also generate the template in markdown format using the following structure:
-
-```markdown
-# [SCENARIO_NAME] Bot - Role Play Scenario
-
-## Core Character Rules
-
-- You are an AI playing the role of a [CUSTOMER_ROLE]
-- NEVER play the [SERVICE_PROVIDER_ROLE]'s role - only respond as the customer
-- Maintain a natural, conversational tone throughout
-- NEVER suggest the [SERVICE_PROVIDER_ROLE] "reach out to you" - you're the one seeking service
-- Keep your responses under [MAX_RESPONSE_LENGTH] words
-
-## Character Details
-
-[PERSONA_PLACEHOLDER]
-[CHARACTER_GOAL]
-## Language Instructions
-
-[LANGUAGE_PLACEHOLDER]
-
-## Conversation Flow
-
-Begin by [CONVERSATION_STARTER]. As the conversation progresses, gradually introduce more details about [KEY_DETAILS_TO_INTRODUCE]. Ask about [INITIAL_INQUIRY].
-
-## Demographic-Specific Context
-
-[DEMOGRAPHIC_DESCRIPTION]
-
-## Areas to Explore in the Conversation
-
-Throughout the conversation, try to naturally cover any of these topics (not as a checklist, but as part of an organic conversation):
-
-- [TOPIC_1]
-- [TOPIC_2]
-- [TOPIC_3]
-- [TOPIC_4]
-- [TOPIC_5]
-- [TOPIC_6]
-- [TOPIC_7]
-- [TOPIC_8]
-
-## Fact-Checking the [SERVICE_PROVIDER_ROLE]'s Responses
-
-Compare the [SERVICE_PROVIDER_ROLE]'s responses with the following facts about the [PRODUCT_OR_SERVICE_NAME]:
-
-### [PRODUCT_OR_SERVICE_NAME] Facts:
-- [FACT_1]
-- [FACT_2]
-- [FACT_3]
-- [FACT_4]
-- [FACT_5]
-- [FACT_6]
-- [FACT_7]
-- [FACT_8]
-
-## When the [SERVICE_PROVIDER_ROLE] provides information that contradicts these facts:
-
-1. Continue your response as a normal customer who is unaware of these specific details
-2. End your response with a second-person, Trainer-style correction within [CORRECT] tags
-3. Format: [CORRECT] Direct second-person feedback to the [SERVICE_PROVIDER_ROLE] that points out the discrepancy [CORRECT]
-4. Example: "[EXAMPLE_CUSTOMER_RESPONSE] [CORRECT] Hello learner, [EXAMPLE_CORRECTION] [CORRECT]"
-
-### If the [SERVICE_PROVIDER_ROLE] is uncooperative, indifferent, dismissive, unhelpful, apathetic, unresponsive, condescending, evasive, uncaring, lacks knowledge or unsympathetic manner:
-
-1. Continue your response as a normal customer who is unaware of these specific details
-2. End your response with a second-person, Trainer-style correction within [CORRECT] tags
-3. Format: [CORRECT] Direct second-person feedback to the [SERVICE_PROVIDER_ROLE] that points out the issue [CORRECT]
-4. Example: "[EXAMPLE_UNCOOPERATIVE_RESPONSE] [CORRECT] Hello learner, [EXAMPLE_UNCOOPERATIVE_CORRECTION] [CORRECT]"
-
-# Handling Uncooperative [SERVICE_PROVIDER_ROLE]
-
-- If the [SERVICE_PROVIDER_ROLE] is unhelpful, vague, or unwilling to provide information:
-  - First attempt: Politely repeat your request, emphasizing its importance
-  - Example: "[EXAMPLE_POLITE_REPEAT]"
-  - If still unhelpful:
-    - Express disappointment professionally
-    - Move to the negative closing for uncooperative staff
-    - Example: "[EXAMPLE_DISAPPOINTMENT_CLOSING] [FINISH]"
-
-## Important Instructions
-
-- When the [SERVICE_PROVIDER_ROLE] recommends a specific [PRODUCT_TYPE]:
-  - Ask follow-up questions to determine if it suits your [NEEDS_TYPE]
-  - Get clarity on all features, especially focusing on [KEY_FEATURES]
-  - Ensure you understand [IMPORTANT_POLICIES]
-
-## Conversation Closing (Important)
-
-- Positive closing (if you're satisfied with information and service): "[POSITIVE_CLOSING_TEXT] [FINISH]"
-- Negative closing (if the [PRODUCT_OR_SERVICE] doesn't meet your needs): "[NEGATIVE_CLOSING_NEEDS_TEXT] [FINISH]"
-- Negative closing (if [SERVICE_PROVIDER_ROLE] was unhelpful/uncooperative): "[NEGATIVE_CLOSING_SERVICE_TEXT] [FINISH]"
-- Neutral closing (if you're somewhat satisfied but have reservations): "[NEUTRAL_CLOSING_TEXT] [FINISH]"
-```
-
-Fill the template with appropriate placeholder values specific to this scenario type. Make any necessary adaptations for the specific scenario described.
-"""
-
-# Template for generating a scenario from a filled template
-SCENARIO_GENERATION_PROMPT = """
-Generate a detailed role-play scenario by filling in this template with specific content:
-
-{template_markdown}
-
-IMPORTANT INSTRUCTIONS:
-1. DO NOT modify or replace the [PERSONA_PLACEHOLDER] and [LANGUAGE_PLACEHOLDER] tags. 
-   These are special markers that will be replaced later with specific persona and language data.
-
-2. For all other placeholder values (text in [SQUARE_BRACKETS]), replace with detailed, specific content 
-   that creates a comprehensive role-play prompt.
-
-3. Ensure that your scenario is general enough to work with different persona details that will be 
-   inserted later in place of [PERSONA_PLACEHOLDER].
-"""
-
-@router.post("/create-template", response_model=TemplateResponse)
-async def create_template(request: TemplateRequest):
-    try:
-        # Prepare the language instruction based on request
-        language_instruction = ""
-        if request.language_mix:
-            language_instruction = f"Include instructions for mixing {request.language_mix} in the conversation with appropriate examples."
-        
-        # Format the prompt with user's request
-        formatted_prompt = TEMPLATE_CREATION_PROMPT.format(
-            scenario_description=request.scenario_description,
-            language_instruction=language_instruction
-        )
-        
-        # Call OpenAI to generate the template
-        response = azure_openai_client.chat.completions.create(
-            model="gpt-4o",  # Use appropriate model
-            messages=[
-                {"role": "system", "content": formatted_prompt},
-                {"role": "user", "content": "Generate a template for this scenario type."}
-            ],
-            temperature=0.7,
-            max_tokens=12000
-        )
-        
-        # Extract the generated template
-        template_content = response.choices[0].message.content
-        token_usage = response.usage
-        print("usageee",token_usage)
-        if token_usage:  
-            prompt_tokens = token_usage.prompt_tokens
-            completion_tokens = token_usage.completion_tokens
-            total_tokens = token_usage.total_tokens
-  
-            print(f"Prompt Tokens: {prompt_tokens}")  
-            print(f"Completion Tokens: {completion_tokens}")  
-            print(f"Total Tokens: {total_tokens}")  
-        else:  
-            print("Token usage information is not available.")           
-        # Extract JSON and Markdown parts
-        import json
-        import re
-        json_match = re.search(r'```json\s*(.*?)\s*```', template_content, re.DOTALL)
-        template_json = {}
-        if json_match:
-            try:
-                template_json = json.loads(json_match.group(1))
-        
-        # Ensure persona and language placeholders exist
-                if "PERSONA_PLACEHOLDER" not in template_json:
-                    template_json["PERSONA_PLACEHOLDER"] = "[PERSONA_DETAILS]"
-                if "LANGUAGE_PLACEHOLDER" not in template_json:
-                    template_json["LANGUAGE_PLACEHOLDER"] = "[LANGUAGE_INSTRUCTIONS]"
-            except json.JSONDecodeError:
-                raise HTTPException(status_code=500, detail="Failed to parse template JSON")
-
-# Extract Markdown template
-        markdown_match = re.search(r'```markdown\s*(.*?)\s*```', template_content, re.DOTALL)
-        template_markdown = ""
-        if markdown_match:
-            template_markdown = markdown_match.group(1)
-    
-    # Ensure markdown contains the placeholders
-            if "[PERSONA_PLACEHOLDER]" not in template_markdown:
-                template_markdown = template_markdown.replace("## Character Background", 
-                                                    "## Character Background\n\n[PERSONA_PLACEHOLDER]")
-    
-            if "[LANGUAGE_PLACEHOLDER]" not in template_markdown:
-                template_markdown = template_markdown.replace("## Language Instructions", 
-                                                     "## Language Instructions\n\n[LANGUAGE_PLACEHOLDER]")
-        # Extract JSON template
-        # json_match = re.search(r'```json\s*(.*?)\s*```', template_content, re.DOTALL)
-        # template_json = {}
-        # if json_match:
-        #     try:
-        #         template_json = json.loads(json_match.group(1))
-        #     except json.JSONDecodeError:
-        #         raise HTTPException(status_code=500, detail="Failed to parse template JSON")
-        
-        # # Extract Markdown template
-        # markdown_match = re.search(r'```markdown\s*(.*?)\s*```', template_content, re.DOTALL)
-        # template_markdown = ""
-        # if markdown_match:
-        #     template_markdown = markdown_match.group(1)
-        
-        # Extract scenario type from the template
-        scenario_type = template_json.get("SCENARIO_NAME", request.scenario_description)
-        
-        return TemplateResponse(
-            template=template_json,
-            template_markdown=template_markdown,
-            scenario_type=scenario_type
-        )
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creating template: {str(e)}")
-
-@router.post("/generate-scenario", response_model=ScenarioResponse)
-async def generate_scenario(request: ScenarioRequest):
-    try:
-        # Convert the template to markdown for the prompt
-        template_markdown = convert_template_to_markdown(request.template)
-        
-        # Format the prompt with user's template
-        formatted_prompt = SCENARIO_GENERATION_PROMPT.format(
-            template_markdown=template_markdown
-        )
-        print(formatted_prompt)
-        # Call OpenAI to generate the scenario
-        response = azure_openai_client.chat.completions.create(
-            model="gpt-4o",  # Use appropriate model
-            messages=[
-                {"role": "system", "content": formatted_prompt},
-                {"role": "user", "content": "Generate a detailed role-play scenario from this template."}
-            ],
-            temperature=0.7,
-            max_tokens=12000
-        )
-        
-        # Extract the generated scenario
-        scenario_content = response.choices[0].message.content
-        token_usage = response.usage
-        print("usageee",token_usage)
-        print("usageeescenario",scenario_content)
-        if token_usage:  
-            prompt_tokens = token_usage.prompt_tokens
-            completion_tokens = token_usage.completion_tokens
-            total_tokens = token_usage.total_tokens
-  
-            print(f"Prompt Tokens: {prompt_tokens}")  
-            print(f"Completion Tokens: {completion_tokens}")  
-            print(f"Total Tokens: {total_tokens}")  
-        else:  
-            print("Token usage information is not available.")  
-        # Parse out the scenario name and roles
-        lines = scenario_content.split('\n')
-        scenario_name = lines[0].replace('# ', '').replace(' Bot - Role Play Scenario', '')
-        
-        # Extract bot and user roles
-        bot_role = ""
-        user_role = ""
-        for line in lines[:10]:  # Look in the first few lines
-            if "playing the role of a" in line:
-                bot_role = line.split("playing the role of a")[1].strip()
-                if bot_role.endswith('\'s role - only respond as the customer'):
-                    bot_role = bot_role.split('\'s role')[0].strip()
-            if "NEVER play the" in line:
-                user_role = line.split("NEVER play the")[1].split('\'s')[0].strip()
-               
-        return ScenarioResponse(
-            scenario_prompt=scenario_content,
-            scenario_name=scenario_name,
-            bot_role=bot_role,
-            user_role=user_role
-        )
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating scenario: {str(e)}")
-
-@router.get("/template-form", response_model=TemplateFormResponse)
-async def get_template_form():
-    """Returns a form schema that can be used to create a template manually"""
-    
-    # Define form fields for template creation
-    fields = [
-        TemplateFormField(
-            name="SCENARIO_NAME",
-            description="Human-readable name for this scenario",
-            placeholder="e.g., Bank Account Customer"
-        ),
-        TemplateFormField(
-            name="CUSTOMER_ROLE",
-            description="Description of who the bot is playing",
-            placeholder="e.g., customer interested in opening a bank account"
-        ),
-        TemplateFormField(
-            name="SERVICE_PROVIDER_ROLE",
-            description="Description of who the bot is talking to",
-            placeholder="e.g., bank staff"
-        ),
-        TemplateFormField(
-            name="MAX_RESPONSE_LENGTH",
-            description="Maximum word count for bot responses",
-            type="number",
-            default_value="50"
-        ),
-        TemplateFormField(
-            name="CHARACTER_NAME_INSTRUCTION",
-            description="Instructions for how the bot should handle its name",
-            default_value="Always return [Your Name] when asked for your name"
-        ),
-        TemplateFormField(
-            name="PERSONAL_OR_BUSINESS",
-            description="Is this a personal or business interaction?",
-            type="select",
-            options=["personal", "business"],
-            default_value="business"
-        ),
-        TemplateFormField(
-            name="CHARACTER_GOAL",
-            description="Primary goal or objective of the character",
-            placeholder="e.g., Starting and growing an e-commerce business"
-        ),
-        TemplateFormField(
-            name="LOCATION",
-            description="Where the scenario takes place",
-            placeholder="e.g., Bangalore"
-        ),
-        TemplateFormField(
-            name="CHARACTER_PERSONA",
-            description="Brief persona description",
-            placeholder="e.g., Aspiring Entrepreneur (Owner of a new business)"
-        ),
-        TemplateFormField(
-            name="CHARACTER_SITUATION",
-            description="Current circumstances or situation",
-            placeholder="e.g., Small scale business just getting started"
-        ),
-        # Language fields
-        TemplateFormField(
-            name="PRIMARY_LANGUAGE",
-            description="Primary language for responses",
-            default_value="English"
-        ),
-        TemplateFormField(
-            name="SECONDARY_LANGUAGE",
-            description="Secondary language to mix in (if applicable)",
-            required=False
-        ),
-        # Truncated for brevity - the actual form would include all fields
-        # from the template structure
-    ]
-    
-    # Return the template structure for reference
-    template_structure = """# [SCENARIO_NAME] Bot - Role Play Scenario
-
-## Core Character Rules
-
-- You are an AI playing the role of a [CUSTOMER_ROLE]
-- NEVER play the [SERVICE_PROVIDER_ROLE]'s role - only respond as the customer
-- Maintain a natural, conversational tone throughout
-- NEVER suggest the [SERVICE_PROVIDER_ROLE] "reach out to you" - you're the one seeking service
-- Keep your responses under [MAX_RESPONSE_LENGTH] words
-
-## Character Background
-
-- Your name is [Your Name] ([CHARACTER_NAME_INSTRUCTION])
-- [PERSONAL_OR_BUSINESS]_Goal: [CHARACTER_GOAL] in [LOCATION]
-- Persona: [CHARACTER_PERSONA]
-- Current situation: [CHARACTER_SITUATION]
-
-[... rest of template structure ...]"""
-    
-    return TemplateFormResponse(
-        fields=fields,
-        template_structure=template_structure
-    )
 
 import io
 import docx
@@ -595,6 +130,7 @@ class ScenarioResponse(BaseModel):
     scenario_title: str
     extracted_info: Optional[Dict[str, Any]] = None
     generated_persona: Optional[Dict[str, Any]] = None
+    knowledge_base_id: Optional[str] = None  # 🔑 ADD THIS
 
 class ScenarioListResponse(BaseModel):
     scenarios: List[Dict[str, Any]]
@@ -1031,7 +567,126 @@ Return in the specified JSON format with rich, detailed content in each section.
         except Exception as e:
             print(f"Error in extract_scenario_info: {str(e)}")
             return self._get_mock_template_data(scenario_document)
+    async def extract_evaluation_metrics_from_template(self, scenario_text: str, template_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract evaluation metrics and criteria from scenario document"""
+    
+        extraction_prompt = f"""
+        Analyze this training scenario document and extract evaluation metrics that should be used to assess learner performance.
 
+        SCENARIO DOCUMENT:
+        {scenario_text}
+
+        TEMPLATE DATA:
+        {json.dumps(template_data, indent=2)}
+
+        Extract evaluation criteria in this JSON format:
+        {{
+        "domain_specific_metrics": {{
+            "metric_name_1": {{
+                "weight": 30,
+                "description": "What this metric measures",
+                "evaluation_criteria": "How to evaluate this metric",
+                "target_score": "Expected performance level"
+            }},
+            "metric_name_2": {{
+                "weight": 25,
+                "description": "Description",
+                "evaluation_criteria": "How to evaluate",
+                "target_score": "Expected level"
+            }}
+        }},
+        "standard_metrics": {{
+            "professionalism": {{"weight": 10, "description": "Professional communication style"}},
+            "empathy": {{"weight": 10, "description": "Understanding customer needs"}},
+            "clarity": {{"weight": 10, "description": "Clear and understandable responses"}},
+            "problem_solving": {{"weight": 5, "description": "Effective problem resolution"}}
+        }},
+        "fact_checking_criteria": [
+            "All pricing information must be verified against official documents",
+            "Product/service details must match official descriptions",
+            "Policy information must be accurate and current"
+        ],
+        "success_thresholds": {{
+            "excellent": 90,
+            "good": 75,
+            "satisfactory": 60,
+            "needs_improvement": 45
+        }}
+        }}
+
+        Focus on metrics that are specific to this domain and can be measured from conversation analysis.
+        Ensure domain_specific_metrics weights add up to 60-70% and standard_metrics add up to 30-40%.
+        """
+    
+        try:
+            if self.client is None:
+                return self._get_default_evaluation_metrics(template_data)
+        
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                {"role": "system", "content": "You extract evaluation metrics from training scenarios."},
+                {"role": "user", "content": extraction_prompt}
+                ],
+                temperature=0.2,
+                max_tokens=1500
+            )
+        
+            result_text = response.choices[0].message.content
+        
+            # Extract JSON
+            json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group(1))
+            else:
+                return json.loads(result_text)
+            
+        except Exception as e:
+            print(f"Error extracting evaluation metrics: {e}")
+            return self._get_default_evaluation_metrics(template_data)
+
+    def _get_default_evaluation_metrics(self, template_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Fallback default metrics"""
+        domain = template_data.get("general_info", {}).get("domain", "business")
+    
+        return {
+            "domain_specific_metrics": {
+                f"{domain.lower()}_knowledge": {
+                "weight": 35,
+                "description": f"Accuracy of {domain} information provided",
+                "evaluation_criteria": "Check responses against official documentation",
+                "target_score": "90% accuracy"
+            },
+            "customer_needs_understanding": {
+                "weight": 25,
+                "description": "Understanding and addressing customer requirements",
+                "evaluation_criteria": "Effective questioning and response relevance",
+                "target_score": "80% effectiveness"
+            },
+            "solution_appropriateness": {
+                "weight": 20,
+                "description": "Recommending appropriate solutions",
+                "evaluation_criteria": "Solutions match customer needs and company offerings",
+                "target_score": "85% appropriateness"
+            }
+        },
+        "standard_metrics": {
+            "professionalism": {"weight": 8, "description": "Professional communication style"},
+            "empathy": {"weight": 7, "description": "Understanding and empathy towards customer"},
+            "clarity": {"weight": 5, "description": "Clear and understandable communication"}
+        },
+        "fact_checking_criteria": [
+            "All factual information must be verified against official documents",
+            "Pricing and product details must be accurate",
+            "Policy and procedure information must be current"
+        ],
+        "success_thresholds": {
+            "excellent": 90,
+            "good": 75,
+            "satisfactory": 60,
+            "needs_improvement": 45
+        }
+        }
     def _get_mock_template_data(self, scenario_document):
         """Generate mock template data for testing when no client is available"""
         
@@ -1624,14 +1279,20 @@ async def generate_final_prompts(template_data: Dict[str, Any] = Body(...)):
         # learn_mode_prompt = generator.insert_language_instructions(learn_mode_prompt, language_data)
         # assess_mode_prompt = generator.insert_language_instructions(assess_mode_prompt, language_data)
         # try_mode_prompt = generator.insert_language_instructions(try_mode_prompt, language_data)
-        
+        template_id = template_data.get("template_id")  # Frontend should pass this
+        knowledge_base_id = None
+        if template_id:
+            template_record = await db.templates.find_one({"id": template_id})
+            if template_record:
+                knowledge_base_id = template_record.get("knowledge_base_id")                
         return ScenarioResponse(
             learn_mode=learn_mode_prompt,
             try_mode=assess_mode_prompt,
             assess_mode=try_mode_prompt,
             scenario_title=template_data.get("context_overview", {}).get("scenario_title", "Training Scenario"),
             extracted_info=template_data,
-            generated_persona=personas
+            generated_persona=personas,
+            knowledge_base_id=knowledge_base_id
         )
     except Exception as e:
         print(f"Error in generate_final_prompts: {str(e)}")
@@ -2028,4 +1689,326 @@ async def get_template_schema():
         }
     except Exception as e:
         print(f"Error in get_template_schema: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+# ADD these imports at the top of your existing file
+from core.document_processor import DocumentProcessor
+from core.azure_search_manager import AzureVectorSearchManager
+from core.user import get_current_user
+from models.user_models import UserDB
+from database import get_db
+# ADD this new endpoint (main one you need)
+# # processsssss
+# @router.post("/process-template-with-docs")
+# async def process_template_with_docs(
+#     template_file: UploadFile = File(...),
+#     supporting_docs: List[UploadFile] = File(...),
+#     template_name: str = Form(...),
+#     current_user: UserDB = Depends(get_current_user),
+#     db: Any = Depends(get_db)
+# ):
+#     """Process template + supporting documents, return data for scenario creation"""
+#     try:
+#         # 1. Your existing template processing
+#         content = await template_file.read()
+        
+#         if template_file.filename.lower().endswith(('.doc', '.docx')):
+#             scenario_text = await extract_text_from_docx(content)
+#         elif template_file.filename.lower().endswith('.pdf'):
+#             scenario_text = await extract_text_from_pdf(content)
+#         else:
+#             scenario_text = content.decode('utf-8')
+            
+#         # 2. Use your existing analysis
+#         generator = EnhancedScenarioGenerator(azure_openai_client)
+#         template_data = await generator.extract_scenario_info(scenario_text)
+        
+#         # 3. Generate prompts (your existing logic)
+#         personas = await generator.generate_personas_from_template(template_data)
+#         learn_mode_prompt = await generator.generate_learn_mode_from_template(template_data)
+#         try_mode_prompt = await generator.generate_try_mode_from_template(template_data)
+#         assess_mode_prompt = await generator.generate_assess_mode_from_template(template_data)
+        
+#         # 4. NEW: Process supporting documents
+#         knowledge_base_id = f"kb_{str(uuid4())}"
+#         supporting_docs_metadata = []
+        
+#         if supporting_docs and len(supporting_docs) > 0:
+#             supporting_docs_metadata = await process_and_index_documents(
+#                 supporting_docs, knowledge_base_id, db
+#             )
+
+            
+#         # 5. Store in your existing templates collection
+#         template_record = {
+#             "id": str(uuid4()),
+#             "name": template_name,
+#             "template_data": template_data,
+#             "created_at": datetime.now().isoformat(),
+#             "updated_at": datetime.now().isoformat(),
+            
+#             # NEW: Add these fields for document support
+#             "knowledge_base_id": knowledge_base_id if supporting_docs_metadata else None,
+#             "supporting_documents": len(supporting_docs_metadata),
+#             "generated_prompts": {
+#                 "learn_mode": learn_mode_prompt,
+#                 "try_mode": try_mode_prompt,
+#                 "assess_mode": assess_mode_prompt
+#             },
+#             "generated_personas": personas,
+#             "fact_checking_enabled": len(supporting_docs_metadata) > 0
+#         }
+        
+#         await db.templates.insert_one(template_record)
+#         if supporting_docs_metadata:
+#             knowledge_base_record = {
+#                 "_id": knowledge_base_id,
+#             "template_id": template_record["id"],
+#             "scenario_title": template_data.get("context_overview", {}).get("scenario_title", template_name),
+#             "supporting_documents": supporting_docs_metadata,
+#             "total_documents": len(supporting_docs_metadata),
+        
+#         # ADD THIS LINE:
+#             "total_chunks": sum(doc.get("chunk_count", 0) for doc in supporting_docs_metadata),
+        
+#             "created_at": datetime.now(),
+#             "last_updated": datetime.now(),
+#             "fact_checking_enabled": True
+#         }
+#             await db.knowledge_bases.insert_one(knowledge_base_record)        
+                    
+#         return {
+#             "template_id": template_record["id"],
+#             "message": "Template and documents processed successfully",
+            
+#             # Data for you to create scenario + avatar interactions
+#             "scenario_data": {
+#                 "title": template_data.get("context_overview", {}).get("scenario_title", template_name),
+#                 "description": template_data.get("context_overview", {}).get("purpose_of_scenario", ""),
+#                 "knowledge_base_id": knowledge_base_id,
+#                 "template_data": template_data,
+#                 "fact_checking_enabled": len(supporting_docs_metadata) > 0
+#             },
+            
+#             "prompts": {
+#                 "learn_mode": learn_mode_prompt,
+#                 "try_mode": try_mode_prompt,
+#                 "assess_mode": assess_mode_prompt
+#             },
+            
+#             "personas": personas,
+#             "supporting_documents_count": len(supporting_docs_metadata)
+#         }
+        
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+# # oldddddd
+# newwww
+@router.post("/analyze-template-with-docs")
+async def analyze_template_with_docs(
+    template_file: UploadFile = File(...),
+    supporting_docs: List[UploadFile] = File(...),
+    template_name: str = Form(...),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Step 1: Analyze template + process docs, return editable template"""
+    try:
+        # 1. Process template file
+        content = await template_file.read()
+        
+        if template_file.filename.lower().endswith(('.doc', '.docx')):
+            scenario_text = await extract_text_from_docx(content)
+        elif template_file.filename.lower().endswith('.pdf'):
+            scenario_text = await extract_text_from_pdf(content)
+        else:
+            scenario_text = content.decode('utf-8')
+            
+        # 2. Analyze template to get editable structure
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        template_data = await generator.extract_scenario_info(scenario_text)
+        evaluation_metrics = await generator.extract_evaluation_metrics_from_template(scenario_text, template_data)
+        template_data["evaluation_metrics"] = evaluation_metrics
+        # 3. Process supporting documents → Create knowledge base
+        knowledge_base_id = f"kb_{str(uuid4())}"
+        supporting_docs_metadata = []
+        
+        if supporting_docs and len(supporting_docs) > 0:
+            supporting_docs_metadata = await process_and_index_documents(
+                supporting_docs, knowledge_base_id, db
+            )
+        
+        # 4. Store template for editing (NO prompts yet)
+        template_record = {
+            "id": str(uuid4()),
+            "name": template_name,
+            "template_data": template_data,  # EDITABLE
+            # "evaluation_metrics": evaluation_metrics,
+            "knowledge_base_id": knowledge_base_id if supporting_docs_metadata else None,
+            "supporting_documents": len(supporting_docs_metadata),
+            "status": "ready_for_editing",
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        }
+        
+        await db.templates.insert_one(template_record)
+        
+        # 5. Create knowledge base record
+        if supporting_docs_metadata:
+            knowledge_base_record = {
+                "_id": knowledge_base_id,
+                "template_id": template_record["id"],
+                "scenario_title": template_data.get("context_overview", {}).get("scenario_title", template_name),
+                "supporting_documents": supporting_docs_metadata,
+                "total_documents": len(supporting_docs_metadata),
+                "total_chunks": sum(doc.get("chunk_count", 0) for doc in supporting_docs_metadata),
+                "created_at": datetime.now(),
+                "last_updated": datetime.now(),
+                "fact_checking_enabled": True
+            }
+            await db.knowledge_bases.insert_one(knowledge_base_record)
+        
+        return {
+            "template_id": template_record["id"],
+            "template_data": template_data,  # For frontend editing
+            # "evaluation_metrics": evaluation_metrics,
+            "knowledge_base_id": knowledge_base_id if supporting_docs_metadata else None,
+            "supporting_documents_count": len(supporting_docs_metadata),
+            "message": "Template analyzed and ready for editing",
+            "next_step": "Edit template sections, then generate prompts"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+# newww
+# ADD this helper function
+async def process_and_index_documents(supporting_docs: List[UploadFile], knowledge_base_id: str, db: Any) -> List[dict]:
+    """Process documents and index in Azure Search"""
+    vector_search = AzureVectorSearchManager()
+    
+    # Create index if it doesn't exist
+    try:
+        from core.azure_search_setup import AzureSearchIndexManager
+        index_manager = AzureSearchIndexManager()
+        
+        # Check if index exists, create if not
+        if not await index_manager.index_exists():
+            print("Creating Azure Search index...")
+            await index_manager.create_knowledge_base_index()
+            print("✅ Index created successfully")
+    except Exception as e:
+        print(f"⚠️  Index creation warning: {e}")
+        
+    documents_metadata = []
+    
+    from openai import AsyncAzureOpenAI
+    import os
+    
+    openai_client = AsyncAzureOpenAI(
+        api_key=os.getenv("api_key"),
+        azure_endpoint=os.getenv("endpoint"),
+        api_version=os.getenv("api_version")
+    )
+    
+    document_processor = DocumentProcessor(openai_client, db)
+    vector_search = AzureVectorSearchManager()
+    
+    for doc_file in supporting_docs:
+        try:
+            content = await doc_file.read()
+            doc_id = str(uuid4())
+            
+            # Process document (extract text, create chunks, embeddings)
+            chunks = await document_processor.process_document(doc_id, content, doc_file.filename)
+            
+            # Set knowledge base for chunks
+            for chunk in chunks:
+                chunk.knowledge_base_id = knowledge_base_id
+            
+            # Index in Azure Search
+            await vector_search.index_document_chunks(chunks, knowledge_base_id)
+            
+            # Store metadata
+            # doc_metadata = {
+            #     "_id": doc_id,
+            #     "knowledge_base_id": knowledge_base_id,
+            #     "filename": doc_file.filename,
+            #     "file_size": len(content),
+            #     "chunk_count": len(chunks),
+            #     "processed_at": datetime.now().isoformat()
+            # }
+            doc_metadata = {
+                "_id": doc_id,
+                "knowledge_base_id": knowledge_base_id,
+                "filename": doc_file.filename,
+                "original_filename": doc_file.filename,
+                "file_size": len(content),
+                "content_type": doc_file.content_type,
+                "processing_status": "completed",
+                "chunk_count": len(chunks),
+                "processed_at": datetime.now().isoformat(),
+                "indexed_in_vector_search": True
+            }            
+            await db.supporting_documents.insert_one(doc_metadata)
+            documents_metadata.append(doc_metadata)
+            
+        except Exception as e:
+            print(f"Error processing {doc_file.filename}: {e}")
+    
+    return documents_metadata
+
+@router.put("/template/{template_id}/evaluation-metrics")
+async def update_evaluation_metrics(
+    template_id: str,
+    evaluation_metrics: Dict[str, Any] = Body(...),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Edit evaluation metrics for a template"""
+    try:
+        # Check if template exists
+        template = await db.templates.find_one({"id": template_id})
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        # Update evaluation metrics
+        await db.templates.update_one(
+            {"id": template_id},
+            {"$set": {
+                "evaluation_metrics": evaluation_metrics,
+                "updated_at": datetime.now().isoformat()
+            }}
+        )
+        
+        return {
+            "message": "Evaluation metrics updated successfully",
+            "template_id": template_id,
+            "updated_metrics": evaluation_metrics
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/template/{template_id}/evaluation-metrics")
+async def get_evaluation_metrics(
+    template_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Get evaluation metrics for a template"""
+    try:
+        template = await db.templates.find_one({"id": template_id})
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        return {
+            "template_id": template_id,
+            "evaluation_metrics": template.get("evaluation_metrics", {}),
+            "template_name": template.get("name", "")
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

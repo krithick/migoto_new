@@ -38,6 +38,10 @@ from core.course_assignment_router import router as course_assignment_router
 from core.analysis_report import router as analysis_report_router
 from core.dashboard import router as dashboard_router
 from core.companies import router as companies_router
+from core.knowledge_base_manager import router as knowledge_base_router  # ADD THIS
+# from core.document_processor import DocumentProcessor  # ADD THIS
+# from core.azure_search_manager import AzureVectorSearchManager  # ADD THIS
+
 
 # from core.structure import router as new_router
 app = FastAPI(title="Role-Play Scenario Generator API",debug=True)
@@ -63,6 +67,8 @@ app.include_router(course_assignment_router)
 app.include_router(analysis_report_router)
 app.include_router(dashboard_router)
 app.include_router(companies_router)
+# Add this line with your other app.include_router() calls:
+app.include_router(knowledge_base_router)  # ADD THIS
 
 # app.include_router(new_router)
 
@@ -932,12 +938,78 @@ async def startup_event_updated():
         # Don't raise here so the app can still start
         print("⚠️  App starting with potential migration issues")
 
-# Replace your existing @app.on_event("startup") with:
-@app.on_event("startup")
-async def startup_event():
-    """Initialize bots and run migrations when application starts"""
-    # await startup_event_updated()
-    await bot_factory.initialize_bots()
-    await bot_factory_analyser.initialize_bots_analyser()
+
+@app.post("/run-fact-check-benchmark")
+async def run_benchmark_endpoint(
+    knowledge_base_id: str = Body(...),
+    avatar_interaction_id: str = Body(...),
+    persona_id: Optional[str] = Body(None),
+    avatar_id: Optional[str] = Body(None),
+    language_id: Optional[str] = Body(None),
+    num_test_cases: int = Body(50),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Run fact-checking benchmark via API"""
+    
+    try:
+        from benchmark_generator import run_fact_checking_benchmark
+        from dynamic_chat import get_chat_factory
+        from uuid import UUID
+        
+        # Convert string IDs to UUIDs where needed
+        avatar_interaction_uuid = UUID(avatar_interaction_id)
+        persona_uuid = UUID(persona_id) if persona_id else None
+        avatar_uuid = UUID(avatar_id) if avatar_id else None
+        language_uuid = UUID(language_id) if language_id else None
+        
+        # Get chat handler with all IDs
+        chat_factory = await get_chat_factory()
+        chat_handler = await chat_factory.get_chat_handler(
+            avatar_interaction_id=avatar_interaction_uuid,
+            mode="try_mode",
+            persona_id=persona_uuid,
+            language_id=language_uuid
+        )
+        
+        # Initialize fact-checking
+        await chat_handler.initialize_fact_checking("benchmark_session")
+        
+        # Validate that fact-checking is enabled
+        if not chat_handler.fact_checking_enabled:
+            return {
+                "success": False,
+                "error": "Fact-checking not enabled for this knowledge base"
+            }
+        
+        # Run benchmark
+        print(f"🚀 Starting benchmark for knowledge_base: {knowledge_base_id}")
+        report = await run_fact_checking_benchmark(
+            knowledge_base_id=knowledge_base_id,
+            chat_handler=chat_handler,
+            num_test_cases=num_test_cases
+        )
+        
+        return {
+            "success": True,
+            "benchmark_config": {
+                "knowledge_base_id": knowledge_base_id,
+                "avatar_interaction_id": avatar_interaction_id,
+                "persona_id": persona_id,
+                "avatar_id": avatar_id,
+                "language_id": language_id,
+                "num_test_cases": num_test_cases
+            },
+            "report": report
+        }
+        
+    except Exception as e:
+        print(f"❌ Benchmark error: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "error_type": type(e).__name__
+        }
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=9000, reload=True)

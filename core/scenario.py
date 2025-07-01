@@ -600,7 +600,8 @@ async def create_scenario(
     db: Any, 
     module_id: UUID, 
     scenario: ScenarioCreate, 
-    created_by: UUID
+    created_by: UUID,
+    template_id: Optional[str] = None 
 ) -> ScenarioDB:
     """
     Create a new scenario within a module
@@ -617,7 +618,10 @@ async def create_scenario(
     
     creator = UserDB(**creator)
     # ADD THIS: Get creator's company
-    creator_company_id = UUID(creator.company_id)    
+    try:
+        creator_company_id = UUID(str(creator.company_id))
+    except (ValueError, TypeError):
+        creator_company_id = creator.company_id
     # If creator is admin (not superadmin), check if they created the module
     if creator.role == UserRole.ADMIN and module.get("created_by") != str(created_by):
         raise HTTPException(
@@ -642,11 +646,22 @@ async def create_scenario(
     #     created_at=datetime.now(),
     #     updated_at=datetime.now()
     # )
+    template_data = None
+    knowledge_base_id = None
+    if template_id:
+        template = await db.templates.find_one({"id": template_id})
+        if template:
+            template_data = template.get("template_data")
+            knowledge_base_id = template.get("knowledge_base_id")
+    
     scenario_db = ScenarioDB(
         **scenario_dict,
         created_by=created_by,
         company_id=creator_company_id,  # ADD THIS
         visibility=ContentVisibility.CREATOR_ONLY,  # ADD THIS
+        knowledge_base_id=knowledge_base_id,
+        template_data=template_data,
+        fact_checking_enabled=knowledge_base_id is not None,        
         created_at=datetime.now(),
         updated_at=datetime.now()
     )
