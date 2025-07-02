@@ -1160,7 +1160,8 @@ async def analyze_scenario_endpoint(scenario_document: str = Body(..., embed=Tru
         # Initialize generator (replace None with your actual client)
         generator = EnhancedScenarioGenerator(azure_openai_client)
         template_data = await generator.extract_scenario_info(scenario_document)
-        
+        evaluation_metrics = await generator.extract_evaluation_metrics_from_template(scenario_document, template_data)
+        template_data["evaluation_metrics"] = evaluation_metrics        
         return TemplateAnalysisResponse(
             general_info=template_data.get("general_info", {}),
             context_overview=template_data.get("context_overview", {}),
