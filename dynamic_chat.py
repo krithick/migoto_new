@@ -265,16 +265,18 @@ LEARNER'S LATEST RESPONSE: "{user_message}"
 OFFICIAL COMPANY INFORMATION:
 {context}
 
+KEEP YOUR ANSWERS LIMITED TO 20 WORDS 
+
 Analyze the learner's response in context of:
 1. What the customer was asking/needing
 2. How the conversation has progressed  
 3. Whether the response is accurate and helpful
-
+4. Dont offer to teach the user furthermore , You are a coach and you are correcting them
 If INCORRECT INFORMATION:
-"Based on the customer's question about [specific topic], you said '[wrong thing]', but our official information shows [correct facts]. You should respond: '[specific better response that addresses their actual question]'."
+"Dear Learner, Based on the customer's question about [specific topic], you said '[wrong thing]', but our official information shows [correct facts]. You should respond: '[specific better response that addresses their actual question]'."
 
 If UNHELPFUL/INAPPROPRIATE FOR CONTEXT:
-"The customer was [asking/expressing concern about X], but your response '{user_message}' doesn't address their need. You should [specific actions] to properly help them with their [specific concern]."
+"Dear Learner  ,The customer was [asking/expressing concern about X], but your response '{user_message}' doesn't address their need. You should [specific actions] to properly help them with their [specific concern]."
 
 If ACCURATE AND HELPFUL:
 "CORRECT"
