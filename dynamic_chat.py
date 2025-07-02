@@ -157,7 +157,7 @@ class DynamicChatHandler:
     
         # Fact-check the user's message
         coaching_feedback = await self._check_user_response_accuracy(user_message,conversation_history, self.knowledge_base_id)
-    
+        print("coaching_feedback",coaching_feedback)
         # Collect AI's full response
         full_response = ""
         usage_info = None
@@ -219,6 +219,8 @@ class DynamicChatHandler:
         """Simple fact-checking against Cloudnine documents"""
     
         try:
+            if len(conversation_history) <= 1:
+                return None
             language_instructions = await self._get_language_instructions()
             # Search for relevant info in documents
             
@@ -228,7 +230,7 @@ class DynamicChatHandler:
         
             if not search_results:
                 return None
-        
+            print(conversation_history[0],'conversation_history')
             # Build context from search results
             context = "\n".join([result['content'] for result in search_results])
             convo_context = ""
@@ -236,26 +238,49 @@ class DynamicChatHandler:
                 role = "Customer" if msg.role == self.config.bot_role else "Learner"
                 convo_context += f"{role}: {msg.content}\n"
 
-            # Direct fact-check prompt
-        #     fact_check_prompt = f"""
-        #     Check if this user response contains any factual errors about Cloudnine maternity packages:
-        
-        #     USER RESPONSE: "{user_message}"
-        
-        # OFFICIAL CLOUDNINE INFORMATION:
-        # {context}
-        
-        # If there are any factual errors, respond with:
-        # "INCORRECT: [specific correction with correct information]"
-        
-        # If response is accurate, respond with:
-        # "CORRECT"
-        
-        # If user is being unhelpful/dismissive/vague, respond with:
-        # "UNHELPFUL: [guidance on what proper response should include]"
-        # """
+#             fact_check_prompt = f"""
+# {language_instructions}
+
+# You are a customer service training coach. Evaluate the learner's response using this EXACT priority order:
+
+# RECENT CONVERSATION:
+# {convo_context}
+# LEARNER'S LATEST RESPONSE: "{user_message}"
+# OFFICIAL COMPANY INFORMATION:
+# {context}
+
+# EVALUATION STEPS (check in this order):
+
+# 1. FIRST: Is this response a reasonable customer service approach?
+#    - Asking clarifying questions = ALWAYS GOOD
+#    - Showing empathy/acknowledgment = ALWAYS GOOD  
+#    - Requesting details to help better = ALWAYS GOOD
+
+# 2. SECOND: If giving company information, is it factually correct?
+#    - Check against the official company information above
+#    - Only flag if there's clear contradiction with company docs
+
+# 3. THIRD: Does it address what the customer actually asked about?
+
+# RESPOND WITH EXACTLY ONE OF THESE:
+
+# [CORRECT] 
+# (if the response is appropriate customer service behavior)
+
+# "Dear Learner, you provided incorrect information about [specific topic]. According to our company information: [correct facts]. Please respond with: [better response]."
+# (only if factually wrong company information was given)
+
+# "Dear Learner, the customer was asking about [specific need], but your response doesn't help with that. You should [specific action] to address their [specific concern]."
+# (only if completely ignoring customer's question)
+
+# REMEMBER: 
+# - Asking questions to understand customer needs better is ALWAYS correct
+# - Being polite and engaging is ALWAYS correct  
+# - Only mark wrong if giving incorrect company facts or completely ignoring customer
+# """       
             fact_check_prompt = f"""
-            {language_instructions}
+{language_instructions}
+
 You are a training coach reviewing a learner's response in a customer service conversation.
 
 RECENT CONVERSATION:
@@ -265,23 +290,41 @@ LEARNER'S LATEST RESPONSE: "{user_message}"
 OFFICIAL COMPANY INFORMATION:
 {context}
 
-KEEP YOUR ANSWERS LIMITED TO 20 WORDS 
+EVALUATION PROCESS - FOLLOW THIS EXACT ORDER:
 
-Analyze the learner's response in context of:
-1. What the customer was asking/needing
-2. How the conversation has progressed  
-3. Whether the response is accurate and helpful
-4. Dont offer to teach the user furthermore , You are a coach and you are correcting them
-If INCORRECT INFORMATION:
-"Dear Learner, Based on the customer's question about [specific topic], you said '[wrong thing]', but our official information shows [correct facts]. You should respond: '[specific better response that addresses their actual question]'."
+STEP 1: FACTUAL ACCURACY CHECK (HIGHEST PRIORITY)
+Check if the learner's response contains ANY incorrect information about:
+- Package existence (Cloudnine HAS Economy, Standard, Premium packages)
+- Package pricing (Economy: ₹45,000-₹65,000, Standard: ₹65,000-₹85,000, Premium: ₹85,000-₹1,20,000)
+- Package inclusions/exclusions
+- Insurance partnerships and coverage
+- Booking procedures and policies
+- Any other company facts
 
-If UNHELPFUL/INAPPROPRIATE FOR CONTEXT:
-"Dear Learner  ,The customer was [asking/expressing concern about X], but your response '{user_message}' doesn't address their need. You should [specific actions] to properly help them with their [specific concern]."
+IF ANY FACTUAL ERRORS FOUND:
+"Dear Learner, you said '[wrong information]' but according to our official information: [correct facts]. You should respond: '[specific correct response]'."
+STOP EVALUATION HERE - DO NOT PROCEED TO STEP 2.
 
-If ACCURATE AND HELPFUL:
-"CORRECT"
+STEP 2: CUSTOMER SERVICE APPROPRIATENESS (ONLY IF STEP 1 PASSES)
+Is this response appropriate customer service behavior?
+- Asking clarifying questions = ALWAYS APPROPRIATE
+- Showing empathy/acknowledgment = ALWAYS APPROPRIATE  
+- Requesting details to provide better help = ALWAYS APPROPRIATE
+- Being polite and professional = ALWAYS APPROPRIATE
 
-Focus on how well the response serves the customer's actual need in this conversation moment.
+IF APPROPRIATE CUSTOMER SERVICE:
+"[CORRECT]"
+
+IF INAPPROPRIATE (ignoring customer, being rude, not addressing their question):
+"Dear Learner, the customer was [asking/expressing concern about X], but your response doesn't address their need. You should [specific actions] to properly help them with their [specific concern]."
+
+REMEMBER:
+- FACT-CHECKING IS MORE IMPORTANT THAN CONVERSATION FLOW
+- Giving wrong company information is ALWAYS incorrect, regardless of tone
+- Asking questions to understand customer needs better is ALWAYS good customer service
+- Only evaluate conversation appropriateness if all facts are correct
+
+KEEP YOUR RESPONSE LIMITED TO 20 WORDS.
 """
             response = await self.llm_client.chat.completions.create(
             model="gpt-4o",
@@ -291,13 +334,9 @@ Focus on how well the response serves the customer's actual need in this convers
             )
         
             result = response.choices[0].message.content.strip()
-            print("resullttt",result,fact_check_prompt)
-            # if result.startswith("INCORRECT:") or result.startswith("UNHELPFUL:"):
-            #     return result.split(":", 1)[1].strip()  # Return just the correction
-        
-            # return None  # No coaching needed
-                
-            if result.strip() == "CORRECT":
+            print("resullttt",result,result.strip()== "[CORRECT]")
+            print("resullttt (repr):", repr(result))
+            if result.strip() == "[CORRECT]":
                 return None
             else:
                 return result
