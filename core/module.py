@@ -419,7 +419,11 @@ async def create_module(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     
     creator = UserDB(**creator)
-    creator_company_id = UUID(creator.company_id)
+    if isinstance(creator.company_id, UUID):
+        creator_company_id = creator.company_id
+    else:
+        creator_company_id = UUID(creator.company_id)
+    # creator_company_id = UUID(creator.company_id)
     # If creator is admin (not superadmin), check if they created the course
     if creator.role == UserRole.ADMIN and course.get("created_by") != str(created_by):
         raise HTTPException(

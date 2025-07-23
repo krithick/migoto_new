@@ -25,7 +25,7 @@ class AzureVectorSearchManager:
         if not self.endpoint or not self.api_key:
             raise ValueError("Azure Search configuration missing")
     
-    def get_search_client(self, scenario_id: str) -> SearchClient:
+    def get_search_client(self, knowledge_base_id: str) -> SearchClient:
         """Get search client for specific scenario index"""
         # index_name = f"{self.base_index_name}-{scenario_id.replace('-', '').lower()[:20]}"
         index_name = self.base_index_name
@@ -35,82 +35,127 @@ class AzureVectorSearchManager:
             credential=AzureKeyCredential(self.api_key)
         )
     
-    async def index_document_chunks(self, chunks: List[DocumentChunk], scenario_id: str) -> bool:
-        """Index document chunks in Azure Search"""
-        search_client = self.get_search_client(scenario_id)
+    # async def index_document_chunks(self, chunks: List[DocumentChunk], scenario_id: str) -> bool:
+    #     """Index document chunks in Azure Search"""
+    #     search_client = self.get_search_client(scenario_id)
         
+    #     try:
+    #         # Prepare documents for indexing
+    #         documents = []
+    #         for chunk in chunks:
+    #             doc = {
+    #                 "id": f"{scenario_id}_{chunk.id}",
+    #                 "content": chunk.content,
+    #                 "document_id": chunk.document_id,
+    #                 "knowledge_base_id": chunk.knowledge_base_id,
+    #                 "scenario_id": scenario_id,
+    #                 "chunk_index": chunk.chunk_index,
+    #                 "word_count": chunk.word_count,
+    #                 "section": chunk.section or "",
+    #                 "page_number": chunk.page_number or 0,
+    #                 "contentVector": chunk.embedding or [],
+    #                 "source_file": chunk.metadata.get("source_file", ""),
+    #                 "document_type": chunk.metadata.get("document_type", "unknown")
+    #             }
+    #             documents.append(doc)
+            
+    #         # Upload in batches
+    #         batch_size = 100
+    #         for i in range(0, len(documents), batch_size):
+    #             batch = documents[i:i + batch_size]
+    #             await search_client.upload_documents(batch)
+            
+    #         return True
+            
+    #     except Exception as e:
+    #         print(f"Error indexing chunks: {e}")
+    #         return False
+    #     finally:
+    #         # Always close the client
+    #         await search_client.close()
+
+    async def index_document_chunks(self, chunks: List[DocumentChunk], knowledge_base_id: str) -> bool:
+        """Index document chunks in Azure Search"""
+        search_client = self.get_search_client(knowledge_base_id)  # Use knowledge_base_id
+    
         try:
-            # Prepare documents for indexing
             documents = []
             for chunk in chunks:
+                chunk.knowledge_base_id = knowledge_base_id 
                 doc = {
-                    "id": f"{scenario_id}_{chunk.id}",
-                    "content": chunk.content,
-                    "document_id": chunk.document_id,
-                    "knowledge_base_id": chunk.knowledge_base_id,
-                    "scenario_id": scenario_id,
-                    "chunk_index": chunk.chunk_index,
-                    "word_count": chunk.word_count,
-                    "section": chunk.section or "",
-                    "page_number": chunk.page_number or 0,
-                    "contentVector": chunk.embedding or [],
-                    "source_file": chunk.metadata.get("source_file", ""),
-                    "document_type": chunk.metadata.get("document_type", "unknown")
-                }
+                "id": f"{knowledge_base_id}_{chunk.id}",  # ✅ Use knowledge_base_id
+                "content": chunk.content,
+                "document_id": chunk.document_id,
+                "knowledge_base_id": knowledge_base_id,  # ✅ Use consistent ID
+                "scenario_id": knowledge_base_id,  # Keep for backward compatibility
+                "chunk_index": chunk.chunk_index,
+                "word_count": chunk.word_count,
+                "section": chunk.section or "",
+                "page_number": chunk.page_number or 0,
+                "contentVector": chunk.embedding or [],
+                "source_file": chunk.metadata.get("source_file", ""),
+                "document_type": chunk.metadata.get("document_type", "unknown")
+            }
                 documents.append(doc)
-            
+        
             # Upload in batches
             batch_size = 100
             for i in range(0, len(documents), batch_size):
                 batch = documents[i:i + batch_size]
                 await search_client.upload_documents(batch)
-            
+        
             return True
-            
+        
         except Exception as e:
             print(f"Error indexing chunks: {e}")
             return False
         finally:
-            # Always close the client
-            await search_client.close()
+            await search_client.close()     
     
-    async def vector_search(self, query: str, scenario_id: str, top_k: int = 5,
-                          openai_client: AsyncAzureOpenAI = None) -> List[Dict[str, Any]]:
-        """Perform vector search with query embedding"""
-        search_client = self.get_search_client(scenario_id)
-        
+  
+    
+    # 
+    async def vector_search(self, query: str, knowledge_base_id: str, top_k: int = 5,
+                        openai_client: AsyncAzureOpenAI = None) -> List[Dict[str, Any]]:
+        """Perform vector search with query embedding - SECURE VERSION"""
+        search_client = self.get_search_client(knowledge_base_id)
+    
         try:
-            # Generate query embedding
             if openai_client:
                 query_embedding = await self._get_query_embedding(query, openai_client)
             else:
                 query_embedding = None
-            
+        
             search_results = []
-            
+        
+            # 🔒 CRITICAL: Filter by knowledge_base_id
+            filter_expression = f"knowledge_base_id eq '{knowledge_base_id}'"
+        
             if query_embedding:
-                # Vector search
                 results = await search_client.search(
-                    search_text=query,
-                    vector_queries=[{
-                        "kind": "vector",
-                        "vector": query_embedding,
-                        "fields": "contentVector",
-                        "k": top_k
-                    }],
-                    select=["id", "content", "document_id", "source_file", "document_type", "chunk_index"],
-                    top=top_k
+                search_text=query,
+                vector_queries=[{
+                    "kind": "vector",
+                    "vector": query_embedding,
+                    "fields": "contentVector",
+                    "k": top_k
+                }],
+                filter=filter_expression,  # ✅ This prevents cross-contamination
+                select=["id", "content", "document_id", "source_file", "document_type", "chunk_index", "knowledge_base_id"],
+                top=top_k
                 )
             else:
-                # Fallback to text search
                 results = await search_client.search(
-                    search_text=query,
-                    select=["id", "content", "document_id", "source_file", "document_type", "chunk_index"],
-                    top=top_k
+                search_text=query,
+                filter=filter_expression,  # ✅ This prevents cross-contamination  
+                select=["id", "content", "document_id", "source_file", "document_type", "chunk_index", "knowledge_base_id"],
+                top=top_k
                 )
-            
+        
             async for result in results:
-                search_results.append({
+                # Double-check knowledge_base_id matches
+                if result.get("knowledge_base_id") == knowledge_base_id:
+                    search_results.append({
                     "chunk_id": result["id"],
                     "content": result["content"],
                     "document_id": result["document_id"],
@@ -118,17 +163,16 @@ class AzureVectorSearchManager:
                     "document_type": result.get("document_type", "unknown"),
                     "chunk_index": result.get("chunk_index", 0),
                     "search_score": result.get("@search.score", 0)
-                })
-            
+                    })
+        
             return search_results
-            
+        
         except Exception as e:
             print(f"Error in vector search: {e}")
             return []
         finally:
-            # Always close the client
-            await search_client.close()
-    
+            await search_client.close()     
+    # 
     async def _get_query_embedding(self, query: str, openai_client: AsyncAzureOpenAI) -> List[float]:
         """Generate embedding for search query"""
         response = await openai_client.embeddings.create(
@@ -136,7 +180,28 @@ class AzureVectorSearchManager:
             model="text-embedding-ada-002"
         )
         return response.data[0].embedding
+    # ADD this method to AzureVectorSearchManager class:
 
+    async def validate_knowledge_base_access(self, knowledge_base_id: str, user_company_id: str) -> bool:
+        """Validate user has access to this knowledge base"""
+        try:
+            # Check if knowledge base belongs to user's company or is shared
+            kb_record = await self.db.knowledge_bases.find_one({"_id": knowledge_base_id})
+        
+            if not kb_record:
+                return False
+            
+            # Add your company access logic here
+            template_id = kb_record.get("template_id")
+            if template_id:
+                template = await self.db.templates.find_one({"id": template_id})
+                # Add template access validation based on your company hierarchy
+            
+            return True  # Implement your actual validation logic
+        
+        except Exception as e:
+            print(f"Error validating KB access: {e}")
+            return False    
 class EnhancedFactChecker:
     """Advanced fact-checking with vector search"""
     

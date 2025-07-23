@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from typing import List, Any
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form ,Body 
+from typing import List, Any ,Dict
 from uuid import uuid4
 from datetime import datetime
 from database import get_db
@@ -354,10 +354,13 @@ async def process_and_index_documents(supporting_docs: List[UploadFile], knowled
             # Set knowledge base for chunks
             for chunk in chunks:
                 chunk.knowledge_base_id = knowledge_base_id
-            
+                print(f"✅ Chunk {chunk.id[:8]}... assigned to KB {knowledge_base_id[:8]}...")
             # Index in Azure Search
-            await vector_search.index_document_chunks(chunks, knowledge_base_id)
-            
+            # await vector_search.index_document_chunks(chunks, knowledge_base_id)
+            success = await vector_search.index_document_chunks(chunks, knowledge_base_id)
+            if not success:
+                print(f"❌ Failed to index chunks for {doc_file.filename}")
+                continue            
             # Create metadata
             doc_metadata = {
                 "_id": doc_id,
@@ -454,3 +457,291 @@ async def fix_document_status(
         "updated_documents": result.modified_count,
         "message": "Fixed processing status"
     }
+
+# FILE: core/knowledge_base_manager.py
+# ADD these new endpoints at the end of the file:
+
+@router.get("/{knowledge_base_id}/documents")
+async def list_knowledge_base_documents(
+    knowledge_base_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """List all documents in a knowledge base with preview"""
+    
+    try:
+        # Get all documents for this knowledge base
+        docs = await db.supporting_documents.find(
+            {"knowledge_base_id": knowledge_base_id}
+        ).to_list(length=1000)
+        
+        # Add content preview for each document
+        for doc in docs:
+            # Get first few chunks for preview
+            chunks = await db.document_chunks.find(
+                {"document_id": doc["_id"]},
+                {"content": 1, "chunk_index": 1}
+            ).sort("chunk_index", 1).limit(3).to_list(length=3)
+            
+            doc["content_preview"] = " ".join([chunk["content"][:200] for chunk in chunks])
+            doc["total_chunks"] = await db.document_chunks.count_documents({"document_id": doc["_id"]})
+        
+        return {
+            "knowledge_base_id": knowledge_base_id,
+            "documents": docs,
+            "total_documents": len(docs)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{knowledge_base_id}/documents/{document_id}/content")
+async def get_document_content(
+    knowledge_base_id: str,
+    document_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Get full content of a specific document for editing"""
+    
+    try:
+        # Verify document belongs to this knowledge base
+        doc = await db.supporting_documents.find_one({
+            "_id": document_id,
+            "knowledge_base_id": knowledge_base_id
+        })
+        
+        if not doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        # Get all chunks for this document
+        chunks = await db.document_chunks.find(
+            {"document_id": document_id}
+        ).sort("chunk_index", 1).to_list(length=1000)
+        
+        # Reconstruct full content
+        full_content = "\n\n".join([chunk["content"] for chunk in chunks])
+        
+        return {
+            "document_id": document_id,
+            "filename": doc["filename"],
+            "full_content": full_content,
+            "chunk_count": len(chunks),
+            "metadata": {
+                "file_size": doc.get("file_size", 0),
+                "processed_at": doc.get("processed_at"),
+                "processing_status": doc.get("processing_status")
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/{knowledge_base_id}/documents/{document_id}/content")
+async def update_document_content(
+    knowledge_base_id: str,
+    document_id: str,
+    new_content: str = Body(..., embed=True),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Update document content and re-process vectors"""
+    
+    try:
+        # Verify document exists and belongs to this knowledge base
+        doc = await db.supporting_documents.find_one({
+            "_id": document_id,
+            "knowledge_base_id": knowledge_base_id
+        })
+        
+        if not doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        # Remove old chunks from vector search
+        await remove_document_chunks_from_search(document_id, knowledge_base_id, AzureVectorSearchManager())
+        
+        # Remove old chunks from database
+        await db.document_chunks.delete_many({"document_id": document_id})
+        
+        # Re-process the updated content
+        from core.document_processor import DocumentProcessor
+        from openai import AsyncAzureOpenAI
+        import os
+        
+        openai_client = AsyncAzureOpenAI(
+            api_key=os.getenv("api_key"),
+            azure_endpoint=os.getenv("endpoint"),
+            api_version=os.getenv("api_version")
+        )
+        
+        processor = DocumentProcessor(openai_client, db)
+        
+        # Create new chunks from updated content
+        chunks = await processor._create_chunks(
+            new_content, 
+            document_id, 
+            doc["filename"]
+        )
+        
+        # Set knowledge base for chunks
+        for chunk in chunks:
+            chunk.knowledge_base_id = knowledge_base_id
+        
+        # Generate embeddings
+        chunks_with_embeddings = await processor._generate_embeddings(chunks)
+        
+        # Store new chunks in database
+        chunk_docs = [chunk.dict() for chunk in chunks_with_embeddings]
+        if chunk_docs:
+            await db.document_chunks.insert_many(chunk_docs)
+        
+        # Index in Azure Search
+        vector_search = AzureVectorSearchManager()
+        await vector_search.index_document_chunks(chunks_with_embeddings, knowledge_base_id)
+        
+        # Update document metadata
+        await db.supporting_documents.update_one(
+            {"_id": document_id},
+            {"$set": {
+                "chunk_count": len(chunks_with_embeddings),
+                "processing_status": "completed",
+                "updated_at": datetime.now().isoformat(),
+                "updated_by": str(current_user.id)
+            }}
+        )
+        
+        return {
+            "message": "Document content updated successfully",
+            "document_id": document_id,
+            "new_chunk_count": len(chunks_with_embeddings),
+            "updated_at": datetime.now().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating document: {str(e)}")
+
+@router.post("/{knowledge_base_id}/documents/{document_id}/duplicate")
+async def duplicate_document(
+    knowledge_base_id: str,
+    document_id: str,
+    new_filename: str = Body(..., embed=True),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Duplicate a document within the same knowledge base"""
+    
+    try:
+        # Get original document
+        original_doc = await db.supporting_documents.find_one({
+            "_id": document_id,
+            "knowledge_base_id": knowledge_base_id
+        })
+        
+        if not original_doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        # Get all chunks from original document
+        original_chunks = await db.document_chunks.find(
+            {"document_id": document_id}
+        ).to_list(length=1000)
+        
+        # Create new document ID
+        new_doc_id = str(uuid4())
+        
+        # Create new document record
+        new_doc = original_doc.copy()
+        new_doc["_id"] = new_doc_id
+        new_doc["filename"] = new_filename
+        new_doc["original_filename"] = new_filename
+        new_doc["processed_at"] = datetime.now().isoformat()
+        new_doc["duplicated_from"] = document_id
+        new_doc["created_by"] = str(current_user.id)
+        
+        await db.supporting_documents.insert_one(new_doc)
+        
+        # Duplicate chunks
+        new_chunks = []
+        for chunk in original_chunks:
+            new_chunk = chunk.copy()
+            new_chunk["_id"] = str(uuid4())
+            new_chunk["document_id"] = new_doc_id
+            new_chunks.append(new_chunk)
+        
+        if new_chunks:
+            await db.document_chunks.insert_many(new_chunks)
+        
+        # Index in Azure Search
+        from core.document_processor import DocumentChunk
+        chunk_objects = [DocumentChunk(**chunk) for chunk in new_chunks]
+        
+        vector_search = AzureVectorSearchManager()
+        await vector_search.index_document_chunks(chunk_objects, knowledge_base_id)
+        
+        return {
+            "message": "Document duplicated successfully",
+            "original_document_id": document_id,
+            "new_document_id": new_doc_id,
+            "new_filename": new_filename,
+            "chunk_count": len(new_chunks)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.put("/knowledge-base/{knowledge_base_id}/documents/batch-update")
+async def batch_update_knowledge_base_documents(
+    knowledge_base_id: str,
+    batch_actions: Dict[str, Any] = Body(...),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Perform multiple document operations in one request"""
+    try:
+        kb = await db.knowledge_bases.find_one({"_id": knowledge_base_id})
+        if not kb:
+            raise HTTPException(status_code=404, detail="Knowledge base not found")
+        
+        results = []
+        
+        # Remove documents if specified
+        if "remove_document_ids" in batch_actions and batch_actions["remove_document_ids"]:
+            remove_ids = batch_actions["remove_document_ids"]
+            await remove_documents_and_vectors(remove_ids, knowledge_base_id, db)
+            results.append(f"Removed {len(remove_ids)} documents")
+        
+        # Add new documents if specified
+        if "add_documents" in batch_actions and batch_actions["add_documents"]:
+            # This would need to handle file uploads differently
+            # For now, return instruction to use separate add endpoint
+            results.append("Use PUT /knowledge-base/{id}/documents with action=add for new files")
+        
+        # Update knowledge base stats
+        remaining_docs = await db.supporting_documents.find(
+            {"knowledge_base_id": knowledge_base_id}
+        ).to_list(length=1000)
+        
+        await db.knowledge_bases.update_one(
+            {"_id": knowledge_base_id},
+            {"$set": {
+                "supporting_documents": remaining_docs,
+                "total_documents": len(remaining_docs),
+                "last_updated": datetime.now(),
+                "fact_checking_enabled": len(remaining_docs) > 0
+            }}
+        )
+        
+        return {
+            "message": "Batch update completed",
+            "knowledge_base_id": knowledge_base_id,
+            "operations": results,
+            "remaining_documents": len(remaining_docs)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

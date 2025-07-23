@@ -434,7 +434,7 @@ async def bulk_create_scenario_assignments(
         for scenario_id_str in new_scenario_ids:
             if scenario_id_str in scenarios_info:
                 scenario_id = UUID(scenario_id_str)
-                scenario_company_id = UUID(scenarios_info[scenario_id_str]["company_id"])
+                scenario_company_id = scenarios_info[scenario_id_str]["company_id"]
                 assignment_context = await determine_assignment_context(
                     db, admin_user.company_id, scenario_company_id
                 )

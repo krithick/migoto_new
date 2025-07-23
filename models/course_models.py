@@ -29,7 +29,9 @@ class ContentVisibility(str, Enum):
     COMPANY_WIDE = "company_wide"    # All company admins can assign
 
 # Course Models
-
+class ContentStatus(str, Enum):
+    ARCHIVED = "Archived"
+    ACTIVE = "Active"
 class CourseBase(BaseModel):
     title: str
     description: Optional[str] = None

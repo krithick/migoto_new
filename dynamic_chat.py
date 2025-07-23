@@ -64,7 +64,7 @@ class DynamicChatHandler:
         try:
             # Get knowledge base ID from session
             knowledge_base_id = await self._get_knowledge_base_for_session(session_id)
-            
+            print("checkkkk",knowledge_base_id)
             if knowledge_base_id:
                 self.knowledge_base_id = knowledge_base_id
                 # Check if this is try_mode (only mode that needs fact-checking)

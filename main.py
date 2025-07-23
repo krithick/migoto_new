@@ -416,16 +416,261 @@ async def migrate_avatar_models(db: Any):
 # Example usage
 # import asyncio
 # asyncio.run(migrate_course_assignments(db))
+"""
+SIMPLE FastAPI Startup Event
+============================
+
+Just creates:
+1. Mother Company
+2. Boss Admin for that company
+3. Basic system data
+
+Replace your @app.on_event("startup") with this:
+"""
+
+from fastapi import FastAPI
+from datetime import datetime
+from uuid import uuid4
+from passlib.context import CryptContext
+import os
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+async def create_mother_company(db):
+    """Create Mother Company if it doesn't exist"""
+    
+    # Check if Mother Company already exists
+    mother_company = await db.companies.find_one({"company_type": "mother"})
+    if mother_company:
+        print("✅ Mother Company already exists")
+        return mother_company["_id"]
+    
+    # Create Mother Company
+    mother_company_id = str(uuid4())
+    
+    mother_company = {
+        "_id": mother_company_id,
+        "name": "NovacTech Solutions",
+        "description": "Mother company for all training organizations",
+        "industry": "Training & Technology",
+        "location": "Global",
+        "contact_email": "admin@novactech.com",
+        "company_type": "mother",
+        "status": "active",
+        "created_at": datetime.now(),
+        "updated_at": datetime.now(),
+        "total_users": 0
+    }
+    
+    await db.companies.insert_one(mother_company)
+    print(f"✅ Created Mother Company: {mother_company['name']}")
+    
+    return mother_company_id
+
+async def create_boss_admin_for_mother_company(db):
+    """Create Boss Admin assigned to Mother Company"""
+    
+    # Check if Boss Admin already exists
+    boss_admin = await db.users.find_one({"role": "boss_admin"})
+    if boss_admin:
+        print("✅ Boss Admin already exists")
+        return boss_admin["_id"]
+    
+    # Get Mother Company ID
+    mother_company = await db.companies.find_one({"company_type": "mother"})
+    if not mother_company:
+        raise Exception("Mother Company not found!")
+    
+    mother_company_id = mother_company["_id"]
+    
+    # Get credentials from environment
+    boss_email = os.getenv("BOSS_ADMIN_EMAIL", "boss@novactech.com")
+    boss_password = os.getenv("BOSS_ADMIN_PASSWORD", "BossAdmin@123!")
+    
+    # Create Boss Admin
+    boss_admin_id = str(uuid4())
+    
+    boss_admin = {
+        "_id": boss_admin_id,
+        "email": boss_email,
+        "username": "Boss Admin",
+        "first_name": "Boss",
+        "last_name": "Admin",
+        "role": "boss_admin",
+        "hashed_password": pwd_context.hash(boss_password),
+        "company_id": mother_company_id,  # 🔑 Assigned to Mother Company
+        "is_active": True,
+        "can_create_companies": True,
+        "can_view_all_analytics": True,
+        "created_at": datetime.now(),
+        "updated_at": datetime.now()
+    }
+    
+    await db.users.insert_one(boss_admin)
+    
+    # Update Mother Company user count
+    await db.companies.update_one(
+        {"_id": mother_company_id},
+        {"$inc": {"total_users": 1}}
+    )
+    
+    print(f"✅ Created Boss Admin: {boss_email}")
+    print(f"   Password: {boss_password}")
+    print(f"   Company: {mother_company['name']}")
+    
+    return boss_admin_id
+
+async def create_basic_system_data(db):
+    """Create basic system data (avatars, languages, etc.)"""
+    
+    # Create default avatar
+    avatar_count = await db.avatars.count_documents({})
+    if avatar_count == 0:
+        default_avatar = {
+            "_id": str(uuid4()),
+            "name": "Default Avatar",
+            "description": "Default avatar for training",
+            "avatar_image": None,
+            "persona_id": [],
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+            "fbx": None,
+            "animation": None,
+            "glb": [],
+            "selected": []
+        }
+        await db.avatars.insert_one(default_avatar)
+        print("✅ Created default avatar")
+    
+    # Create default language
+    language_count = await db.languages.count_documents({})
+    if language_count == 0:
+        default_language = {
+            "_id": str(uuid4()),
+            "name": "English",
+            "code": "en",
+            "prompt": "Communicate in clear, professional English.",
+            "created_at": datetime.now(),
+            "updated_at": datetime.now()
+        }
+        await db.languages.insert_one(default_language)
+        print("✅ Created default language")
+    
+    # Create default bot voice
+    voice_count = await db.bot_voices.count_documents({})
+    if voice_count == 0:
+        default_voice = {
+            "_id": str(uuid4()),
+            "name": "Default Voice",
+            "description": "Default voice for avatars",
+            "voice_settings": {},
+            "created_at": datetime.now(),
+            "updated_at": datetime.now()
+        }
+        await db.bot_voices.insert_one(default_voice)
+        print("✅ Created default bot voice")
+    
+    # Create default environment
+    env_count = await db.environments.count_documents({})
+    if env_count == 0:
+        default_env = {
+            "_id": str(uuid4()),
+            "name": "Default Environment",
+            "description": "Default environment for training",
+            "environment_settings": {},
+            "created_at": datetime.now(),
+            "updated_at": datetime.now()
+        }
+        await db.environments.insert_one(default_env)
+        print("✅ Created default environment")
+    
+    # Create default persona
+    persona_count = await db.personas.count_documents({})
+    if persona_count == 0:
+        default_persona = {
+            "_id": str(uuid4()),
+            "name": "Default Customer",
+            "description": "Default customer persona",
+            "persona_type": "customer",
+            "gender": "neutral",
+            "age": 30,
+            "character_goal": "Get help with their needs",
+            "location": "General",
+            "persona_details": "Friendly, asks questions",
+            "situation": "Seeking assistance",
+            "business_or_personal": "general",
+            "background_story": "A typical customer",
+            "created_at": datetime.now(),
+            "updated_at": datetime.now()
+        }
+        await db.personas.insert_one(default_persona)
+        print("✅ Created default persona")
+    
+    print("✅ Basic system data ready")
+
+# ENVIRONMENT VARIABLES TO SET
+"""
+Set these in your .env file:
+
+BOSS_ADMIN_EMAIL=boss@novactech.com
+BOSS_ADMIN_PASSWORD=BossAdmin@123!
+"""
+
+# QUICK TEST FUNCTION
+async def test_startup():
+    """Test what gets created"""
+    from database import get_db
+    db = await get_db()
+    
+    print("🔍 Testing startup results...")
+    
+    # Check Mother Company
+    mother_company = await db.companies.find_one({"company_type": "mother"})
+    if mother_company:
+        print(f"✅ Mother Company: {mother_company['name']}")
+    else:
+        print("❌ Mother Company not found")
+    
+    # Check Boss Admin
+    boss_admin = await db.users.find_one({"role": "boss_admin"})
+    if boss_admin:
+        print(f"✅ Boss Admin: {boss_admin['email']}")
+        print(f"   Company: {boss_admin['company_id']}")
+    else:
+        print("❌ Boss Admin not found")
+    
+    # Check basic data
+    avatar_count = await db.avatars.count_documents({})
+    language_count = await db.languages.count_documents({})
+    persona_count = await db.personas.count_documents({})
+    
+    print(f"✅ Basic data: {avatar_count} avatars, {language_count} languages, {persona_count} personas")
 @app.on_event("startup")
 async def startup_event():
-    """
-    Initialize bots when application starts
-    """
-    # await create_default_superadmin(db)
-    # await migrate_course_assignments(db)
-    # await migrate_avatar_models(db)
-    # await bot_factory.initialize_bots()
-    # await bot_factory_analyser.initialize_bots_analyser()
+    """Simple startup - just Mother Company + Boss Admin + Basic Data"""
+    
+    print("🚀 Starting FastAPI Application...")
+    
+    try:
+        from database import get_db
+        db = await get_db()
+        
+        # Step 1: Create Mother Company
+        await create_mother_company(db)
+        
+        # Step 2: Create Boss Admin for Mother Company
+        await create_boss_admin_for_mother_company(db)
+        
+        # Step 3: Create basic system data
+        # await create_basic_system_data(db)
+        
+        print("✅ FastAPI startup completed successfully!")
+        
+    except Exception as e:
+        print(f"❌ Startup error: {e}")
+        print("⚠️  App will continue but may have issues")
 async def get_db():
     return db
 # Dependency to get database
@@ -1010,6 +1255,46 @@ async def run_benchmark_endpoint(
             "error": str(e),
             "error_type": type(e).__name__
         }
+# FILE: Add this debug endpoint to main.py
+@app.get("/debug/check-chunks/{knowledge_base_id}")
+async def debug_check_chunks(knowledge_base_id: str, db: Any = Depends(get_db)):
+    """Debug: Check what's in your chunks"""
+    
+    # Check MongoDB chunks
+    chunks = await db.document_chunks.find(
+        {"knowledge_base_id": knowledge_base_id}
+    ).limit(5).to_list(length=5)
+    
+    # Check Azure Search directly
+    from core.azure_search_manager import AzureVectorSearchManager
+    vector_search = AzureVectorSearchManager()
+    search_client = vector_search.get_search_client(knowledge_base_id)
+    
+    try:
+        # Get some documents from Azure Search
+        results = await search_client.search(
+            search_text="*",
+            select=["id", "knowledge_base_id", "content"],
+            top=5
+        )
+        
+        azure_docs = []
+        async for result in results:
+            azure_docs.append({
+                "id": result["id"],
+                "knowledge_base_id": result.get("knowledge_base_id"),
+                "content": result["content"][:100]
+            })
+    finally:
+        await search_client.close()
+    
+    return {
+        "knowledge_base_id": knowledge_base_id,
+        "mongodb_chunks": len(chunks),
+        "mongodb_sample": chunks[0] if chunks else None,
+        "azure_docs": len(azure_docs),
+        "azure_sample": azure_docs[0] if azure_docs else None
+    }
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=9000, reload=True)

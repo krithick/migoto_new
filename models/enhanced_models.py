@@ -197,7 +197,7 @@ class ProcessingJob(BaseModel):
 class DocumentChunk(BaseModel):
     """Individual document chunk for vector search"""
     id: str = Field(default_factory=lambda: str(uuid4()))
-    knowledge_base_id: str
+    knowledge_base_id: str = ""
     document_id: str
     content: str
     chunk_index: int

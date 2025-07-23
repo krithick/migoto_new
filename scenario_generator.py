@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from openai import AzureOpenAI ,AsyncAzureOpenAI
 import os
 from utils import convert_template_to_markdown
+from models.user_models import UserRole
 load_dotenv(".env")
 
 router = APIRouter(prefix="/scenario", tags=["Scenario Generation"])
@@ -19,7 +20,7 @@ api_key = os.getenv("api_key")
 endpoint = os.getenv("endpoint")
 api_version =  os.getenv("api_version")
         
-        
+      
 azure_openai_client = AsyncAzureOpenAI(
             api_key=api_key,
             api_version=api_version,
@@ -1517,90 +1518,6 @@ async def generate_personas_from_template_endpoint(template_data: Dict[str, Any]
         print(f"Error in generate_personas_from_template_endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# @router.post("/file-to-template")
-# async def file_to_template(file: UploadFile = File(...)):
-#     """
-#     Upload scenario document file and analyze to template structure.
-#     Supports .txt, .docx, and .pdf files with proper text extraction.
-#     """
-#     try:
-#         # Read file content
-#         content = await file.read()
-        
-#         # Extract text based on file type
-#         scenario_text = ""
-        
-#         if file.filename.endswith('.txt'):
-#             scenario_text = content.decode('utf-8')
-            
-#         elif file.filename.endswith(('.doc', '.docx')):
-#             # Use proper docx extraction
-#             scenario_text = await extract_text_from_docx(content)
-#             if scenario_text is None:
-#                 raise HTTPException(status_code=400, detail="Failed to extract text from Word document")
-                
-#         elif file.filename.endswith('.pdf'):
-#             # Use PDF extraction
-#             scenario_text = await extract_text_from_pdf(content)
-#             if scenario_text is None:
-#                 raise HTTPException(status_code=400, detail="Failed to extract text from PDF document")
-                
-#         else:
-#             # Try generic text extraction for other file types
-#             try:
-#                 scenario_text = content.decode('utf-8')
-#             except UnicodeDecodeError:
-#                 scenario_text = content.decode('utf-8', errors='ignore')
-        
-#         # Validate that we have meaningful content
-#         if not scenario_text or len(scenario_text.strip()) < 10:
-#             raise HTTPException(
-#                 status_code=400, 
-#                 detail=f"File appears to be empty or contains insufficient content. Extracted {len(scenario_text)} characters."
-#             )
-        
-#         # Log for debugging
-#         print(f"File processed successfully:")
-#         print(f"- Filename: {file.filename}")
-#         print(f"- Content-Type: {file.content_type}")
-#         print(f"- Original size: {len(content)} bytes")
-#         print(f"- Extracted text length: {len(scenario_text)} characters")
-#         print(f"- Text preview: {scenario_text[:300]}...")
-        
-#         # Use the same extraction logic as analyze-scenario
-#         generator = EnhancedScenarioGenerator(azure_openai_client)  # Replace with your actual client
-#         template_data = await generator.extract_scenario_info(scenario_text)
-        
-#         # Add file metadata to the response
-#         template_data["file_metadata"] = {
-#             "filename": file.filename,
-#             "original_size": len(content),
-#             "extracted_text_length": len(scenario_text),
-#             "file_type": file.content_type,
-#             "extraction_method": "docx" if file.filename.endswith(('.doc', '.docx')) 
-#                                else "pdf" if file.filename.endswith('.pdf') 
-#                                else "text"
-#         }
-        
-#         return TemplateAnalysisResponse(
-#             general_info=template_data.get("general_info", {}),
-#             context_overview=template_data.get("context_overview", {}),
-#             persona_definitions=template_data.get("persona_definitions", {}),
-#             dialogue_flow=template_data.get("dialogue_flow", {}),
-#             knowledge_base=template_data.get("knowledge_base", {}),
-#             variations_challenges=template_data.get("variations_challenges", {}),
-#             success_metrics=template_data.get("success_metrics", {}),
-#             feedback_mechanism=template_data.get("feedback_mechanism", {})
-#         )
-        
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         print(f"Error in file_to_template: {str(e)}")
-#         print(f"File details - Name: {file.filename}, Content-Type: {file.content_type}")
-#         if 'scenario_text' in locals():
-#             print(f"Extracted text preview: {scenario_text[:200]}")
-#         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
 @router.post("/file-to-template")
 async def file_to_template(file: UploadFile = File(...)):
     try:
@@ -1697,112 +1614,7 @@ from core.azure_search_manager import AzureVectorSearchManager
 from core.user import get_current_user
 from models.user_models import UserDB
 from database import get_db
-# ADD this new endpoint (main one you need)
-# # processsssss
-# @router.post("/process-template-with-docs")
-# async def process_template_with_docs(
-#     template_file: UploadFile = File(...),
-#     supporting_docs: List[UploadFile] = File(...),
-#     template_name: str = Form(...),
-#     current_user: UserDB = Depends(get_current_user),
-#     db: Any = Depends(get_db)
-# ):
-#     """Process template + supporting documents, return data for scenario creation"""
-#     try:
-#         # 1. Your existing template processing
-#         content = await template_file.read()
-        
-#         if template_file.filename.lower().endswith(('.doc', '.docx')):
-#             scenario_text = await extract_text_from_docx(content)
-#         elif template_file.filename.lower().endswith('.pdf'):
-#             scenario_text = await extract_text_from_pdf(content)
-#         else:
-#             scenario_text = content.decode('utf-8')
-            
-#         # 2. Use your existing analysis
-#         generator = EnhancedScenarioGenerator(azure_openai_client)
-#         template_data = await generator.extract_scenario_info(scenario_text)
-        
-#         # 3. Generate prompts (your existing logic)
-#         personas = await generator.generate_personas_from_template(template_data)
-#         learn_mode_prompt = await generator.generate_learn_mode_from_template(template_data)
-#         try_mode_prompt = await generator.generate_try_mode_from_template(template_data)
-#         assess_mode_prompt = await generator.generate_assess_mode_from_template(template_data)
-        
-#         # 4. NEW: Process supporting documents
-#         knowledge_base_id = f"kb_{str(uuid4())}"
-#         supporting_docs_metadata = []
-        
-#         if supporting_docs and len(supporting_docs) > 0:
-#             supporting_docs_metadata = await process_and_index_documents(
-#                 supporting_docs, knowledge_base_id, db
-#             )
 
-            
-#         # 5. Store in your existing templates collection
-#         template_record = {
-#             "id": str(uuid4()),
-#             "name": template_name,
-#             "template_data": template_data,
-#             "created_at": datetime.now().isoformat(),
-#             "updated_at": datetime.now().isoformat(),
-            
-#             # NEW: Add these fields for document support
-#             "knowledge_base_id": knowledge_base_id if supporting_docs_metadata else None,
-#             "supporting_documents": len(supporting_docs_metadata),
-#             "generated_prompts": {
-#                 "learn_mode": learn_mode_prompt,
-#                 "try_mode": try_mode_prompt,
-#                 "assess_mode": assess_mode_prompt
-#             },
-#             "generated_personas": personas,
-#             "fact_checking_enabled": len(supporting_docs_metadata) > 0
-#         }
-        
-#         await db.templates.insert_one(template_record)
-#         if supporting_docs_metadata:
-#             knowledge_base_record = {
-#                 "_id": knowledge_base_id,
-#             "template_id": template_record["id"],
-#             "scenario_title": template_data.get("context_overview", {}).get("scenario_title", template_name),
-#             "supporting_documents": supporting_docs_metadata,
-#             "total_documents": len(supporting_docs_metadata),
-        
-#         # ADD THIS LINE:
-#             "total_chunks": sum(doc.get("chunk_count", 0) for doc in supporting_docs_metadata),
-        
-#             "created_at": datetime.now(),
-#             "last_updated": datetime.now(),
-#             "fact_checking_enabled": True
-#         }
-#             await db.knowledge_bases.insert_one(knowledge_base_record)        
-                    
-#         return {
-#             "template_id": template_record["id"],
-#             "message": "Template and documents processed successfully",
-            
-#             # Data for you to create scenario + avatar interactions
-#             "scenario_data": {
-#                 "title": template_data.get("context_overview", {}).get("scenario_title", template_name),
-#                 "description": template_data.get("context_overview", {}).get("purpose_of_scenario", ""),
-#                 "knowledge_base_id": knowledge_base_id,
-#                 "template_data": template_data,
-#                 "fact_checking_enabled": len(supporting_docs_metadata) > 0
-#             },
-            
-#             "prompts": {
-#                 "learn_mode": learn_mode_prompt,
-#                 "try_mode": try_mode_prompt,
-#                 "assess_mode": assess_mode_prompt
-#             },
-            
-#             "personas": personas,
-#             "supporting_documents_count": len(supporting_docs_metadata)
-#         }
-        
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-# # oldddddd
 # newwww
 @router.post("/analyze-template-with-docs")
 async def analyze_template_with_docs(
@@ -1880,6 +1692,7 @@ async def analyze_template_with_docs(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
 # newww
 # ADD this helper function
 async def process_and_index_documents(supporting_docs: List[UploadFile], knowledge_base_id: str, db: Any) -> List[dict]:
@@ -2011,5 +1824,595 @@ async def get_evaluation_metrics(
         
     except HTTPException:
         raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+@router.post("/generate-personas")
+async def generate_personas(
+    template_id: str = Body(...),
+    persona_type: str = Body(..., description="learn_mode_expert or assess_mode_character"),
+    count: int = Body(default=1, description="Number of personas to generate"),
+    db: Any = Depends(get_db)
+):
+    """
+    Simple API: Generate personas from template ID
+    """
+    try:
+        # Get template data from database
+        template = await db.templates.find_one({"id": template_id})
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        template_data = template.get("template_data", {})
+        
+        # Generate personas using existing logic
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        generated_personas = await generator.generate_personas_from_template(template_data)
+        
+        # Return requested persona type
+        if persona_type in generated_personas:
+            persona = generated_personas[persona_type]
+            # If count > 1, generate variations (for future use)
+            personas = [persona] * count  # For now, return same persona
+            
+            return {
+                "template_id": template_id,
+                "persona_type": persona_type,
+                "count": count,
+                "personas": personas
+            }
+        else:
+            raise HTTPException(status_code=400, detail=f"Persona type '{persona_type}' not found")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/analyze-template-with-optional-docs")
+async def analyze_template_with_optional_docs(
+    template_file: UploadFile = File(...),
+    supporting_docs: List[UploadFile] = File(default=[]),  # NOW OPTIONAL
+    template_name: str = Form(...),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """
+    Updated version: Template file required, supporting docs optional
+    """
+    try:
+        # 1. Process template file (same as before)
+        content = await template_file.read()
+        
+        if template_file.filename.lower().endswith(('.doc', '.docx')):
+            scenario_text = await extract_text_from_docx(content)
+        elif template_file.filename.lower().endswith('.pdf'):
+            scenario_text = await extract_text_from_pdf(content)
+        else:
+            scenario_text = content.decode('utf-8')
+            
+        # 2. Analyze template
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        template_data = await generator.extract_scenario_info(scenario_text)
+        evaluation_metrics = await generator.extract_evaluation_metrics_from_template(scenario_text, template_data)
+        template_data["evaluation_metrics"] = evaluation_metrics
+        
+        # 3. Process supporting documents ONLY if provided
+        knowledge_base_id = None
+        supporting_docs_metadata = []
+        
+        if supporting_docs and len(supporting_docs) > 0:
+            knowledge_base_id = f"kb_{str(uuid4())}"
+            supporting_docs_metadata = await process_and_index_documents(
+                supporting_docs, knowledge_base_id, db
+            )
+        
+        # 4. Save template (same structure for both flows)
+        template_record = {
+            "id": str(uuid4()),
+            "name": template_name,
+            "template_data": template_data,
+            "knowledge_base_id": knowledge_base_id if supporting_docs_metadata else None,
+            "supporting_documents": len(supporting_docs_metadata),
+            "status": "ready_for_editing",
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
+            "created_by": str(current_user.id),
+            "source": "file_upload"
+        }
+        
+        await db.templates.insert_one(template_record)
+        
+        # 5. Create knowledge base if docs provided
+        if supporting_docs_metadata:
+            knowledge_base_record = {
+                "_id": knowledge_base_id,
+                "template_id": template_record["id"],
+                "scenario_title": template_data.get("context_overview", {}).get("scenario_title", template_name),
+                "supporting_documents": supporting_docs_metadata,
+                "total_documents": len(supporting_docs_metadata),
+                "total_chunks": sum(doc.get("chunk_count", 0) for doc in supporting_docs_metadata),
+                "created_at": datetime.now(),
+                "last_updated": datetime.now(),
+                "fact_checking_enabled": True
+            }
+            await db.knowledge_bases.insert_one(knowledge_base_record)
+        
+        return {
+            "template_id": template_record["id"],
+            "template_data": template_data,
+            "knowledge_base_id": knowledge_base_id,
+            "supporting_documents_count": len(supporting_docs_metadata),
+            "has_supporting_docs": len(supporting_docs_metadata) > 0,
+            "fact_checking_enabled": len(supporting_docs_metadata) > 0,
+            "message": "Template analyzed and ready for editing",
+            "next_step": "Edit template sections, then generate prompts"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+@router.post("/analyze-scenario-enhanced")
+async def analyze_scenario_enhanced(
+    scenario_document: str = Form(...),
+    template_name: str = Form(...),
+    supporting_docs: List[UploadFile] = File(default=[]),  # OPTIONAL now
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """
+    Enhanced analyze-scenario: Creates template + optionally processes documents
+    - scenario_document: Text description of the scenario
+    - template_name: Name for the template
+    - supporting_docs: OPTIONAL supporting documents
+    """
+    try:
+        # 1. Analyze scenario text to get editable template structure
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        template_data = await generator.extract_scenario_info(scenario_document)
+        
+        # Add evaluation metrics
+        evaluation_metrics = await generator.extract_evaluation_metrics_from_template(scenario_document, template_data)
+        template_data["evaluation_metrics"] = evaluation_metrics
+        
+        # 2. Process supporting documents if provided (OPTIONAL)
+        knowledge_base_id = None
+        supporting_docs_metadata = []
+        
+        if supporting_docs and len(supporting_docs) > 0:
+            knowledge_base_id = f"kb_{str(uuid4())}"
+            supporting_docs_metadata = await process_and_index_documents(
+                supporting_docs, knowledge_base_id, db
+            )
+        
+        # 3. Create template record (same structure as analyze-template-with-docs)
+        template_record = {
+            "id": str(uuid4()),
+            "name": template_name,
+            "template_data": template_data,  # EDITABLE template data
+            "knowledge_base_id": knowledge_base_id if supporting_docs_metadata else None,
+            "supporting_documents": len(supporting_docs_metadata),
+            "status": "ready_for_editing",
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
+            "created_by": str(current_user.id),
+            "source": "text_analysis"  # vs "file_upload" for template files
+        }
+        
+        await db.templates.insert_one(template_record)
+        
+        # 4. Create knowledge base record if documents were provided
+        if supporting_docs_metadata:
+            knowledge_base_record = {
+                "_id": knowledge_base_id,
+                "template_id": template_record["id"],
+                "scenario_title": template_data.get("context_overview", {}).get("scenario_title", template_name),
+                "supporting_documents": supporting_docs_metadata,
+                "total_documents": len(supporting_docs_metadata),
+                "total_chunks": sum(doc.get("chunk_count", 0) for doc in supporting_docs_metadata),
+                "created_at": datetime.now(),
+                "last_updated": datetime.now(),
+                "fact_checking_enabled": True
+            }
+            await db.knowledge_bases.insert_one(knowledge_base_record)
+        
+        return {
+            "template_id": template_record["id"],
+            "template_data": template_data,  # For frontend editing
+            "knowledge_base_id": knowledge_base_id,
+            "supporting_documents_count": len(supporting_docs_metadata),
+            "has_supporting_docs": len(supporting_docs_metadata) > 0,
+            "fact_checking_enabled": len(supporting_docs_metadata) > 0,
+            "message": "Scenario analyzed and template created successfully",
+            "next_step": "Edit template sections, then generate prompts"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@router.get("/scenarios/{scenario_id}/template-data")
+async def get_scenario_template_data(
+    scenario_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Get template data for a scenario"""
+    try:
+        # Get scenario
+        scenario = await db.scenarios.find_one({"_id": scenario_id})
+        if not scenario:
+            raise HTTPException(status_code=404, detail="Scenario not found")
+        
+        # Get template from template_id
+        template_id = scenario.get("template_id")
+        if not template_id:
+            raise HTTPException(status_code=404, detail="No template linked to this scenario")
+        
+        template = await db.templates.find_one({"id": template_id})
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        template_data = template.get("template_data", {})
+        knowledge_base_id = template.get("knowledge_base_id")
+        
+        return {
+            "scenario_id": scenario_id,
+            "template_id": template_id,
+            "scenario_title": scenario.get("title", ""),
+            "template_data": template_data,
+            "knowledge_base_id": knowledge_base_id
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/scenarios-editor/{scenario_id}/template-data")
+async def update_scenario_template_data(
+    scenario_id: str,
+    request: Dict[str, Any] = Body(...),  # Accept raw dict instead of Pydantic model
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Update template data for a scenario (updates the linked template)"""
+    try:
+        print('test')
+        # Get scenario
+        scenario = await db.scenarios.find_one({"_id": scenario_id})
+        if not scenario:
+            raise HTTPException(status_code=404, detail="Scenario not found")
+        
+        # Check permissions (similar to your existing scenario update logic)
+        if current_user.role == UserRole.ADMIN:
+            if scenario.get("created_by") != str(current_user.id):
+                raise HTTPException(status_code=403, detail="Not authorized")
+        elif current_user.role not in [UserRole.SUPERADMIN, UserRole.BOSS_ADMIN]:
+            raise HTTPException(status_code=403, detail="Not authorized")
+        
+        # Get template_id
+        template_id = scenario.get("template_id")
+        if not template_id:
+            raise HTTPException(status_code=404, detail="No template linked to this scenario")
+        
+        # Extract template_data from request (in case it's nested)
+        template_data = request
+        if "template_data" in request:
+            template_data = request["template_data"]
+        
+        # Update the template document (not the scenario)
+        await db.templates.update_one(
+            {"id": template_id},
+            {"$set": {
+                "template_data": template_data,
+                "updated_at": datetime.now().isoformat()
+            }}
+        )
+        
+        return {
+            "message": "Template data updated successfully",
+            "scenario_id": scenario_id,
+            "template_id": template_id,
+            "updated_template": template_data
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/scenarios/{scenario_id}/regenerate")
+async def regenerate_scenario_from_template(
+    scenario_id: str,
+    regenerate_options: Dict[str, Any] = Body(default={
+        "modes_to_regenerate": ["learn_mode", "assess_mode", "try_mode"],
+        "regenerate_personas": True
+    }),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Regenerate scenario prompts from linked template data"""
+    try:
+        # Get scenario
+        scenario = await db.scenarios.find_one({"_id": scenario_id})
+        if not scenario:
+            raise HTTPException(status_code=404, detail="Scenario not found")
+        
+        # Check permissions
+        if current_user.role == UserRole.ADMIN:
+            if scenario.get("created_by") != str(current_user.id):
+                raise HTTPException(status_code=403, detail="Not authorized")
+        elif current_user.role not in [UserRole.SUPERADMIN, UserRole.BOSS_ADMIN]:
+            raise HTTPException(status_code=403, detail="Not authorized")
+        
+        # Get template data from linked template
+        template_id = scenario.get("template_id")
+        if not template_id:
+            raise HTTPException(status_code=400, detail="No template linked to this scenario")
+        
+        template = await db.templates.find_one({"id": template_id})
+        if not template:
+            raise HTTPException(status_code=404, detail="Linked template not found")
+        
+        template_data = template.get("template_data")
+        if not template_data:
+            raise HTTPException(status_code=400, detail="No template data found")
+        
+        # Initialize generator
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        
+        # Regenerate personas if requested
+        personas = None
+        if regenerate_options.get("regenerate_personas", True):
+            personas = await generator.generate_personas_from_template(template_data)
+        else:
+            # Try to get existing personas (this might not exist in current schema)
+            personas = scenario.get("generated_persona", {})
+        
+        # Generate prompts for requested modes
+        modes_to_regenerate = regenerate_options.get("modes_to_regenerate", ["learn_mode", "assess_mode", "try_mode"])
+        generated_prompts = {}
+        
+        if "learn_mode" in modes_to_regenerate:
+            learn_prompt = await generator.generate_learn_mode_from_template(template_data)
+            # learn_prompt = generator.insert_persona(learn_prompt, personas.get("learn_mode_expert", {}))
+            # learn_prompt = generator.insert_language_instructions(learn_prompt, template_data.get("general_info", {}))
+            generated_prompts["learn_mode"] = learn_prompt
+        
+        if "assess_mode" in modes_to_regenerate:
+            assess_prompt = await generator.generate_assess_mode_from_template(template_data)
+            # assess_prompt = generator.insert_persona(assess_prompt, personas.get("assess_mode_character", {}))
+            # assess_prompt = generator.insert_language_instructions(assess_prompt, template_data.get("general_info", {}))
+            generated_prompts["assess_mode"] = assess_prompt
+        
+        if "try_mode" in modes_to_regenerate:
+            try_prompt = await generator.generate_try_mode_from_template(template_data)
+            # try_prompt = generator.insert_persona(try_prompt, personas.get("assess_mode_character", {}))
+            # try_prompt = generator.insert_language_instructions(try_prompt, template_data.get("general_info", {}))
+            generated_prompts["try_mode"] = try_prompt
+        
+
+        
+        update_data = {
+            "updated_at": datetime.now()
+        }
+        
+        # Store generated prompts in scenario (you may need to adjust this based on your schema)
+        if "learn_mode" in generated_prompts and scenario.get("learn_mode"):
+            update_data["learn_mode.prompt"] = generated_prompts["learn_mode"]
+        
+        if "assess_mode" in generated_prompts and scenario.get("assess_mode"):
+            update_data["assess_mode.prompt"] = generated_prompts["assess_mode"]
+        
+        if "try_mode" in generated_prompts and scenario.get("try_mode"):
+            update_data["try_mode.prompt"] = generated_prompts["try_mode"]
+        
+        await db.scenarios.update_one(
+            {"_id": scenario_id},
+            {"$set": update_data}
+        )
+        
+        return {
+            "message": "Scenario regenerated successfully",
+            "scenario_id": scenario_id,
+            "template_id": template_id,
+            "regenerated_modes": modes_to_regenerate,
+            "generated_prompts": generated_prompts,
+            "generated_personas": personas
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/scenarios/{scenario_id}/knowledge-base")
+async def manage_scenario_knowledge_base(
+    scenario_id: str,
+    kb_action: Dict[str, Any] = Body(...),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Link, unlink, or create knowledge base for scenario"""
+    try:
+        # Get scenario
+        scenario = await db.scenarios.find_one({"_id": scenario_id})
+        if not scenario:
+            raise HTTPException(status_code=404, detail="Scenario not found")
+        
+        # Check permissions
+        if current_user.role == UserRole.ADMIN:
+            if scenario.get("created_by") != str(current_user.id):
+                raise HTTPException(status_code=403, detail="Not authorized")
+        elif current_user.role not in [UserRole.SUPERADMIN, UserRole.BOSS_ADMIN]:
+            raise HTTPException(status_code=403, detail="Not authorized")
+        
+        action = kb_action.get("action")  # "link", "unlink", "create"
+        knowledge_base_id = kb_action.get("knowledge_base_id")
+        
+        if action == "link":
+            # Link existing knowledge base
+            if not knowledge_base_id:
+                raise HTTPException(status_code=400, detail="knowledge_base_id required for link action")
+            
+            # Verify KB exists
+            kb = await db.knowledge_bases.find_one({"_id": knowledge_base_id})
+            if not kb:
+                raise HTTPException(status_code=404, detail="Knowledge base not found")
+            
+            await db.scenarios.update_one(
+                {"_id": scenario_id},
+                {"$set": {
+                    "knowledge_base_id": knowledge_base_id,
+                    "fact_checking_enabled": True,
+                    "updated_at": datetime.now().isoformat()
+                }}
+            )
+            
+            return {
+                "message": "Knowledge base linked successfully",
+                "scenario_id": scenario_id,
+                "knowledge_base_id": knowledge_base_id,
+                "action": "linked"
+            }
+        
+        elif action == "unlink":
+            # Unlink knowledge base (but don't delete it)
+            await db.scenarios.update_one(
+                {"_id": scenario_id},
+                {"$unset": {
+                    "knowledge_base_id": "",
+                    "fact_checking_enabled": ""
+                },
+                "$set": {
+                    "updated_at": datetime.now().isoformat()
+                }}
+            )
+            
+            return {
+                "message": "Knowledge base unlinked successfully",
+                "scenario_id": scenario_id,
+                "action": "unlinked"
+            }
+        
+        elif action == "create":
+            # Create new knowledge base for this scenario
+            new_kb_id = f"kb_{scenario_id}_{str(uuid4())[:8]}"
+            
+            # Create empty knowledge base record
+            kb_record = {
+                "_id": new_kb_id,
+                "scenario_id": scenario_id,
+                "scenario_title": scenario.get("title", "Unknown Scenario"),
+                "supporting_documents": [],
+                "total_documents": 0,
+                "created_at": datetime.now(),
+                "last_updated": datetime.now(),
+                "fact_checking_enabled": False  # Will be enabled when docs are added
+            }
+            
+            await db.knowledge_bases.insert_one(kb_record)
+            
+            # Link to scenario
+            await db.scenarios.update_one(
+                {"_id": scenario_id},
+                {"$set": {
+                    "knowledge_base_id": new_kb_id,
+                    "fact_checking_enabled": False,  # Will be enabled when docs are added
+                    "updated_at": datetime.now().isoformat()
+                }}
+            )
+            
+            return {
+                "message": "Knowledge base created and linked successfully",
+                "scenario_id": scenario_id,
+                "knowledge_base_id": new_kb_id,
+                "action": "created"
+            }
+        
+        else:
+            raise HTTPException(status_code=400, detail="Invalid action. Use 'link', 'unlink', or 'create'")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/scenarios/{scenario_id}/editing-interface")
+async def get_scenario_editing_interface(
+    scenario_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """Get complete editing interface data for a scenario"""
+    try:
+        # Get scenario
+        scenario = await db.scenarios.find_one({"_id": scenario_id})
+        if not scenario:
+            raise HTTPException(status_code=404, detail="Scenario not found")
+        
+        # Get template data from template_id
+        template_id = scenario.get("template_id")
+        template_data = {}
+        
+        if template_id:
+            template = await db.templates.find_one({"id": template_id})
+            if template:
+                template_data = template.get("template_data", {})
+        
+        # Get knowledge base ID from template (not scenario)
+        knowledge_base_id = None
+        if template_id:
+            template = await db.templates.find_one({"id": template_id})
+            if template:
+                knowledge_base_id = template.get("knowledge_base_id")
+        
+        # Get knowledge base info and documents
+        kb_info = None
+        kb_documents = []
+        kb_stats = None
+        
+        if knowledge_base_id:
+            # Get KB info
+            kb_info = await db.knowledge_bases.find_one({"_id": knowledge_base_id})
+            
+            # Get KB documents
+            docs_cursor = db.supporting_documents.find({"knowledge_base_id": knowledge_base_id})
+            kb_documents = await docs_cursor.to_list(length=100)
+            
+            # Get KB stats
+            total_chunks = sum(doc.get("chunk_count", 0) for doc in kb_documents)
+            indexed_count = sum(1 for doc in kb_documents if doc.get("processing_status") == "completed")
+            
+            kb_stats = {
+                "total_documents": len(kb_documents),
+                "total_chunks": total_chunks,
+                "indexed_documents": indexed_count,
+                "search_ready": indexed_count > 0 and total_chunks > 0
+            }
+        
+        return {
+            "scenario_id": scenario_id,
+            "scenario": {
+                "title": scenario.get("title", ""),
+                "description": scenario.get("description", ""),
+                "template_id": template_id,
+                "created_at": scenario.get("created_at"),
+                "updated_at": scenario.get("updated_at")
+            },
+            "template_data": template_data,
+            "knowledge_base": {
+                "id": knowledge_base_id,
+                "info": kb_info,
+                "documents": kb_documents,
+                "stats": kb_stats,
+                "fact_checking_enabled": kb_info.get("fact_checking_enabled", False) if kb_info else False
+            },
+            "editing_capabilities": {
+                "can_edit_template": True,
+                "can_manage_knowledge_base": True,
+                "can_regenerate": True,
+                "available_modes": ["learn_mode", "assess_mode", "try_mode"]
+            }
+        }
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

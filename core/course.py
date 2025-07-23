@@ -54,6 +54,8 @@ async def get_accessible_courses_for_user(db: Any, user: UserDB) -> List[CourseD
         # Users only see assigned courses - use existing logic
         user_data = user.dict()
         assigned_course_ids = user_data.get("assigned_courses", [])
+        print(f"Raw assigned_courses: {assigned_course_ids}")
+        print(f"Types: {[type(x) for x in assigned_course_ids]}")
         assigned_course_ids_str = [str(course_id) for course_id in assigned_course_ids]
         
         if assigned_course_ids_str:
@@ -156,6 +158,7 @@ async def get_assignable_courses_for_user(db: Any, user: UserDB) -> List[CourseD
         return []
     
     accessible_courses = await get_accessible_courses_for_user(db, user)
+    print(accessible_courses)
     assignable_courses = []
     
     for course in accessible_courses:

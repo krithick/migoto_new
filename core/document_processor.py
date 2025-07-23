@@ -156,7 +156,7 @@ class DocumentProcessor:
                 # Create chunk
                 chunk = DocumentChunk(
                     document_id=document_id,
-                    knowledge_base_id="",  # Will be set by caller
+                    knowledge_base_id="temp",  # Will be set by caller
                     content=current_chunk.strip(),
                     chunk_index=chunk_index,
                     word_count=current_word_count,
@@ -181,7 +181,7 @@ class DocumentProcessor:
         if current_chunk.strip():
             chunk = DocumentChunk(
                 document_id=document_id,
-                knowledge_base_id="",  # Will be set by caller
+                knowledge_base_id="temp",  # Will be set by caller
                 content=current_chunk.strip(),
                 chunk_index=chunk_index,
                 word_count=current_word_count,
