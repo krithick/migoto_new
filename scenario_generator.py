@@ -966,7 +966,7 @@ TRAINING VALUE:
             
             Provide ONLY the JSON with realistic, detailed personas.
             Create personas that feel like real people with real stories, not generic customer types.
-
+            Make sure you create either a male or female persona
             """
             
             response = await self.client.chat.completions.create(
@@ -2493,3 +2493,131 @@ async def get_scenario_editing_interface(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+    
+
+    """
+    Generate a single persona with random gender and regional diversity
+    """
+    
+    # Random selections for diversity
+    genders = ["male", "female"]
+    random_gender = random.choice(genders)
+    
+    # Regional diversity (randomly selected internally)
+    regions = [
+        # {
+        #     "name": "us",
+        #     "locations": ["New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Phoenix, AZ"],
+        #     "cultural_context": "American cultural background, direct communication style",
+        #     "naming_style": "American names like Sarah, Michael, Jennifer, David"
+        # },
+        {
+            "name": "india", 
+            "locations": ["Mumbai, Maharashtra", "Delhi, NCR", "Bangalore, Karnataka", "Hyderabad, Telangana", "Chennai, Tamil Nadu"],
+            "cultural_context": "Indian cultural background, respectful and relationship-focused communication",
+            "naming_style": "Indian names like Priya, Rajesh, Anita, Vikram"
+        }
+        # ,
+        # {
+        #     "name": "uk",
+        #     "locations": ["London, England", "Manchester, England", "Birmingham, England", "Glasgow, Scotland"],
+        #     "cultural_context": "British cultural background, polite and formal communication style", 
+        #     "naming_style": "British names like Emma, James, Charlotte, Oliver"
+        # },
+        # {
+        #     "name": "australia",
+        #     "locations": ["Sydney, NSW", "Melbourne, VIC", "Brisbane, QLD", "Perth, WA"],
+        #     "cultural_context": "Australian cultural background, friendly and direct communication style",
+        #     "naming_style": "Australian names like Sophie, Luke, Grace, Ryan"
+        # }
+    ]
+    
+    random_region = random.choice(regions)
+    random_location = random.choice(random_region["locations"])
+    
+    # Get scenario context
+    domain = template_data.get("general_info", {}).get("domain", "general")
+    scenario_title = template_data.get("context_overview", {}).get("scenario_title", "Training Scenario")
+    
+    # Enhanced prompt with diversity built-in
+    prompt = f"""
+    Create a highly realistic, single-person persona for {domain} training scenarios.
+    
+    STRICT REQUIREMENTS:
+    - SINGLE PERSON ONLY (not a couple, not multiple people)
+    - Gender: {random_gender} (must be consistent throughout)
+    - Cultural Background: {random_region['cultural_context']}
+    - Location: {random_location}
+    - Naming Style: {random_region['naming_style']}
+    
+    PERSONA TYPE: {persona_type}
+    SCENARIO CONTEXT: {scenario_title}
+    DOMAIN: {domain}
+    
+    PERSONA PROFILE REQUIREMENTS:
+    1. Create ONE individual person (not a family, not a couple)
+    2. Ensure ALL pronouns and references match {random_gender} gender
+    3. Use culturally appropriate names from the specified region
+    4. Include region-specific cultural nuances and communication styles
+    5. Make the persona realistic and authentic
+    6. Include specific demographic details appropriate for the cultural background
+    
+    RESPONSE FORMAT (JSON only):
+    {{
+        "name": "Single culturally appropriate {random_gender} name",
+        "gender": "{random_gender}",
+        "age": [specific age number between 22-55],
+        "character_goal": "Specific goal relevant to {domain}",
+        "location": "{random_location}",
+        "persona_details": "Detailed description of this ONE {random_gender} person - personality, background, preferences, communication style",
+        "situation": "Current specific situation this person is facing in {domain} context",
+        "background_story": "Rich backstory explaining this person's background and experiences"
+    }}
+    
+    CRITICAL: 
+    - Use {random_gender} pronouns consistently (he/him for male, she/her for female)
+    - NO mixing of genders or multiple people
+    - Make it culturally authentic for the specified background
+    - Focus on ONE individual {random_gender} person only
+    
+    Generate the persona now.
+    """
+    
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are an expert persona designer who creates authentic, culturally diverse, single-person character profiles."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.8,  # Higher temperature for more diversity
+            max_tokens=1500,
+            response_format={"type": "json_object"}
+        )
+        
+        persona_data = json.loads(response.choices[0].message.content)
+        
+        # Validate and ensure consistency
+        persona_data["gender"] = random_gender  # Force consistency
+        
+        return persona_data
+        
+    except Exception as e:
+        print(f"Error generating persona: {str(e)}")
+        # Fallback persona with random diversity
+        fallback_names = {
+            "male": ["James", "Michael", "David", "Rajesh", "Oliver", "Ryan"],
+            "female": ["Sarah", "Jennifer", "Priya", "Emma", "Sophie", "Grace"]
+        }
+        
+        return {
+            "name": random.choice(fallback_names[random_gender]),
+            "gender": random_gender,
+            "age": random.randint(25, 45),
+            "character_goal": f"Engage in {domain} scenario",
+            "location": random_location,
+            "persona_details": f"A {random_gender} professional with relevant {domain} experience",
+            "situation": f"Participating in {domain} training scenario", 
+            "background_story": f"Professional background in {domain} from {random_region['name']}"
+        }
