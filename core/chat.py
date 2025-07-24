@@ -215,8 +215,9 @@ async def chat_stream(
     
     # Fetch avatar_interaction to get mode
     avatar_interaction = await db.avatar_interactions.find_one({"_id": avatar_interaction_id})
-    mode = avatar_interaction["mode"] if avatar_interaction else "try_mode"  # Default to try_mode
     
+    mode = avatar_interaction["mode"] if avatar_interaction else "try_mode"  # Default to try_mode
+    print("avatar_interaction",mode)
     # Extract persona_id if available
     avatar = await db.avatars.find_one({"_id": session.avatar_id})
     if not avatar:
@@ -231,7 +232,56 @@ async def chat_stream(
         persona_id=UUID(persona_id) if persona_id else None,
         language_id=language_id 
     )
-    await handler.initialize_fact_checking(id)
+    # await handler.initialize_fact_checking(id)
+    # Get template data for coaching rules
+    try:
+        # Get scenario to find template_id
+        session = await get_chat_session(db, id)
+        if not session or not session.avatar_interaction:
+            print("Warning: No session or avatar_interaction found")
+            await handler.initialize_fact_checking(id, coaching_rules={})
+            return
+        avatar_interaction = await db.avatar_interactions.find_one({"_id": str(session.avatar_interaction)})
+        if not avatar_interaction:
+            print("Warning: Avatar interaction not found")
+            await handler.initialize_fact_checking(id, coaching_rules={})
+            return
+        # Find scenario with this avatar interaction
+        scenario = None
+        avatar_interaction_id = session.avatar_interaction
+        avatar_interaction_str = str(session.avatar_interaction)
+        try:
+            avatar_interaction_uuid = UUID(avatar_interaction_str)
+        except ValueError:
+            avatar_interaction_uuid = None
+        print(f"🔍 Looking for scenario with avatar_interaction: {avatar_interaction_str}")
+        query_conditions = []
+        for mode_type in ["learn_mode", "try_mode", "assess_mode"]:
+            query_conditions.extend([
+            {f"{mode_type}.avatar_interaction": avatar_interaction_str},
+            {f"{mode_type}.avatar_interaction": avatar_interaction_uuid} if avatar_interaction_uuid else {}
+        ])
+            query_conditions = [q for q in query_conditions if q]
+            scenario = await db.scenarios.find_one({"$or": query_conditions})
+            print(f"🔍 Scenario found: {scenario is not None}")
+            if scenario:
+                print(f"✅ Found scenario: {scenario.get('_id')}")
+        # Get template data
+        coaching_rules = {}
+        print("scenario.get",scenario.get("template_id"))
+        if scenario and scenario.get("template_id"):
+            print("step1",scenario.get("template_id"))
+            template = await db.templates.find_one({"id": scenario["template_id"]})
+            # print("step2",template)
+            if template and template.get("template_data"):
+                coaching_rules = template["template_data"].get("coaching_rules", {})
+                # print("step3",coaching_rules)
+    
+        await handler.initialize_fact_checking(id, coaching_rules=coaching_rules)
+    
+    except Exception as e:
+        print(f"Warning: Could not load coaching rules: {e}")
+        await handler.initialize_fact_checking(id, coaching_rules={})       
     # Get the most recent user message
     if not session.conversation_history:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No conversation history found")
@@ -591,12 +641,144 @@ async def evaluate_conversation(
         raise HTTPException(status_code=500, detail=f"Evaluation failed: {str(e)}")
 
 
+# async def analyze_conversation_with_factcheck(
+#     conversation_history: List[Message],
+#     evaluation_metrics: Dict[str, Any],
+#     knowledge_base_id: Optional[str]
+# ) -> Dict[str, Any]:
+#     """Single prompt analysis like your old method + fact-checking"""
+    
+#     try:
+#         from openai import AsyncAzureOpenAI
+#         import os
+        
+#         openai_client = AsyncAzureOpenAI(
+#             api_key=os.getenv("api_key"),
+#             azure_endpoint=os.getenv("endpoint"),
+#             api_version=os.getenv("api_version")
+#         )
+        
+#         # Build conversation text
+#         conversation_text = ""
+#         for msg in conversation_history:
+#             role = "Learner" if msg.role != "assistant" else "Customer"
+#             conversation_text += f"{role}: {msg.content}\n"
+        
+#         # Get relevant knowledge for fact-checking (if available)
+#         knowledge_context = ""
+#         if knowledge_base_id:
+#             # Simple search for key terms in conversation
+#             from core.azure_search_manager import AzureVectorSearchManager
+#             vector_search = AzureVectorSearchManager()
+            
+#             search_results = await vector_search.vector_search(
+#                 conversation_text[:500], knowledge_base_id, top_k=5, openai_client=openai_client
+#             )
+            
+#             if search_results:
+#                 knowledge_context = "OFFICIAL INFORMATION FOR FACT-CHECKING:\n"
+#                 for result in search_results:
+#                     knowledge_context += f"- {result['content']}\n"
+        
+#         # Single evaluation prompt (like your old method)
+#         evaluation_prompt = f"""
+#         Analyze this customer service conversation and provide a comprehensive assessment.
+        
+#         CONVERSATION:
+#         {conversation_text}
+        
+#         {knowledge_context}
+        
+#         EVALUATION CRITERIA:
+#         {json.dumps(evaluation_metrics, indent=2) if evaluation_metrics else "Use standard customer service metrics"}
+        
+#         Provide assessment in JSON format:
+#         {{
+#             "overall_score": 0-100,
+#             "performance_category": "Excellent/Good/Satisfactory/Needs Improvement",
+#             "factual_accuracy": 0-100,
+#             "metric_scores": {{
+#                 "knowledge_accuracy": 0-100,
+#                 "communication_quality": 0-100,
+#                 "customer_service_skills": 0-100,
+#                 "professionalism": 0-100
+#             }},
+#             "strengths": ["strength 1", "strength 2"],
+#             "areas_for_improvement": ["area 1", "area 2"],
+#             "recommendations": ["recommendation 1", "recommendation 2"],
+#             "fact_check_summary": "Summary of any factual errors found",
+#             "conversation_summary": "Brief summary of what happened"
+#         }}
+        
+#         If official information is provided, check learner responses for factual accuracy.
+#         Focus on practical, actionable feedback.
+#         """
+        
+#         response = await openai_client.chat.completions.create(
+#             model="gpt-4o",
+#             messages=[
+#                 {"role": "system", "content": "You are an expert training evaluator who provides comprehensive but concise assessments."},
+#                 {"role": "user", "content": evaluation_prompt}
+#             ],
+#             temperature=0.2,
+#             max_tokens=1000
+#         )
+        
+#         # result = json.loads(response.choices[0].message.content)
+     
+#         result_text = response.choices[0].message.content.strip()
+#         print(f"🔍 LLM Response: {result_text[:200]}...")  # Debug log
+        
+#         # Try to extract JSON from response
+#         try:
+#             # First try direct parsing
+#             result = json.loads(result_text)
+#         except json.JSONDecodeError:
+#             # Try to extract JSON from markdown blocks
+#             json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
+#             if json_match:
+#                 result = json.loads(json_match.group(1))
+#             else:
+#                 # Fallback if JSON parsing fails
+#                 print(f"❌ JSON parsing failed. Raw response: {result_text}")
+#                 result = {
+#                     "overall_score": 50,
+#                     "performance_category": "Needs Assessment",
+#                     "factual_accuracy": 50,
+#                     "metric_scores": {
+#                         "knowledge_accuracy": 50,
+#                         "communication_quality": 50,
+#                         "customer_service_skills": 50,
+#                         "professionalism": 50
+#                     },
+#                     "strengths": ["Assessment could not be completed"],
+#                     "areas_for_improvement": ["Please try evaluation again"],
+#                     "recommendations": ["Review conversation and retry assessment"],
+#                     "fact_check_summary": "Could not analyze due to parsing error",
+#                     "conversation_summary": "Analysis incomplete",
+#                     "parsing_error": True,
+#                     "raw_response": result_text[:500]
+#                 }        
+#         # Add metadata
+#         result["evaluation_method"] = "single_prompt_with_factcheck"
+#         result["knowledge_base_used"] = knowledge_base_id is not None
+#         result["conversation_length"] = len(conversation_history)
+        
+#         return result
+        
+#     except Exception as e:
+#         print(f"Error in conversation analysis: {e}")
+#         return {
+#             "overall_score": 0,
+#             "error": f"Analysis failed: {str(e)}",
+#             "conversation_length": len(conversation_history)
+#         }
 async def analyze_conversation_with_factcheck(
     conversation_history: List[Message],
     evaluation_metrics: Dict[str, Any],
     knowledge_base_id: Optional[str]
 ) -> Dict[str, Any]:
-    """Single prompt analysis like your old method + fact-checking"""
+    """Single prompt analysis + enhanced fact-checking with template coaching rules"""
     
     try:
         from openai import AsyncAzureOpenAI
@@ -608,19 +790,55 @@ async def analyze_conversation_with_factcheck(
             api_version=os.getenv("api_version")
         )
         
-        # Build conversation text
+        # Build conversation text (your existing code)
         conversation_text = ""
         for msg in conversation_history:
             role = "Learner" if msg.role != "assistant" else "Customer"
             conversation_text += f"{role}: {msg.content}\n"
         
-        # Get relevant knowledge for fact-checking (if available)
+        # Get relevant knowledge for fact-checking (your existing code)
         knowledge_context = ""
+        fact_check_results = []  # ✅ ADD: Store detailed fact-check results
+        
         if knowledge_base_id:
-            # Simple search for key terms in conversation
-            from core.azure_search_manager import AzureVectorSearchManager
+            from core.azure_search_manager import AzureVectorSearchManager, EnhancedFactChecker
             vector_search = AzureVectorSearchManager()
             
+            # ✅ ENHANCED: Initialize fact-checker with empty coaching rules for evaluation
+            # (We're not doing real-time coaching here, just thorough analysis)
+            fact_checker = EnhancedFactChecker(vector_search, openai_client, coaching_rules={})
+            
+            # ✅ ADD: Detailed fact-checking of learner responses
+            try:
+                # Get learner responses (not customer responses)
+                learner_responses = [
+                    msg.content for msg in conversation_history 
+                    if msg.role != "assistant"  # assistant = customer, others = learner
+                ]
+                
+                # Fact-check the last few learner responses
+                for response in learner_responses[-3:]:  # Check last 3 learner responses
+                    if len(response.strip()) > 10:  # Skip very short responses
+                        verifications = await fact_checker.verify_response_claims(
+                            response, 
+                            knowledge_base_id, 
+                            conversation_history=conversation_history  # ✅ Pass conversation context
+                        )
+                        
+                        # Store detailed results
+                        for verification in verifications:
+                            fact_check_results.append({
+                                "claim": verification.claim.get("claim_text", ""),
+                                "result": verification.result.value,
+                                "confidence": verification.confidence_score,
+                                "explanation": verification.explanation,
+                                "coaching_feedback": getattr(verification, 'coaching_feedback', None)
+                            })
+                        
+            except Exception as fact_error:
+                print(f"Detailed fact-checking error: {fact_error}")
+            
+            # Your existing search logic (keep this)
             search_results = await vector_search.vector_search(
                 conversation_text[:500], knowledge_base_id, top_k=5, openai_client=openai_client
             )
@@ -630,7 +848,18 @@ async def analyze_conversation_with_factcheck(
                 for result in search_results:
                     knowledge_context += f"- {result['content']}\n"
         
-        # Single evaluation prompt (like your old method)
+        # ✅ ENHANCED: Build fact-check summary for evaluation prompt
+        fact_check_summary = ""
+        if fact_check_results:
+            fact_errors = [fc for fc in fact_check_results if fc["result"] in ["INCORRECT", "PARTIALLY_CORRECT"]]
+            fact_check_summary = f"""
+DETAILED FACT-CHECK RESULTS:
+- Total claims analyzed: {len(fact_check_results)}
+- Factual errors found: {len(fact_errors)}
+- Key issues: {[fc["explanation"] for fc in fact_errors[:3]]}
+"""
+        
+        # ✅ ENHANCED: Evaluation prompt with fact-check integration
         evaluation_prompt = f"""
         Analyze this customer service conversation and provide a comprehensive assessment.
         
@@ -638,6 +867,8 @@ async def analyze_conversation_with_factcheck(
         {conversation_text}
         
         {knowledge_context}
+        
+        {fact_check_summary}
         
         EVALUATION CRITERIA:
         {json.dumps(evaluation_metrics, indent=2) if evaluation_metrics else "Use standard customer service metrics"}
@@ -660,10 +891,14 @@ async def analyze_conversation_with_factcheck(
             "conversation_summary": "Brief summary of what happened"
         }}
         
-        If official information is provided, check learner responses for factual accuracy.
-        Focus on practical, actionable feedback.
+        IMPORTANT: 
+        - Use the detailed fact-check results above to assess factual accuracy
+        - If factual errors were found, reflect this in the knowledge_accuracy score
+        - Include specific fact-checking findings in your recommendations
+        - Focus on practical, actionable feedback
         """
         
+        # Your existing LLM call (keep this)
         response = await openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -674,23 +909,18 @@ async def analyze_conversation_with_factcheck(
             max_tokens=1000
         )
         
-        # result = json.loads(response.choices[0].message.content)
-     
+        # Your existing JSON parsing (keep this)
         result_text = response.choices[0].message.content.strip()
-        print(f"🔍 LLM Response: {result_text[:200]}...")  # Debug log
+        print(f"🔍 LLM Response: {result_text[:200]}...")
         
-        # Try to extract JSON from response
         try:
-            # First try direct parsing
             result = json.loads(result_text)
         except json.JSONDecodeError:
-            # Try to extract JSON from markdown blocks
             json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
             if json_match:
                 result = json.loads(json_match.group(1))
             else:
-                # Fallback if JSON parsing fails
-                print(f"❌ JSON parsing failed. Raw response: {result_text}")
+                # Your existing fallback (keep this)
                 result = {
                     "overall_score": 50,
                     "performance_category": "Needs Assessment",
@@ -708,11 +938,21 @@ async def analyze_conversation_with_factcheck(
                     "conversation_summary": "Analysis incomplete",
                     "parsing_error": True,
                     "raw_response": result_text[:500]
-                }        
-        # Add metadata
-        result["evaluation_method"] = "single_prompt_with_factcheck"
+                }
+        
+        # ✅ ENHANCED: Add detailed fact-check data to result
+        result["evaluation_method"] = "single_prompt_with_enhanced_factcheck"
         result["knowledge_base_used"] = knowledge_base_id is not None
         result["conversation_length"] = len(conversation_history)
+        result["detailed_fact_checks"] = fact_check_results  # ✅ ADD: Detailed fact-check results
+        result["fact_check_stats"] = {
+            "total_claims": len(fact_check_results),
+            "factual_errors": len([fc for fc in fact_check_results if fc["result"] in ["INCORRECT", "PARTIALLY_CORRECT"]]),
+            "accuracy_percentage": round(
+                (len([fc for fc in fact_check_results if fc["result"] == "CORRECT"]) / len(fact_check_results) * 100) 
+                if fact_check_results else 100, 2
+            )
+        }
         
         return result
         

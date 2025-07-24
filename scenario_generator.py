@@ -525,9 +525,41 @@ SCENARIO REALISM:
                 "emphasis_point": "What to emphasize when repeating",
                 "polite_repeat_example": "Example of polite repetition",
                 "negative_closing_example": "Example of disappointment"
+            }},
+             "coaching_rules": {{
+            "process_requirements": {{
+                "mentioned_methodology": "What specific process/methodology is mentioned in the document? (e.g., SPIN model, KYC process, etc.)",
+                "required_steps": "What specific steps are mentioned that learners must follow?",
+                "sequence_requirements": "Does the document specify any order/sequence that must be followed?",
+                "validation_criteria": "What does the document say makes a response correct or incorrect?"
+            }},
+            "document_specific_mistakes": [
+                {{
+                    "mistake_pattern": "Exact mistake pattern described in the document",
+                    "why_problematic": "Why the document says this is wrong or problematic",
+                    "correct_approach": "What the document says should be done instead",
+                    "example_correction": "Specific correction language mentioned in document"
+                }}
+            ],
+            "customer_context_from_document": {{
+                "target_customer_description": "How the document describes the customer/client type",
+                "customer_characteristics": "Specific traits, concerns, or behaviors mentioned",
+                "sensitivity_areas": "What the document says to be careful about with this customer type",
+                "success_indicators": "What the document defines as successful interaction"
+            }},
+            "correction_preferences_from_document": {{
+                "preferred_tone": "What tone the document suggests for corrections (gentle, direct, etc.)",
+                "feedback_timing": "When the document says feedback should be given",
+                "correction_method": "How the document says mistakes should be handled",
+                "example_corrections": "Any specific correction examples provided in the document"
+            }},
+            "domain_specific_validation": {{
+                "factual_accuracy_requirements": "What specific facts must be 100% accurate according to document",
+                "process_adherence_requirements": "What processes must be followed according to document", 
+                "customer_matching_requirements": "How responses should match customer profile per document"
             }}
         }}
-        
+    - Preserve the exact language and examples from the document when possible
         Provide comprehensive, scenario-specific content for each field.
         
 Generate a comprehensive training scenario with the depth and sophistication of professional corporate training programs. Focus on creating realistic, challenging, and educationally valuable experiences.
@@ -538,7 +570,16 @@ Return in the specified JSON format with rich, detailed content in each section.
         try:
             if self.client is None:
                 # Return mock data for testing
-                return self._get_mock_template_data(scenario_document)
+                mock_data = self._get_mock_template_data(scenario_document)
+            # ADD: Empty coaching rules for mock data
+                mock_data["coaching_rules"] = {
+                "process_requirements": {},
+                "document_specific_mistakes": [],
+                "customer_context_from_document": {},
+                "correction_preferences_from_document": {},
+                "domain_specific_validation": {}
+                }
+                return mock_data                # return self._get_mock_template_data(scenario_document)
             
             response = await self.client.chat.completions.create(
                 model=self.model,
@@ -552,22 +593,58 @@ Return in the specified JSON format with rich, detailed content in each section.
             
             response_text = response.choices[0].message.content
             
-            # Extract JSON from response
+        #     # Extract JSON from response
+        #     json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+        #     if json_match:
+        #         try:
+        #             return json.loads(json_match.group(1))
+        #         except json.JSONDecodeError:
+        #             pass
+            
+        #     try:
+        #         return json.loads(response_text)
+        #     except json.JSONDecodeError:
+        #         return self._get_mock_template_data(scenario_document)
+                
+        # except Exception as e:
+        #     print(f"Error in extract_scenario_info: {str(e)}")
+        #     return self._get_mock_template_data(scenario_document)
             json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
             if json_match:
                 try:
-                    return json.loads(json_match.group(1))
+                    template_data = json.loads(json_match.group(1))
                 except json.JSONDecodeError:
-                    pass
-            
-            try:
-                return json.loads(response_text)
-            except json.JSONDecodeError:
-                return self._get_mock_template_data(scenario_document)
-                
+                    template_data = self._get_mock_template_data(scenario_document)
+            else:
+                try:
+                    template_data = json.loads(response_text)
+                except json.JSONDecodeError:
+                    template_data = self._get_mock_template_data(scenario_document)
+        
+            # ADD: Ensure coaching_rules exists with safe defaults
+            if "coaching_rules" not in template_data:
+                template_data["coaching_rules"] = {
+                "process_requirements": {},
+                "document_specific_mistakes": [],
+                "customer_context_from_document": {},
+                "correction_preferences_from_document": {},
+                "domain_specific_validation": {}
+                }
+        
+            return template_data
+        
         except Exception as e:
             print(f"Error in extract_scenario_info: {str(e)}")
-            return self._get_mock_template_data(scenario_document)
+            mock_data = self._get_mock_template_data(scenario_document)
+            # ADD: Empty coaching rules for error case
+            mock_data["coaching_rules"] = {
+            "process_requirements": {},
+            "document_specific_mistakes": [],
+            "customer_context_from_document": {},
+            "correction_preferences_from_document": {},
+            "domain_specific_validation": {}
+            }
+            return mock_data            
     async def extract_evaluation_metrics_from_template(self, scenario_text: str, template_data: Dict[str, Any]) -> Dict[str, Any]:
         """Extract evaluation metrics and criteria from scenario document"""
     

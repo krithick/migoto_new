@@ -32,12 +32,14 @@ class JobType(str, Enum):
     KNOWLEDGE_EXTRACTION = "knowledge_extraction"
     VECTOR_INDEXING = "vector_indexing"
 
-class FactCheckResult(str, Enum):
-    CORRECT = "correct"
-    INCORRECT = "incorrect"
-    PARTIALLY_CORRECT = "partially_correct"
-    UNSUPPORTED = "unsupported"
-    UNCLEAR = "unclear"
+class FactCheckResult(Enum):
+    CORRECT = "CORRECT"
+    INCORRECT = "INCORRECT" 
+    PARTIALLY_CORRECT = "PARTIALLY_CORRECT"
+    UNSUPPORTED = "UNSUPPORTED"
+    UNCLEAR = "UNCLEAR"  # ✅ Make sure this exists
+    PROCESS_VIOLATION = "PROCESS_VIOLATION"  # ✅ Add if missing
+    CUSTOMER_MISMATCH = "CUSTOMER_MISMATCH"  # ✅ Ad
 
 # Template Form Data Models
 class TemplateBasicInfo(BaseModel):
@@ -227,7 +229,7 @@ class FactCheckVerification(BaseModel):
     suggested_correction: Optional[str] = None
     source_documents: List[str] = []
     verified_at: datetime = Field(default_factory=datetime.now)
-    
+    coaching_feedback: Optional[str] = None 
     class Config:
         use_enum_values = True
 

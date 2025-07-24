@@ -420,6 +420,10 @@ class ScenarioDB(ScenarioBase):
     learn_mode: Optional[LearnModeDB] = None
     try_mode: Optional[TryModeDB] = None
     assess_mode: Optional[AssessModeDB] = None
+    knowledge_base_id: Optional[str] = None
+    template_id: Optional[str] = None  
+    template_data: Optional[Dict[str, Any]] = None
+    fact_checking_enabled: bool = False    
     created_by: UUID
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)

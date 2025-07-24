@@ -205,23 +205,52 @@ class AzureVectorSearchManager:
 class EnhancedFactChecker:
     """Advanced fact-checking with vector search"""
     
-    def __init__(self, vector_search: AzureVectorSearchManager, openai_client: AsyncAzureOpenAI):
+    def __init__(self, vector_search: AzureVectorSearchManager, openai_client: AsyncAzureOpenAI,coaching_rules: Dict = None):
         self.vector_search = vector_search
         self.openai_client = openai_client
-    
-    async def verify_response_claims(self, response_text: str, scenario_id: str) -> List[FactCheckVerification]:
-        """Verify all claims in an AI response"""
+        print(coaching_rules,"coaching_rulesin class enchanced fact checker")
+        if coaching_rules and isinstance(coaching_rules, dict):
+            self.coaching_rules = coaching_rules
+            self.has_coaching_rules = True
+            print(f"FactChecker initialized with coaching rules from template")
+        else:
+            self.coaching_rules = {
+                "process_requirements": {},
+                "document_specific_mistakes": [],
+                "customer_context_from_document": {},
+                "correction_preferences_from_document": {},
+                "domain_specific_validation": {}
+            }
+            self.has_coaching_rules = False
+            print(f"FactChecker initialized with basic fact-checking only")    
+    # async def verify_response_claims(self, response_text: str, scenario_id: str) -> List[FactCheckVerification]:
+    #     """Verify all claims in an AI response"""
         
+    #     # Extract factual claims
+    #     claims = await self._extract_factual_claims(response_text)
+        
+    #     # Verify each claim
+    #     verifications = []
+    #     for claim in claims:
+    #         verification = await self._verify_single_claim(claim, scenario_id)
+    #         verifications.append(verification)
+        
+    #     return verifications
+    async def verify_response_claims(self, response_text: str, scenario_id: str, conversation_history: List = None) -> List[FactCheckVerification]:
+        """Verify all claims in an AI response"""
+    
         # Extract factual claims
         claims = await self._extract_factual_claims(response_text)
-        
+    
         # Verify each claim
         verifications = []
         for claim in claims:
-            verification = await self._verify_single_claim(claim, scenario_id)
+            # Use smart verification that chooses contextual or basic
+            verification = await self.verify_response_with_coaching(claim, conversation_history or [], scenario_id)
             verifications.append(verification)
-        
+    
         return verifications
+
     
     async def _extract_factual_claims(self, text: str) -> List[str]:
         """Extract verifiable claims from text"""
@@ -336,3 +365,189 @@ class EnhancedFactChecker:
                 supporting_chunks=[],
                 source_documents=[]
             )
+    async def _verify_contextual_response(self, claim: str, conversation_history: List, 
+                                    scenario_id: str) -> FactCheckVerification:
+        """Enhanced verification with template-specific coaching rules"""
+    
+        try:
+            # Your existing search logic
+            search_results = await self.vector_search.vector_search(
+                claim, scenario_id, top_k=3, openai_client=self.openai_client
+            )
+        
+            if not search_results:
+                return FactCheckVerification(
+                claim={"claim_text": claim, "claim_type": "contextual", "confidence": 0.0, "extracted_from": "ai_response"},
+                result=FactCheckResult.UNSUPPORTED,
+                confidence_score=0.0,
+                explanation="No relevant information found in knowledge base",
+                supporting_chunks=[],
+                source_documents=[]
+                )
+        
+            # Build context from search results
+            context = "\n\n".join([
+            f"Source: {result['source_file']}\nContent: {result['content']}"
+            for result in search_results
+            ])
+        
+            # Build conversation context (last 5 messages)
+            conversation_text = "\n".join([
+            f"{msg.role}: {msg.content}" for msg in conversation_history[-5:]
+            ]) if conversation_history else "No conversation history"
+        
+            # ADD: Build coaching context from template rules
+            coaching_context = ""
+            if self.has_coaching_rules and self.coaching_rules:
+                try:
+                    process_reqs = self.coaching_rules.get("process_requirements", {})
+                    mistakes = self.coaching_rules.get("document_specific_mistakes", [])
+                    customer_context = self.coaching_rules.get("customer_context_from_document", {})
+                
+                    # Safe field access with defaults
+                    methodology = process_reqs.get("mentioned_methodology", "No specific process mentioned")
+                    steps = process_reqs.get("required_steps", "No specific steps defined")
+                    customer_type = customer_context.get("target_customer_description", "General customer")
+                    mistake_patterns = [m.get("mistake_pattern", "No pattern") for m in mistakes if isinstance(m, dict)]
+                
+                    coaching_context = f"""
+                    DOCUMENT-SPECIFIC COACHING RULES:
+                Required Process: {methodology}
+                Required Steps: {steps}
+                Customer Type: {customer_type}
+                Common Mistakes to Avoid: {mistake_patterns}
+                """
+                except Exception as coaching_error:
+                    print(f"Warning: Could not build coaching context: {coaching_error}")
+                    coaching_context = "BASIC COACHING: Use professional communication and verify facts against knowledge base."
+            else:
+                coaching_context = "BASIC COACHING: Use professional communication and verify facts against knowledge base."
+        
+            # Enhanced verification prompt with template rules
+            verification_prompt = f"""
+            Verify this user response in the context of a training scenario:
+        
+            USER RESPONSE TO VERIFY: {claim}
+        
+            CONVERSATION HISTORY:
+            {conversation_text}
+        
+            KNOWLEDGE BASE CONTEXT:
+            {context}
+        
+            {coaching_context}
+        
+            Analyze the user response for:
+            1. FACTUAL ACCURACY: Is the information correct per knowledge base?
+            2. PROCESS ADHERENCE: Does the response follow the required process/methodology?
+            3. CUSTOMER APPROPRIATENESS: Is the response suitable for the customer type?
+            4. COACHING COMPLIANCE: Does it avoid the common mistakes mentioned?
+        
+            Provide assessment as JSON:
+            {{
+            "result": "CORRECT|INCORRECT|PARTIALLY_CORRECT|PROCESS_VIOLATION|CUSTOMER_MISMATCH|UNSUPPORTED",
+            "confidence_score": 0.0-1.0,
+            "explanation": "Detailed explanation of the assessment",
+            "coaching_feedback": "Specific guidance based on template coaching rules",
+            "suggested_correction": "What the correct response should be (if applicable)"
+            }}
+            """
+        
+            response = await self.openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a contextual training coach that provides specific feedback based on document requirements."},
+                {"role": "user", "content": verification_prompt}
+            ],
+            temperature=0.1,
+            max_tokens=800
+            )
+        
+            result_text = response.choices[0].message.content
+            try:
+                result_text = response.choices[0].message.content.strip()
+    
+                # Try to parse JSON first
+                result_json = json.loads(result_text)
+                print(result_json)
+            except json.JSONDecodeError:
+                # ❌ JSON parsing failed - extract coaching from raw text
+                print(f"JSON parsing failed. Raw LLM response: {result_text}")
+    
+                # Try to extract useful coaching from the raw text response
+                if "incorrect" in result_text.lower() or "wrong" in result_text.lower():
+                    # LLM found an issue but didn't return proper JSON
+                    result_json = {
+            "result": "INCORRECT",
+            "confidence_score": 0.7,
+            "explanation": result_text[:200],  # Use the actual LLM response
+            "coaching_feedback": result_text[:300],  # Use the actual feedback
+            "suggested_correction": None
+                    }
+                else:
+                    # Truly unclear response
+                    result_json = {
+            "result": "UNCLEAR",
+            "confidence_score": 0.3,
+            "explanation": f"Could not analyze: {result_text[:100]}",
+            "coaching_feedback": None,  # ❌ Don't provide generic coaching
+            "suggested_correction": None
+                    }
+
+            except Exception as e:
+                    print(f"Error in contextual verification: {e}")
+                    # Return completely empty result to force fallback to existing logic
+                    result_json = {
+                    "result": "UNCLEAR",
+        "confidence_score": 0.0,
+        "explanation": f"Verification error: {str(e)}",
+        "coaching_feedback": None,  # ❌ No generic coaching
+        "suggested_correction": None
+                    }               
+        #     try:
+        #         result_json = json.loads(result_text)
+        #     except json.JSONDecodeError:
+        #         # Fallback if JSON parsing fails
+        #         result_json = {
+        #         "result": "UNCLEAR",
+        #         "confidence_score": 0.5,
+        #         "explanation": "Could not properly analyze the response",
+        #         "coaching_feedback": "Please ensure your response follows the training guidelines",
+        #         "suggested_correction": None
+        #         }
+        #     llm_result = result_json.get("result", "UNSUPPORTED")
+            
+        #     return FactCheckVerification(
+        #     claim={"claim_text": claim, "claim_type": "contextual", "confidence": 1.0, "extracted_from": "ai_response"},
+        #     result=FactCheckResult(result_json.get("result", "UNCLEAR")),
+        #     confidence_score=result_json.get("confidence_score", 0.5),
+        #     explanation=result_json.get("explanation", "Analysis completed"),
+        #     suggested_correction=result_json.get("suggested_correction"),
+        #     coaching_feedback=result_json.get("coaching_feedback"),  # NEW field
+        #     supporting_chunks=[r["chunk_id"] for r in search_results],
+        #     source_documents=[r["source_file"] for r in search_results]
+        #     )
+        
+        except Exception as e:
+            print(f"Error in contextual verification: {e}")
+            return FactCheckVerification(
+            claim={"claim_text": claim, "claim_type": "contextual", "confidence": 0.0, "extracted_from": "ai_response"},
+            result=FactCheckResult.UNCLEAR,
+            confidence_score=0.0,
+            explanation=f"Error during contextual verification: {str(e)}",
+            supporting_chunks=[],
+            source_documents=[]
+            )    
+    async def verify_response_with_coaching(self, claim: str, conversation_history: List, scenario_id: str) -> FactCheckVerification:
+        """Smart verification that uses contextual coaching if available, falls back to basic fact-checking"""
+    
+        if self.has_coaching_rules:
+            try:
+                # Use enhanced contextual verification
+                return await self._verify_contextual_response(claim, conversation_history, scenario_id)
+            except Exception as e:
+                print(f"Contextual verification failed, falling back to basic: {e}")
+                # Fall through to basic verification
+    
+        # Use existing basic verification as fallback
+        return await self._verify_single_claim(claim, scenario_id)  

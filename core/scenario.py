@@ -751,7 +751,7 @@ async def update_scenario(
     # Check permissions
     if updater.role == UserRole.ADMIN:
         # Admin can only update scenarios they created
-        if scenario.get("created_by") != updated_by:
+        if scenario.get("created_by") != str(updated_by):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Admins can only update scenarios they created"
@@ -801,7 +801,7 @@ async def update_scenario(
         {"$set": scenario_updates}
     )
     
-    updated_scenario = await db.scenarios.find_one({"_id": scenario_id})
+    updated_scenario = await db.scenarios.find_one({"_id": str(scenario_id)})
     if updated_scenario:
         return ScenarioDB(**updated_scenario)
     return None
@@ -1023,7 +1023,7 @@ async def get_scenario_endpoint(
     if not scenario:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail="Scenario not found or access denied")
-    return scenario
+    return scenario.model_dump()
 
 @router.get("/modules/{module_id}/scenarios", response_model=List[Dict[str, Any]])
 async def get_scenarios_by_module_endpoint(

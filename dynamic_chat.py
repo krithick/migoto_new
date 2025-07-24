@@ -14,6 +14,7 @@ import asyncio
 import json
 import re
 from motor.motor_asyncio import AsyncIOMotorClient
+from core.azure_search_manager import FactCheckResult
 
 # Import your existing models
 from models.avatarInteraction_models import AvatarInteractionDB
@@ -59,8 +60,9 @@ class DynamicChatHandler:
         self.fact_checker = EnhancedFactChecker(self.vector_search, llm_client)
         self.knowledge_base_id = None
         self.fact_checking_enabled = False
-    async def initialize_fact_checking(self, session_id: str):
+    async def initialize_fact_checking(self, session_id: str,coaching_rules: Dict = None):
         """Initialize fact-checking if this session supports it"""
+        print(coaching_rules,"coaching_rulessssssss")
         try:
             # Get knowledge base ID from session
             knowledge_base_id = await self._get_knowledge_base_for_session(session_id)
@@ -68,6 +70,11 @@ class DynamicChatHandler:
             if knowledge_base_id:
                 self.knowledge_base_id = knowledge_base_id
                 # Check if this is try_mode (only mode that needs fact-checking)
+                self.fact_checker = EnhancedFactChecker(
+                self.vector_search, 
+                self.llm_client,
+                coaching_rules=coaching_rules or {}  # Pass coaching rules here
+            )
                 avatar_interaction = await self.db.avatar_interactions.find_one(
                     {"_id": str(self.config.avatar_interaction_id)}
                 )
@@ -86,36 +93,213 @@ class DynamicChatHandler:
             print(f"Error initializing fact-checking: {e}")
             self.fact_checking_enabled = False
     
-    async def _get_knowledge_base_for_session(self, session_id: str) -> Optional[str]:
-        """Get knowledge base ID from session"""
-        try:
-            session = await self.db.sessions.find_one({"_id": session_id})
-            # print("session",session)
-            if not session:
-                return None
+    # async def _get_knowledge_base_for_session(self, session_id: str) -> Optional[str]:
+    #     """Get knowledge base ID from session"""
+    #     try:
+    #         session = await self.db.sessions.find_one({"_id": session_id})
+    #         # print("session",session)
+    #         if not session:
+    #             return None
             
+    #         avatar_interaction_id = session.get("avatar_interaction")
+    #         print(avatar_interaction_id,"avatar_interaction_id")
+    #         if not avatar_interaction_id:
+    #             return None
+    #         # Find scenario containing this avatar interaction
+    #         avatar_interaction_str = str(avatar_interaction_id)
+    #         print(type(avatar_interaction_str))
+             
+    #         scenario = await self.db.scenarios.find_one({
+    #             "$or": [
+    #                 {"learn_mode.avatar_interaction": avatar_interaction_str},
+    #                 {"try_mode.avatar_interaction": avatar_interaction_str},
+    #                 {"assess_mode.avatar_interaction": avatar_interaction_str}
+    #             ]
+    #         })
+    #         print('scenariossssssss',scenario)
+    #         template = await self.db.templates.find_one({"id":scenario.get("template_id")})
+    #         print("session",template)
+    #         if not template:
+    #             print("no template found")
+                
+    #         return template.get("knowledge_base_id") if template else None
+            
+    #     except Exception as e:
+    #         print(f"Error getting knowledge base: {e}")
+    #         return None           
+    # async def _get_knowledge_base_for_session(self, session_id: str) -> Optional[str]:
+    #     """Get knowledge base ID from session"""
+    #     try:
+    #         session = await self.db.sessions.find_one({"_id": session_id})
+    #         print(f"🔍 Session found: {session is not None}")
+        
+    #         if not session:
+    #             return None
+        
+    #         avatar_interaction_id = session.get("avatar_interaction")
+    #         print(f"🔍 Avatar interaction ID: {avatar_interaction_id} (type: {type(avatar_interaction_id)})")
+        
+    #         if not avatar_interaction_id:
+    #             return None
+        
+    #         # Convert to string if it's not already
+    #         avatar_interaction_str = str(avatar_interaction_id)
+    #         print(f"🔍 Looking for scenario with avatar_interaction: {avatar_interaction_str}")
+        
+    #         # Try multiple query patterns to debug
+    #         queries_to_try = [
+    #             # Pattern 1: Direct string match
+    #             {
+    #                 "$or": [
+    #                 {"learn_mode.avatar_interaction": avatar_interaction_str},
+    #                 {"try_mode.avatar_interaction": avatar_interaction_str},
+    #                 {"assess_mode.avatar_interaction": avatar_interaction_str}
+    #                 ]
+    #             },
+    #             # Pattern 2: Without string conversion
+    #             {
+    #                 "$or": [
+    #                 {"learn_mode.avatar_interaction": avatar_interaction_id},
+    #                 {"try_mode.avatar_interaction": avatar_interaction_id},
+    #                 {"assess_mode.avatar_interaction": avatar_interaction_id}
+    #                 ]
+    #             },
+    #             # Pattern 3: Check if it's stored as ObjectId
+    #             {
+    #                 "$or": [
+    #                 {"learn_mode.avatar_interaction": {"$in": [avatar_interaction_str, avatar_interaction_id]}},
+    #                 {"try_mode.avatar_interaction": {"$in": [avatar_interaction_str, avatar_interaction_id]}},
+    #                 {"assess_mode.avatar_interaction": {"$in": [avatar_interaction_str, avatar_interaction_id]}}
+    #                 ]
+    #             }
+    #         ]
+        
+    #         scenario = None
+    #         for i, query in enumerate(queries_to_try):
+    #             print(f"🔍 Trying query pattern {i+1}")
+    #             scenario = await self.db.scenarios.find_one(query)
+    #             if scenario:
+    #                 print(f"✅ Found scenario with pattern {i+1}: {scenario.get('_id')}")
+    #                 break
+    #             else:
+    #                 print(f"❌ Pattern {i+1} found no results")
+        
+    #         if not scenario:
+    #             print("❌ No scenario found with any pattern")
+            
+    #             # DEBUG: Let's see what scenarios actually exist
+    #             all_scenarios = await self.db.scenarios.find({}).to_list(length=5)
+    #             print(f"📊 Total scenarios in DB: {len(all_scenarios)}")
+    #             for s in all_scenarios[:2]:  # Show first 2 scenarios
+    #                 print(f"   Scenario {s.get('_id')}: learn={s.get('learn_mode', {}).get('avatar_interaction')}, try={s.get('try_mode', {}).get('avatar_interaction')}, assess={s.get('assess_mode', {}).get('avatar_interaction')}")
+            
+    #             return None
+        
+    #         # Get template from scenario
+    #         template_id = scenario.get("template_id")
+    #         print(f"🔍 Template ID from scenario: {template_id}")
+
+    #         if not template_id:
+    #             print("❌ No template_id in scenario")
+    #             return None
+            
+    #         template = await self.db.templates.find_one({"id": template_id})
+    #         print(f"🔍 Template found: {template is not None}")
+        
+    #         if not template:
+    #             print("❌ Template not found in database")
+    #         return None
+        
+    #         knowledge_base_id = template.get("knowledge_base_id")
+    #         print(f"🔍 Knowledge base ID: {knowledge_base_id}")
+        
+    #         return knowledge_base_id
+        
+    #     except Exception as e:
+    #         print(f"Error getting knowledge base: {e}")
+    #         import traceback
+    #         traceback.print_exc()
+    #         return None     
+    
+    async def _get_knowledge_base_for_session(self, session_id: str) -> Optional[str]:
+        """Get knowledge base ID from session - UPDATED for your models"""
+        try:
+            from uuid import UUID
+        
+            # Get session
+            session = await self.db.sessions.find_one({"_id": session_id})
+            if not session:
+                print("❌ Session not found")
+                return None
+        
+            # Get avatar_interaction_id from session
             avatar_interaction_id = session.get("avatar_interaction")
             if not avatar_interaction_id:
+                print("❌ No avatar_interaction in session")
                 return None
-            # Find scenario containing this avatar interaction
-            scenario = await self.db.scenarios.find_one({
-                "$or": [
-                    {"learn_mode.avatar_interaction": avatar_interaction_id},
-                    {"try_mode.avatar_interaction": avatar_interaction_id},
-                    {"assess_mode.avatar_interaction": avatar_interaction_id}
-                ]
-            })
-            template = await self.db.templates.find_one({"id":scenario.get("template_id")})
-            # print("session",template)
+        
+            # Convert to UUID for querying (your models use UUID)
+            if isinstance(avatar_interaction_id, str):
+                try:
+                    avatar_interaction_uuid = UUID(avatar_interaction_id)
+                except ValueError:
+                    avatar_interaction_uuid = None
+            else:
+                avatar_interaction_uuid = avatar_interaction_id
+        
+            avatar_interaction_str = str(avatar_interaction_id)
+        
+            print(f"🔍 Looking for scenario with avatar_interaction: {avatar_interaction_str}")
+        
+            # Query scenarios that reference this avatar_interaction in any mode
+            # Based on your ScenarioDB model structure
+            query_conditions = []
+        
+            # Add both string and UUID formats since you had the mismatch issue
+            for mode in ["learn_mode", "try_mode", "assess_mode"]:
+                query_conditions.extend([
+                    {f"{mode}.avatar_interaction": avatar_interaction_str},
+                    {f"{mode}.avatar_interaction": avatar_interaction_uuid} if avatar_interaction_uuid else {}
+                ])
+        
+            # Remove empty conditions
+            query_conditions = [q for q in query_conditions if q]
+        
+            scenario = await self.db.scenarios.find_one({"$or": query_conditions})
+        
+            if not scenario:
+                print("❌ No scenario found")
+                return None
+        
+            print(f"✅ Found scenario: {scenario.get('_id')}")
+        
+            # Get template_id from scenario
+            template_id = scenario.get("template_id")
+            if not template_id:
+                print("❌ No template_id in scenario")
+                return None
+        
+            print(f"🔍 Looking for template: {template_id}")
+        
+            # Get template
+            template = await self.db.templates.find_one({"id": template_id})
             if not template:
-                print("no template found")
-                
-            return template.get("knowledge_base_id") if template else None
-            
+                print("❌ Template not found")
+                return None
+        
+            print("✅ Template found")
+        
+            # Get knowledge_base_id from template
+            knowledge_base_id = template.get("knowledge_base_id")
+            print(f"🔍 Knowledge base ID: {knowledge_base_id}")
+        
+            return knowledge_base_id
+        
         except Exception as e:
             print(f"Error getting knowledge base: {e}")
-            return None           
-    
+            import traceback
+            traceback.print_exc()
+            return None 
     async def process_message(self, message: str, conversation_history: List[Message], name: Optional[str] = None) -> AsyncGenerator:
         """Enhanced process_message with fact-checking for try_mode"""
         self.last_used = datetime.now()
@@ -215,70 +399,219 @@ class DynamicChatHandler:
         return fact_checked_generator() 
 # 
 
-    async def _check_user_response_accuracy(self, user_message: str,conversation_history: List[Message], knowledge_base_id: str) -> Optional[str]:
-        """Simple fact-checking against Cloudnine documents"""
+#     async def _check_user_response_accuracy(self, user_message: str,conversation_history: List[Message], knowledge_base_id: str) -> Optional[str]:
+#         """Simple fact-checking against Cloudnine documents"""
     
-        try:
-            if len(conversation_history) <= 1:
-                return None
-            language_instructions = await self._get_language_instructions()
-            # Search for relevant info in documents
+#         try:
+#             if len(conversation_history) <= 1:
+#                 return None
+#             language_instructions = await self._get_language_instructions()
+#             # Search for relevant info in documents
+#         # ✅ ENHANCED: Use fact-checker with coaching rules if available
+#             if hasattr(self, 'fact_checker') and self.fact_checker.has_coaching_rules:
+#                 # Use contextual verification with template coaching rules
+#                 verification = await self.fact_checker.verify_response_with_coaching(
+#                     user_message, conversation_history, knowledge_base_id
+#                 )
             
-            search_results = await self.vector_search.vector_search(
-            user_message, knowledge_base_id, top_k=3, openai_client=self.llm_client
-            )
+#                 if verification.result != FactCheckResult.CORRECT:
+#                     # Use coaching feedback from template if available
+#                     if verification.coaching_feedback:
+#                         return f"Dear Learner, {verification.coaching_feedback}"
+#                     else:
+#                         return f"Dear Learner, {verification.explanation}"
+            
+#                 return None  # No correction needed
+                        
+#             search_results = await self.vector_search.vector_search(
+#             user_message, knowledge_base_id, top_k=3, openai_client=self.llm_client
+#             )
         
-            if not search_results:
-                return None
-            print(conversation_history[0],'conversation_history')
-            # Build context from search results
-            context = "\n".join([result['content'] for result in search_results])
-            convo_context = ""
-            for msg in conversation_history[-4:]:  # Last 4 messages for context
-                role = "Customer" if msg.role == self.config.bot_role else "Learner"
-                convo_context += f"{role}: {msg.content}\n"
+#             if not search_results:
+#                 return None
+#             print(conversation_history[0],'conversation_history')
+#             # Build context from search results
+#             context = "\n".join([result['content'] for result in search_results])
+#             convo_context = ""
+#             for msg in conversation_history[-4:]:  # Last 4 messages for context
+#                 role = "Customer" if msg.role == self.config.bot_role else "Learner"
+#                 convo_context += f"{role}: {msg.content}\n"
 
+# #             fact_check_prompt = f"""
+# # {language_instructions}
+
+# # You are a customer service training coach. Evaluate the learner's response using this EXACT priority order:
+
+# # RECENT CONVERSATION:
+# # {convo_context}
+# # LEARNER'S LATEST RESPONSE: "{user_message}"
+# # OFFICIAL COMPANY INFORMATION:
+# # {context}
+
+# # EVALUATION STEPS (check in this order):
+
+# # 1. FIRST: Is this response a reasonable customer service approach?
+# #    - Asking clarifying questions = ALWAYS GOOD
+# #    - Showing empathy/acknowledgment = ALWAYS GOOD  
+# #    - Requesting details to help better = ALWAYS GOOD
+
+# # 2. SECOND: If giving company information, is it factually correct?
+# #    - Check against the official company information above
+# #    - Only flag if there's clear contradiction with company docs
+
+# # 3. THIRD: Does it address what the customer actually asked about?
+
+# # RESPOND WITH EXACTLY ONE OF THESE:
+
+# # [CORRECT] 
+# # (if the response is appropriate customer service behavior)
+
+# # "Dear Learner, you provided incorrect information about [specific topic]. According to our company information: [correct facts]. Please respond with: [better response]."
+# # (only if factually wrong company information was given)
+
+# # "Dear Learner, the customer was asking about [specific need], but your response doesn't help with that. You should [specific action] to address their [specific concern]."
+# # (only if completely ignoring customer's question)
+
+# # REMEMBER: 
+# # - Asking questions to understand customer needs better is ALWAYS correct
+# # - Being polite and engaging is ALWAYS correct  
+# # - Only mark wrong if giving incorrect company facts or completely ignoring customer
+# # """       
 #             fact_check_prompt = f"""
 # {language_instructions}
 
-# You are a customer service training coach. Evaluate the learner's response using this EXACT priority order:
+# You are a training coach reviewing a learner's response in a customer service conversation.
 
 # RECENT CONVERSATION:
 # {convo_context}
 # LEARNER'S LATEST RESPONSE: "{user_message}"
+
 # OFFICIAL COMPANY INFORMATION:
 # {context}
 
-# EVALUATION STEPS (check in this order):
+# EVALUATION PROCESS - FOLLOW THIS EXACT ORDER:
 
-# 1. FIRST: Is this response a reasonable customer service approach?
-#    - Asking clarifying questions = ALWAYS GOOD
-#    - Showing empathy/acknowledgment = ALWAYS GOOD  
-#    - Requesting details to help better = ALWAYS GOOD
+# STEP 1: FACTUAL ACCURACY CHECK (HIGHEST PRIORITY)
+# Check if the learner's response contains ANY incorrect information about:
+# - Package existence (Cloudnine HAS Economy, Standard, Premium packages)
+# - Package pricing (Economy: ₹45,000-₹65,000, Standard: ₹65,000-₹85,000, Premium: ₹85,000-₹1,20,000)
+# - Package inclusions/exclusions
+# - Insurance partnerships and coverage
+# - Booking procedures and policies
+# - Any other company facts
 
-# 2. SECOND: If giving company information, is it factually correct?
-#    - Check against the official company information above
-#    - Only flag if there's clear contradiction with company docs
+# IF ANY FACTUAL ERRORS FOUND:
+# "Dear Learner, you said '[wrong information]' but according to our official information: [correct facts]. You should respond: '[specific correct response]'."
+# STOP EVALUATION HERE - DO NOT PROCEED TO STEP 2.
 
-# 3. THIRD: Does it address what the customer actually asked about?
+# STEP 2: CUSTOMER SERVICE APPROPRIATENESS (ONLY IF STEP 1 PASSES)
+# Is this response appropriate customer service behavior?
+# - Asking clarifying questions = ALWAYS APPROPRIATE
+# - Showing empathy/acknowledgment = ALWAYS APPROPRIATE  
+# - Requesting details to provide better help = ALWAYS APPROPRIATE
+# - Being polite and professional = ALWAYS APPROPRIATE
 
-# RESPOND WITH EXACTLY ONE OF THESE:
+# IF APPROPRIATE CUSTOMER SERVICE:
+# "[CORRECT]"
 
-# [CORRECT] 
-# (if the response is appropriate customer service behavior)
+# IF INAPPROPRIATE (ignoring customer, being rude, not addressing their question):
+# "Dear Learner, the customer was [asking/expressing concern about X], but your response doesn't address their need. You should [specific actions] to properly help them with their [specific concern]."
 
-# "Dear Learner, you provided incorrect information about [specific topic]. According to our company information: [correct facts]. Please respond with: [better response]."
-# (only if factually wrong company information was given)
+# REMEMBER:
+# - FACT-CHECKING IS MORE IMPORTANT THAN CONVERSATION FLOW
+# - Giving wrong company information is ALWAYS incorrect, regardless of tone
+# - Asking questions to understand customer needs better is ALWAYS good customer service
+# - Only evaluate conversation appropriateness if all facts are correct
 
-# "Dear Learner, the customer was asking about [specific need], but your response doesn't help with that. You should [specific action] to address their [specific concern]."
-# (only if completely ignoring customer's question)
+# KEEP YOUR RESPONSE LIMITED TO 20 WORDS.
+# """
+#             response = await self.llm_client.chat.completions.create(
+#             model="gpt-4o",
+#             messages=[{"role": "user", "content": fact_check_prompt}],
+#             temperature=0.1,
+#             max_tokens=200
+#             )
+        
+#             result = response.choices[0].message.content.strip()
+#             print("resullttt",result,result.strip()== "[CORRECT]")
+#             print("resullttt (repr):", repr(result))
+#             if result.strip() == "[CORRECT]":
+#                 return None
+#             else:
+#                 return result
+#         except Exception as e:
+#             print(f"Fact-checking error: {e}")
+#             return None
+    # 
+    async def _check_user_response_accuracy(self, user_message: str, conversation_history: List[Message], knowledge_base_id: str) -> Optional[str]:
+        """Hybrid coaching: Enhanced template coaching + existing verification"""
+    
+        try:
+            if len(conversation_history) <= 1:
+                return None
+            
+            language_instructions = await self._get_language_instructions()
+        
+            # 🔄 HYBRID APPROACH: Try enhanced coaching first, fallback to existing
+            enhanced_coaching = None
+        
+            # TRY: Enhanced contextual coaching if available
+            if hasattr(self, 'fact_checker') and self.fact_checker.has_coaching_rules:
+                try:
+                    verification = await self.fact_checker.verify_response_with_coaching(
+                        user_message, conversation_history, knowledge_base_id
+                    )
+                
+                    if verification.result != FactCheckResult.CORRECT:
+                        if verification.coaching_feedback:
+                            enhanced_coaching = f"Dear Learner, {verification.coaching_feedback}"
+                        elif verification.explanation:
+                            enhanced_coaching = f"Dear Learner, {verification.explanation}"
+                        
+                except Exception as enhanced_error:
+                    print(f"Enhanced coaching failed: {enhanced_error}")
+                    enhanced_coaching = None
+        
+            # FALLBACK: Your existing coaching logic (ALWAYS run this too)
+            existing_coaching = await self._run_existing_coaching_logic(
+                user_message, conversation_history, knowledge_base_id, language_instructions
+            )
+        
+            # 🎯 COMBINE RESULTS: Use enhanced if available, otherwise use existing
+            if enhanced_coaching and enhanced_coaching != "Dear Learner, ":
+                print("✅ Using enhanced template coaching")
+                return enhanced_coaching
+            elif existing_coaching:
+                print("✅ Using existing coaching logic")
+                return existing_coaching
+            else:
+                return None
+            
+        except Exception as e:
+            print(f"Fact-checking error: {e}")
+            return None
 
-# REMEMBER: 
-# - Asking questions to understand customer needs better is ALWAYS correct
-# - Being polite and engaging is ALWAYS correct  
-# - Only mark wrong if giving incorrect company facts or completely ignoring customer
-# """       
-            fact_check_prompt = f"""
+    async def _run_existing_coaching_logic(self, user_message: str, conversation_history: List[Message], 
+                                     knowledge_base_id: str, language_instructions: str) -> Optional[str]:
+        """Your existing coaching logic - UNCHANGED"""
+    
+        # Search for relevant info in documents
+        search_results = await self.vector_search.vector_search(
+            user_message, knowledge_base_id, top_k=3, openai_client=self.llm_client
+        )
+    
+        if not search_results:
+            return None
+        
+        # Build context from search results
+        context = "\n".join([result['content'] for result in search_results])
+        convo_context = ""
+        for msg in conversation_history[-4:]:  # Last 4 messages for context
+            role = "Customer" if msg.role == self.config.bot_role else "Learner"
+            convo_context += f"{role}: {msg.content}\n"
+
+        # Your existing fact-check prompt (UNCHANGED)
+        fact_check_prompt = f"""
 {language_instructions}
 
 You are a training coach reviewing a learner's response in a customer service conversation.
@@ -326,23 +659,22 @@ REMEMBER:
 
 KEEP YOUR RESPONSE LIMITED TO 20 WORDS.
 """
-            response = await self.llm_client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": fact_check_prompt}],
-            temperature=0.1,
-            max_tokens=200
-            )
-        
-            result = response.choices[0].message.content.strip()
-            print("resullttt",result,result.strip()== "[CORRECT]")
-            print("resullttt (repr):", repr(result))
-            if result.strip() == "[CORRECT]":
-                return None
-            else:
-                return result
-        except Exception as e:
-            print(f"Fact-checking error: {e}")
+    
+        response = await self.llm_client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": fact_check_prompt}],
+        temperature=0.1,
+        max_tokens=200
+    )
+    
+        result = response.choices[0].message.content.strip()
+        print("existing coaching result:", result)
+    
+        if result.strip() == "[CORRECT]":
             return None
+        else:
+            return result    
+    # 
     async def _get_language_instructions(self) -> str:
         """Get language instructions from session"""
         try:
