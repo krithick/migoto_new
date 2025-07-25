@@ -286,7 +286,7 @@ async def create_course(db: Any, course: CourseCreate, created_by: UUID, role: U
             detail="Invalid creator"
         )
     
-    creator_company_id = UUID(creator["company_id"])
+    creator_company_id = creator["company_id"]
     
     # Validate creator permissions
     if role not in [UserRole.ADMIN, UserRole.SUPERADMIN, UserRole.BOSS_ADMIN]:

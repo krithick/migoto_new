@@ -967,6 +967,7 @@ TRAINING VALUE:
             Provide ONLY the JSON with realistic, detailed personas.
             Create personas that feel like real people with real stories, not generic customer types.
             Make sure you create either a male or female persona
+            Make sure your Personas are of based in india
             """
             
             response = await self.client.chat.completions.create(
