@@ -128,7 +128,7 @@ async def get_user_modules(
     
     return await get_user_module_assignments(db, user_id, include_archived)
 
-@router.get("/user/{user_id}/course/{course_id}", response_model=List[ModuleAssignmentDB])
+@router.get("/user/{user_id}/course/{course_id}", response_model=List[ModuleAssignmentResponse])
 async def get_user_course_modules(
     user_id: UUID,
     course_id: UUID,

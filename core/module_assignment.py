@@ -453,19 +453,7 @@ async def get_user_course_module_assignments(
     assignments = []
     cursor = db.user_module_assignments.find(query)
     async for document in cursor:
-        module_id = document["module_id"]
-        module_doc = await db.modules.find_one({"_id": module_id})
-        if not module_doc:
-            continue  # Or log missing module
-
-        response_obj = {
-            **document,
-            "title": module_doc.get("title"),
-            "description": module_doc.get("description"),
-            "thumbnail_url": module_doc.get("thumbnail_url"),
-        }
-
-        assignments.append(ModuleAssignmentDB(**response_obj))
+        assignments.append(ModuleAssignmentDB(**document))
     
     return assignments
 
