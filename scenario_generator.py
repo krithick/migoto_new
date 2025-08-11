@@ -1909,7 +1909,7 @@ async def get_evaluation_metrics(
 async def generate_personas(
     template_id: str = Body(...),
     persona_type: str = Body(..., description="learn_mode_expert or assess_mode_character"),
-    persona_gender: str =Body(..., description="Character Gender"),
+    
     count: int = Body(default=1, description="Number of personas to generate"),
     db: Any = Depends(get_db)
 ):
