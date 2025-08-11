@@ -1909,6 +1909,7 @@ async def get_evaluation_metrics(
 async def generate_personas(
     template_id: str = Body(...),
     persona_type: str = Body(..., description="learn_mode_expert or assess_mode_character"),
+    persona_gender: str =Body(..., description="Character Gender"),
     count: int = Body(default=1, description="Number of personas to generate"),
     db: Any = Depends(get_db)
 ):
@@ -2530,9 +2531,40 @@ async def fill_word_template(
         
         SCENARIO REQUEST: {scenario_prompt}
         
-        Fill out ALL sections of the training template with specific, detailed information.
-        Provide realistic, professional content suitable for corporate training.
+        Fill out ALL sections with REALISTIC, CHALLENGING content that reflects actual workplace resistance and complex situations. Create authentic dialogue that mirrors real employee concerns and sophisticated scenarios that test learners properly.
         
+        REALISM REQUIREMENTS:
+        - Design authentic personas with genuine workplace concerns and realistic resistance patterns
+        - Create multi-turn conversation examples with natural back-and-forth dialogue including both correct AND incorrect learner responses
+        - Generate sophisticated mistake patterns reflecting actual workplace bias and misunderstanding
+        - Make all content professionally challenging yet appropriate for corporate training
+        
+        CHARACTER DESIGN REQUIREMENTS:
+        - AI character roles should match the scenario context (e.g., Skeptical Colleague, Concerned Team Member, Frustrated Customer, Hesitant Student, Worried Parent, etc.)
+        - Create authentic backgrounds representing real workplace demographics and situations
+        - Include realistic concerns that reflect actual resistance patterns people have
+        - Design varied difficulty levels within each scenario
+        CONVERSATION REQUIREMENTS:
+        - Create multi-turn conversations with authentic back-and-forth dialogue
+        - Include both correct AND incorrect learner responses with realistic AI character reactions
+        - Show how the AI character responds differently to good vs bad responses
+        - Include coaching feedback for incorrect responses using [CORRECT] format
+        - Make conversations feel natural and workplace-appropriate
+        Provide realistic, professional content suitable for corporate training.
+        SUCCESS METRICS REQUIREMENTS:
+        - Create specific, measurable targets (e.g., "At least 90% accuracy in distinguishing concepts")
+        - Include detailed measurement methods (e.g., "Compare responses to rubric with defined criteria")
+        - Make metrics domain-specific and actionable
+        - Include both knowledge-based and application-based metrics
+        COMMON MISTAKES REQUIREMENTS:
+        - Create nuanced mistakes that reflect real workplace bias and misunderstanding
+        - Include subtle errors, not just obvious ones
+        - Explain why each mistake is problematic in detail
+        - Provide comprehensive correct information
+        - Make mistakes specific to the domain and scenario    
+        
+        Generate comprehensive, realistic content that challenges learners authentically.
+ 
         Return ONLY valid JSON with this exact structure:
         {{
             "project_basics": {{
@@ -2553,71 +2585,87 @@ async def fill_word_template(
                 "experience_level": "New (0-1 year) / Experienced (1-5 years) / Expert (5+ years) / Mixed",
                 "current_challenges": "Specific challenges learners face in this domain"
             }},
-            "scenario_design": {{
+             "scenario_design": {{
                 "learn_mode": {{
-                    "ai_trainer_role": "Specific trainer role (e.g., Senior nurse educator, Banking expert)",
-                    "training_topics": "Detailed list of topics to cover",
-                    "teaching_style": "Supportive / Challenging / Step-by-step / Interactive"
+                    "ai_trainer_role": "Specific expert trainer role with experience level (e.g., Senior HR Trainer with 10+ years experience)",
+                    "training_topics": "Detailed, comprehensive list of specific topics to cover in depth",
+                    "teaching_style": "Supportive / Challenging / Step-by-step / Interactive (choose most appropriate)"
                 }},
-                "assess_try_mode": {{
-                    "ai_customer_role": "Specific customer/client role (e.g., Expecting mother, Loan applicant)",
-                    "customer_background": "Detailed background of the character",
-                    "typical_concerns": "Realistic concerns and questions this character would have",
+              "assess_try_mode": {{
+                    "ai_character_role": "Specific character role matching scenario (e.g., Skeptical Colleague, Concerned Team Member, Frustrated Customer, etc.)",
+                    "character_background": "Detailed, authentic background of the character including demographics, experience, and current situation",
+                    "typical_concerns": "Realistic, specific concerns and questions this character would authentically raise",
                     "difficulty_level": "Easy / Moderate / Challenging / Mixed"
                 }},
                 "conversation_examples": [
                     {{
-                        "customer_says": "Realistic thing the customer/character would say",
-                        "learner_should_respond": "Ideal response the learner should give",
-                        "wrong_response": "Example of incorrect response",
-                        "correct_response": "Detailed correct response with explanation"
+                        "character_says": "Realistic, challenging statement the character would make that tests learner skills",
+                        "learner_should_respond": "Detailed ideal response with specific keywords and approaches learner should include",
+                        "wrong_response": "Realistic example of inadequate or problematic learner response",
+                        "correct_response": "Comprehensive correct response with explanation of why this approach works",
+                        "character_positive_reaction": "How character responds when learner gives good answer",
+                        "character_negative_reaction": "How character responds when learner gives poor answer",
+                        "coaching_feedback": "Specific coaching feedback for incorrect responses"
                     }},
                     {{
-                        "customer_says": "Another realistic customer statement",
-                        "learner_should_respond": "Another ideal learner response",
-                        "wrong_response": "Another example of incorrect response", 
-                        "correct_response": "Another detailed correct response"
+                        "character_says": "Another realistic, challenging character statement",
+                        "learner_should_respond": "Another ideal response with specific guidance",
+                        "wrong_response": "Another realistic poor response example", 
+                        "correct_response": "Another comprehensive correct response",
+                        "character_positive_reaction": "Positive character reaction",
+                        "character_negative_reaction": "Negative character reaction",
+                        "coaching_feedback": "Coaching feedback for this scenario"
                     }}
                 ]
             }},
             "knowledge_base": {{
                 "accuracy_requirements": [
                     {{
-                        "information_type": "Pricing/Costs",
-                        "required": "Yes/No",
-                        "details": "Specific details about pricing accuracy needs"
-                    }},
-                    {{
-                        "information_type": "Products/Services", 
-                        "required": "Yes/No",
-                        "details": "Specific details about product/service accuracy"
-                    }},
-                    {{
                         "information_type": "Policies/Procedures",
-                        "required": "Yes/No", 
-                        "details": "Specific policy accuracy requirements"
+                        "required": "Yes/No",
+                        "details": "Specific details about what policy/procedure accuracy is needed"
                     }},
                     {{
-                        "information_type": "Legal/Compliance",
+                        "information_type": "Legal/Compliance", 
                         "required": "Yes/No",
-                        "details": "Legal compliance accuracy needs"
+                        "details": "Specific legal/compliance accuracy requirements"
+                    }},
+                    {{
+                        "information_type": "Contact Information",
+                        "required": "Yes/No",
+                        "details": "Contact information accuracy needs"
+                    }},
+                    {{
+                        "information_type": "Products/Services",
+                        "required": "Yes/No",
+                        "details": "Product/service accuracy requirements if applicable"
                     }}
                 ],
                 "common_situations": [
                     {{
-                        "situation": "Common situation/question in this domain",
-                        "correct_response": "Detailed correct response",
-                        "source_document": "Type of document this info should come from"
+                        "situation": "Realistic, challenging situation or question that commonly arises in this domain",
+                        "correct_response": "Detailed correct response approach with specific guidance and keywords",
+                        "source_document": "Type of document this information should come from"
                     }},
                     {{
-                        "situation": "Another common situation",
-                        "correct_response": "Another correct response",
-                        "source_document": "Source document type"
+                        "situation": "Another realistic challenging situation",
+                        "correct_response": "Another detailed correct response",
+                        "source_document": "Another source document type"
                     }},
                     {{
-                        "situation": "Third common situation",
-                        "correct_response": "Third correct response", 
-                        "source_document": "Source document type"
+                        "situation": "Third realistic situation",
+                        "correct_response": "Third detailed response", 
+                        "source_document": "Third source type"
+                    }},
+                    {{
+                        "situation": "Fourth realistic situation",
+                        "correct_response": "Fourth detailed response",
+                        "source_document": "Fourth source type"
+                    }},
+                    {{
+                        "situation": "Fifth realistic situation",
+                        "correct_response": "Fifth detailed response",
+                        "source_document": "Fifth source type"
                     }}
                 ]
             }},
@@ -2627,42 +2675,62 @@ async def fill_word_template(
                 "correction_method": "Explain what's wrong / Show correct answer / Ask them to try again",
                 "success_metrics": [
                     {{
-                        "metric": "Specific measurable metric",
-                        "target": "Specific target (e.g., 90% accuracy)",
-                        "measurement": "How to measure this metric"
+                        "metric": "Specific, measurable metric with clear definition",
+                        "target": "Specific target with percentage or criteria (e.g., At least 90% accuracy in distinguishing concepts)",
+                        "measurement": "Detailed explanation of how to measure this metric with specific assessment methods"
                     }},
                     {{
-                        "metric": "Another specific metric",
-                        "target": "Another specific target",
-                        "measurement": "How to measure this"
+                        "metric": "Another specific, measurable metric",
+                        "target": "Another specific target with clear criteria",
+                        "measurement": "Another detailed measurement method"
                     }},
                     {{
-                        "metric": "Third specific metric", 
+                        "metric": "Third specific metric",
                         "target": "Third specific target",
-                        "measurement": "How to measure this"
+                        "measurement": "Third measurement method"
+                    }},
+                    {{
+                        "metric": "Fourth specific metric",
+                        "target": "Fourth specific target", 
+                        "measurement": "Fourth measurement method"
+                    }},
+                    {{
+                        "metric": "Fifth specific metric",
+                        "target": "Fifth specific target",
+                        "measurement": "Fifth measurement method"
                     }}
                 ]
             }},
             "common_mistakes": [
                 {{
-                    "mistake": "Common mistake learners make",
-                    "why_wrong": "Why this is problematic",
-                    "correct_information": "What the correct approach should be"
+                    "mistake": "Sophisticated mistake that reflects real workplace bias or misunderstanding",
+                    "why_wrong": "Detailed explanation of why this mistake is problematic and what harm it causes",
+                    "correct_information": "Comprehensive correct approach with specific guidance and reasoning"
                 }},
                 {{
-                    "mistake": "Another common mistake",
-                    "why_wrong": "Why this is wrong",
-                    "correct_information": "Correct approach"
+                    "mistake": "Another sophisticated mistake pattern",
+                    "why_wrong": "Another detailed explanation of problems this causes",
+                    "correct_information": "Another comprehensive correct approach"
                 }},
                 {{
-                    "mistake": "Third common mistake",
-                    "why_wrong": "Why this is problematic", 
-                    "correct_information": "Correct information"
+                    "mistake": "Third sophisticated mistake",
+                    "why_wrong": "Third detailed explanation of why it's wrong", 
+                    "correct_information": "Third comprehensive correct approach"
+                }},
+                {{
+                    "mistake": "Fourth sophisticated mistake",
+                    "why_wrong": "Fourth explanation of problems",
+                    "correct_information": "Fourth correct approach"
+                }},
+                {{
+                    "mistake": "Fifth sophisticated mistake",
+                    "why_wrong": "Fifth explanation",
+                    "correct_information": "Fifth correct approach"
                 }}
             ]
         }}
         
-        Make all content specific, realistic, and professionally appropriate for the requested scenario.
+        Make all content specific, challenging, and professionally sophisticated. Create authentic workplace scenarios that truly test learner skills.
         """
         
         # Get filled template data from LLM
@@ -2674,7 +2742,7 @@ async def fill_word_template(
                     {"role": "user", "content": word_template_prompt}
                 ],
                 temperature=0.3,
-                max_tokens=8000
+                max_tokens=16000
             )
             
             response_text = response.choices[0].message.content

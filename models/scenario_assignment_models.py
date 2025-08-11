@@ -41,6 +41,10 @@ class ScenarioAssignmentCreate(ScenarioAssignmentBase):
 class ScenarioAssignmentDB(ScenarioAssignmentBase):
     id: UUID = Field(default_factory=uuid4, alias="_id")
     
+    title: str
+    description: Optional[str] = None
+    thumbnail_url: str
+    
     # Company hierarchy context - tracks assignment flow
     assigned_by_company: UUID                    # Which company's admin made this assignment
     source_company: UUID                        # Which company owns the scenario being assigned

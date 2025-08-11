@@ -567,7 +567,18 @@ async def get_user_module_scenario_assignments(
     assignments = []
     cursor = db.user_scenario_assignments.find(query)
     async for document in cursor:
-        assignments.append(ScenarioAssignmentDB(**document))
+        sceanrio_id = document["scenario_id"]
+        scenario_doc = await db.scenarios.find_one({"_id": sceanrio_id})
+        if not scenario_doc:
+            continue  # Or log missing module
+
+        response_obj = {
+            **document,
+            "title": scenario_doc.get("title"),
+            "description": scenario_doc.get("description"),
+            "thumbnail_url": scenario_doc.get("thumbnail_url"),
+        }
+        assignments.append(ScenarioAssignmentDB(**response_obj))
     
     return assignments
 

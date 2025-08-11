@@ -131,7 +131,7 @@ async def get_user_scenarios(
     
     return await get_user_scenario_assignments(db, user_id, include_archived)
 
-@router.get("/user/{user_id}/module/{module_id}", response_model=List[ScenarioAssignmentResponse])
+@router.get("/user/{user_id}/module/{module_id}", response_model=List[ScenarioAssignmentDB])
 async def get_user_module_scenarios(
     user_id: UUID,
     module_id: UUID,

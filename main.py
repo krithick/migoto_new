@@ -665,7 +665,8 @@ async def startup_event():
         
         # Step 3: Create basic system data
         # await create_basic_system_data(db)
-        
+        await bot_factory.initialize_bots()
+        await bot_factory_analyser.initialize_bots_analyser()
         print("✅ FastAPI startup completed successfully!")
         
     except Exception as e:
@@ -777,14 +778,14 @@ async def get_session_analysis(
 
         conversation = {"conversation_history":conversation_history}
 
-        scenario_name= "To Analyze chats"
+        scenario_name= "Bot_analyser"
         analyzer= await bot_factory_analyser.get_bot_analyser(scenario_name)
         interaction_details=  await get_avatar_interaction(db,session2['avatar_interaction'],current_user)
         results =await analyzer.analyze_conversation(conversation,interaction_details,session2["scenario_name"])
         results['session_id']=str(session2["_id"])
         results['user_id']=str(session2["user_id"])
         results['conversation_id']=str(uuid.uuid4())
-        results['timestamp']=datetime.datetime.now()
+        results['timestamp']=datetime.now()
         # category_scores=results['category_scores']
         # # results['overall_score']=category_scores['language_and_communication']+category_scores['product_knowledge']+category_scores['empathy_and_trust']+category_scores['process_clarity']+category_scores['product_suitability']
         report = Evaluation(**results)
