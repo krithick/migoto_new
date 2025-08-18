@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import HTTPException, status
 from models.module_assignment_models import (
     ModuleAssignmentCreate, ModuleAssignmentDB, ModuleAssignmentUpdate,
-    BulkModuleAssignmentCreate, AssignmentContext
+    BulkModuleAssignmentCreate, AssignmentContext,ModuleAssignmentResponse
 )
 from models.user_models import UserDB, UserRole
 from models.company_models import CompanyType, CompanyDB
@@ -447,13 +447,26 @@ async def get_user_course_module_assignments(
         "user_id": str(user_id),
         "course_id": str(course_id)
     }
+    print(f"Querying assignments for user {type(user_id)} in course {type(course_id)} with archived={include_archived}",query)
     if not include_archived:
         query["is_archived"] = False
     
     assignments = []
     cursor = db.user_module_assignments.find(query)
     async for document in cursor:
-        assignments.append(ModuleAssignmentDB(**document))
+        print(f"Found assignment: {document}")
+        module_id = document["module_id"]
+        module_doc = await db.modules.find_one({"_id": str(module_id)})
+        if not module_doc:
+            continue  # Or log missing module
+        document["id"] = document["_id"]
+        response_obj = {
+            **document,
+            "info":{"title": module_doc.get("title"),
+            "description": module_doc.get("description"),
+            "thumbnail_url": module_doc.get("thumbnail_url")},
+        }
+        assignments.append(ModuleAssignmentResponse(**response_obj))
     
     return assignments
 
