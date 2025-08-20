@@ -58,7 +58,7 @@ class ModuleDB(ModuleBase):
     archived_at: Optional[datetime] = None                   # When was it archived
     archived_by: Optional[UUID] = None                       # Who archived it
     archived_reason: Optional[str] = None                    # Why was it archived
-    
+    transfer_history: Optional[List[Dict[str, str]]] = Field(default_factory=list)
     class Config:
         populate_by_name = True
         arbitrary_types_allowed = True

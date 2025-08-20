@@ -67,7 +67,7 @@ class ScenarioDB(ScenarioBase):
     archived_at: Optional[datetime] = None                   # When was it archived
     archived_by: Optional[UUID] = None                       # Who archived it
     archived_reason: Optional[str] = None                    # Why was it archived
-    
+    transfer_history: Optional[List[Dict[str, str]]] = Field(default_factory=list)
     @model_validator(mode='after')
     def check_at_least_one_mode(self) -> 'ScenarioDB':
         # Access attributes directly instead of using .get()
