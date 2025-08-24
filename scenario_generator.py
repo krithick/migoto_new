@@ -517,16 +517,17 @@ SCENARIO REALISM:
                 "kpis_for_interaction": ["Response accuracy", "Resolution time"],
                 "learning_objectives": "What learners should achieve"
             }},
-            "feedback_mechanism": {{
-                "positive_closing": "Positive ending message",
-                "negative_closing": "Negative ending message",
-                "neutral_closing": "Neutral ending message",
-                "profanity_closing": "Response to profanity",
-                "disrespectful_closing": "Response to disrespect",
-                "emphasis_point": "What to emphasize when repeating",
-                "polite_repeat_example": "Example of polite repetition",
-                "negative_closing_example": "Example of disappointment"
-            }},
+            "feedback_mechanism": {{ 
+            "positive_closing": "A natural, in-character closing line the persona would say if satisfied (e.g., as a customer: 'Thanks, that's exactly what I needed!')",
+            "negative_closing": "A natural, in-character closing line if unsatisfied (e.g., as a customer: 'I'm still not sure this solves my problem, but thank you.')", 
+            "neutral_closing": "A neutral, in-character closing (e.g., as a customer: 'Okay, I'll think about it.')",
+            "profanity_closing": "How the persona would respond to profanity, staying in character (e.g., as a customer: 'I'd appreciate it if we could keep this professional.')",
+            "disrespectful_closing": "How the persona would respond to disrespect, in character.",
+            "emphasis_point": "What the persona would naturally emphasize if repeating themselves.",
+            "polite_repeat_example": "A polite, in-character way to ask for clarification.",
+            "negative_closing_example": "A disappointed, in-character closing." }}
+
+
              "coaching_rules": {{
             "process_requirements": {{
                 "mentioned_methodology": "What specific process/methodology is mentioned in the document? (e.g., SPIN model, KYC process, etc.)",
@@ -558,13 +559,13 @@ SCENARIO REALISM:
                 "factual_accuracy_requirements": "What specific facts must be 100% accurate according to document",
                 "process_adherence_requirements": "What processes must be followed according to document", 
                 "customer_matching_requirements": "How responses should match customer profile per document"
-            }}
+            }} as customer/client/student etc
         }}
     - Preserve the exact language and examples from the document when possible
         Provide comprehensive, scenario-specific content for each field.
         
 Generate a comprehensive training scenario with the depth and sophistication of professional corporate training programs. Focus on creating realistic, challenging, and educationally valuable experiences.
-
+make sure the feedback_mechanism details are in line with in the current conversation and it should not be a generic thing it should be like the bot who is playing the character will sound like
 Return in the specified JSON format with rich, detailed content in each section.
         """
         
@@ -1909,6 +1910,7 @@ async def get_evaluation_metrics(
 async def generate_personas(
     template_id: str = Body(...),
     persona_type: str = Body(..., description="learn_mode_expert or assess_mode_character"),
+    
     count: int = Body(default=1, description="Number of personas to generate"),
     db: Any = Depends(get_db)
 ):
@@ -2498,128 +2500,1279 @@ async def get_scenario_editing_interface(
     
     
 
+# Add these imports to your scenario_generator.py
+from docx import Document
+from docx.shared import Inches, Pt
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.shared import OxmlElement, qn
+from io import BytesIO
+import tempfile
+import os
+
+# Add this new endpoint to your router
+@router.post("/fill-word-template")
+async def fill_word_template(
+    scenario_prompt: str = Body(..., description="Natural language description of the training scenario"),
+    template_name: str = Body(..., description="Name for the scenario"),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
     """
-    Generate a single persona with random gender and regional diversity
+    Generate a filled Word document template based on a natural language prompt
+    Returns a downloadable .docx file with all tables and sections populated
     """
-    
-    # Random selections for diversity
-    genders = ["male", "female"]
-    random_gender = random.choice(genders)
-    
-    # Regional diversity (randomly selected internally)
-    regions = [
-        # {
-        #     "name": "us",
-        #     "locations": ["New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Phoenix, AZ"],
-        #     "cultural_context": "American cultural background, direct communication style",
-        #     "naming_style": "American names like Sarah, Michael, Jennifer, David"
-        # },
-        {
-            "name": "india", 
-            "locations": ["Mumbai, Maharashtra", "Delhi, NCR", "Bangalore, Karnataka", "Hyderabad, Telangana", "Chennai, Tamil Nadu"],
-            "cultural_context": "Indian cultural background, respectful and relationship-focused communication",
-            "naming_style": "Indian names like Priya, Rajesh, Anita, Vikram"
-        }
-        # ,
-        # {
-        #     "name": "uk",
-        #     "locations": ["London, England", "Manchester, England", "Birmingham, England", "Glasgow, Scotland"],
-        #     "cultural_context": "British cultural background, polite and formal communication style", 
-        #     "naming_style": "British names like Emma, James, Charlotte, Oliver"
-        # },
-        # {
-        #     "name": "australia",
-        #     "locations": ["Sydney, NSW", "Melbourne, VIC", "Brisbane, QLD", "Perth, WA"],
-        #     "cultural_context": "Australian cultural background, friendly and direct communication style",
-        #     "naming_style": "Australian names like Sophie, Luke, Grace, Ryan"
-        # }
-    ]
-    
-    random_region = random.choice(regions)
-    random_location = random.choice(random_region["locations"])
-    
-    # Get scenario context
-    domain = template_data.get("general_info", {}).get("domain", "general")
-    scenario_title = template_data.get("context_overview", {}).get("scenario_title", "Training Scenario")
-    
-    # Enhanced prompt with diversity built-in
-    prompt = f"""
-    Create a highly realistic, single-person persona for {domain} training scenarios.
-    
-    STRICT REQUIREMENTS:
-    - SINGLE PERSON ONLY (not a couple, not multiple people)
-    - Gender: {random_gender} (must be consistent throughout)
-    - Cultural Background: {random_region['cultural_context']}
-    - Location: {random_location}
-    - Naming Style: {random_region['naming_style']}
-    
-    PERSONA TYPE: {persona_type}
-    SCENARIO CONTEXT: {scenario_title}
-    DOMAIN: {domain}
-    
-    PERSONA PROFILE REQUIREMENTS:
-    1. Create ONE individual person (not a family, not a couple)
-    2. Ensure ALL pronouns and references match {random_gender} gender
-    3. Use culturally appropriate names from the specified region
-    4. Include region-specific cultural nuances and communication styles
-    5. Make the persona realistic and authentic
-    6. Include specific demographic details appropriate for the cultural background
-    
-    RESPONSE FORMAT (JSON only):
-    {{
-        "name": "Single culturally appropriate {random_gender} name",
-        "gender": "{random_gender}",
-        "age": [specific age number between 22-55],
-        "character_goal": "Specific goal relevant to {domain}",
-        "location": "{random_location}",
-        "persona_details": "Detailed description of this ONE {random_gender} person - personality, background, preferences, communication style",
-        "situation": "Current specific situation this person is facing in {domain} context",
-        "background_story": "Rich backstory explaining this person's background and experiences"
-    }}
-    
-    CRITICAL: 
-    - Use {random_gender} pronouns consistently (he/him for male, she/her for female)
-    - NO mixing of genders or multiple people
-    - Make it culturally authentic for the specified background
-    - Focus on ONE individual {random_gender} person only
-    
-    Generate the persona now.
-    """
-    
     try:
-        response = await client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are an expert persona designer who creates authentic, culturally diverse, single-person character profiles."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.8,  # Higher temperature for more diversity
-            max_tokens=1500,
-            response_format={"type": "json_object"}
+        # Initialize generator and get template data
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        
+        # Enhanced prompt for Word template filling
+        word_template_prompt = f"""
+        You are an expert instructional designer filling out a comprehensive training scenario template.
+        
+        SCENARIO REQUEST: {scenario_prompt}
+        
+        Fill out ALL sections with REALISTIC, CHALLENGING content that reflects actual workplace resistance and complex situations. Create authentic dialogue that mirrors real employee concerns and sophisticated scenarios that test learners properly.
+        
+        REALISM REQUIREMENTS:
+        - Design authentic personas with genuine workplace concerns and realistic resistance patterns
+        - Create multi-turn conversation examples with natural back-and-forth dialogue including both correct AND incorrect learner responses
+        - Generate sophisticated mistake patterns reflecting actual workplace bias and misunderstanding
+        - Make all content professionally challenging yet appropriate for corporate training
+        
+        CHARACTER DESIGN REQUIREMENTS:
+        - AI character roles should match the scenario context (e.g., Skeptical Colleague, Concerned Team Member, Frustrated Customer, Hesitant Student, Worried Parent, etc.)
+        - Create authentic backgrounds representing real workplace demographics and situations
+        - Include realistic concerns that reflect actual resistance patterns people have
+        - Design varied difficulty levels within each scenario
+        CONVERSATION REQUIREMENTS:
+        - Create multi-turn conversations with authentic back-and-forth dialogue
+        - Include both correct AND incorrect learner responses with realistic AI character reactions
+        - Show how the AI character responds differently to good vs bad responses
+        - Include coaching feedback for incorrect responses using [CORRECT] format
+        - Make conversations feel natural and workplace-appropriate
+        Provide realistic, professional content suitable for corporate training.
+        SUCCESS METRICS REQUIREMENTS:
+        - Create specific, measurable targets (e.g., "At least 90% accuracy in distinguishing concepts")
+        - Include detailed measurement methods (e.g., "Compare responses to rubric with defined criteria")
+        - Make metrics domain-specific and actionable
+        - Include both knowledge-based and application-based metrics
+        COMMON MISTAKES REQUIREMENTS:
+        - Create nuanced mistakes that reflect real workplace bias and misunderstanding
+        - Include subtle errors, not just obvious ones
+        - Explain why each mistake is problematic in detail
+        - Provide comprehensive correct information
+        - Make mistakes specific to the domain and scenario    
+        
+        Generate comprehensive, realistic content that challenges learners authentically.
+ 
+        Return ONLY valid JSON with this exact structure:
+        {{
+            "project_basics": {{
+                "company_name": "Example Corp (or appropriate name based on context)",
+                "scenario_title": "Specific scenario title",
+                "training_domain": "Primary domain from: Healthcare, Education, Banking, Retail, Insurance, Customer Service, Sales, HR",
+                "preferred_language": "Primary: English"
+            }},
+            "training_goals": {{
+                "learner_skills": [
+                    "Specific skill 1 learners should master",
+                    "Specific skill 2 learners should master", 
+                    "Specific skill 3 learners should master",
+                    "Specific skill 4 learners should master",
+                    "Specific skill 5 learners should master"
+                ],
+                "job_roles": "Specific job roles this applies to",
+                "experience_level": "New (0-1 year) / Experienced (1-5 years) / Expert (5+ years) / Mixed",
+                "current_challenges": "Specific challenges learners face in this domain"
+            }},
+             "scenario_design": {{
+                "learn_mode": {{
+                    "ai_trainer_role": "Specific expert trainer role with experience level (e.g., Senior HR Trainer with 10+ years experience)",
+                    "training_topics": "Detailed, comprehensive list of specific topics to cover in depth",
+                    "teaching_style": "Supportive / Challenging / Step-by-step / Interactive (choose most appropriate)"
+                }},
+              "assess_try_mode": {{
+                    "ai_character_role": "Specific character role matching scenario (e.g., Skeptical Colleague, Concerned Team Member, Frustrated Customer, etc.)",
+                    "character_background": "Detailed, authentic background of the character including demographics, experience, and current situation",
+                    "typical_concerns": "Realistic, specific concerns and questions this character would authentically raise",
+                    "difficulty_level": "Easy / Moderate / Challenging / Mixed"
+                }},
+                "conversation_examples": [
+                    {{
+                        "character_says": "Realistic, challenging statement the character would make that tests learner skills",
+                        "learner_should_respond": "Detailed ideal response with specific keywords and approaches learner should include",
+                        "wrong_response": "Realistic example of inadequate or problematic learner response",
+                        "correct_response": "Comprehensive correct response with explanation of why this approach works",
+                        "character_positive_reaction": "How character responds when learner gives good answer",
+                        "character_negative_reaction": "How character responds when learner gives poor answer",
+                        "coaching_feedback": "Specific coaching feedback for incorrect responses"
+                    }},
+                    {{
+                        "character_says": "Another realistic, challenging character statement",
+                        "learner_should_respond": "Another ideal response with specific guidance",
+                        "wrong_response": "Another realistic poor response example", 
+                        "correct_response": "Another comprehensive correct response",
+                        "character_positive_reaction": "Positive character reaction",
+                        "character_negative_reaction": "Negative character reaction",
+                        "coaching_feedback": "Coaching feedback for this scenario"
+                    }}
+                ]
+            }},
+            "knowledge_base": {{
+                "accuracy_requirements": [
+                    {{
+                        "information_type": "Policies/Procedures",
+                        "required": "Yes/No",
+                        "details": "Specific details about what policy/procedure accuracy is needed"
+                    }},
+                    {{
+                        "information_type": "Legal/Compliance", 
+                        "required": "Yes/No",
+                        "details": "Specific legal/compliance accuracy requirements"
+                    }},
+                    {{
+                        "information_type": "Contact Information",
+                        "required": "Yes/No",
+                        "details": "Contact information accuracy needs"
+                    }},
+                    {{
+                        "information_type": "Products/Services",
+                        "required": "Yes/No",
+                        "details": "Product/service accuracy requirements if applicable"
+                    }}
+                ],
+                "common_situations": [
+                    {{
+                        "situation": "Realistic, challenging situation or question that commonly arises in this domain",
+                        "correct_response": "Detailed correct response approach with specific guidance and keywords",
+                        "source_document": "Type of document this information should come from"
+                    }},
+                    {{
+                        "situation": "Another realistic challenging situation",
+                        "correct_response": "Another detailed correct response",
+                        "source_document": "Another source document type"
+                    }},
+                    {{
+                        "situation": "Third realistic situation",
+                        "correct_response": "Third detailed response", 
+                        "source_document": "Third source type"
+                    }},
+                    {{
+                        "situation": "Fourth realistic situation",
+                        "correct_response": "Fourth detailed response",
+                        "source_document": "Fourth source type"
+                    }},
+                    {{
+                        "situation": "Fifth realistic situation",
+                        "correct_response": "Fifth detailed response",
+                        "source_document": "Fifth source type"
+                    }}
+                ]
+            }},
+            "assessment_feedback": {{
+                "correction_tone": "Gentle coaching / Direct correction / Educational explanation",
+                "correction_timing": "Immediately / End of conversation / Summary report",
+                "correction_method": "Explain what's wrong / Show correct answer / Ask them to try again",
+                "success_metrics": [
+                    {{
+                        "metric": "Specific, measurable metric with clear definition",
+                        "target": "Specific target with percentage or criteria (e.g., At least 90% accuracy in distinguishing concepts)",
+                        "measurement": "Detailed explanation of how to measure this metric with specific assessment methods"
+                    }},
+                    {{
+                        "metric": "Another specific, measurable metric",
+                        "target": "Another specific target with clear criteria",
+                        "measurement": "Another detailed measurement method"
+                    }},
+                    {{
+                        "metric": "Third specific metric",
+                        "target": "Third specific target",
+                        "measurement": "Third measurement method"
+                    }},
+                    {{
+                        "metric": "Fourth specific metric",
+                        "target": "Fourth specific target", 
+                        "measurement": "Fourth measurement method"
+                    }},
+                    {{
+                        "metric": "Fifth specific metric",
+                        "target": "Fifth specific target",
+                        "measurement": "Fifth measurement method"
+                    }}
+                ]
+            }},
+            "common_mistakes": [
+                {{
+                    "mistake": "Sophisticated mistake that reflects real workplace bias or misunderstanding",
+                    "why_wrong": "Detailed explanation of why this mistake is problematic and what harm it causes",
+                    "correct_information": "Comprehensive correct approach with specific guidance and reasoning"
+                }},
+                {{
+                    "mistake": "Another sophisticated mistake pattern",
+                    "why_wrong": "Another detailed explanation of problems this causes",
+                    "correct_information": "Another comprehensive correct approach"
+                }},
+                {{
+                    "mistake": "Third sophisticated mistake",
+                    "why_wrong": "Third detailed explanation of why it's wrong", 
+                    "correct_information": "Third comprehensive correct approach"
+                }},
+                {{
+                    "mistake": "Fourth sophisticated mistake",
+                    "why_wrong": "Fourth explanation of problems",
+                    "correct_information": "Fourth correct approach"
+                }},
+                {{
+                    "mistake": "Fifth sophisticated mistake",
+                    "why_wrong": "Fifth explanation",
+                    "correct_information": "Fifth correct approach"
+                }}
+            ]
+        }}
+        
+        Make all content specific, challenging, and professionally sophisticated. Create authentic workplace scenarios that truly test learner skills.
+        """
+        
+        # Get filled template data from LLM
+        if azure_openai_client:
+            response = await azure_openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are an expert at filling training scenario templates with realistic, professional content."},
+                    {"role": "user", "content": word_template_prompt}
+                ],
+                temperature=0.3,
+                max_tokens=16000
+            )
+            
+            response_text = response.choices[0].message.content
+            
+            # Extract JSON
+            json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+            if json_match:
+                template_data = json.loads(json_match.group(1))
+            else:
+                template_data = json.loads(response_text)
+        else:
+            # Fallback mock data
+            template_data = get_mock_word_template_data(scenario_prompt)
+        
+        # Generate the Word document
+        doc = create_filled_word_template(template_data, template_name)
+        
+        # Save to temporary file and read content safely
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
+        temp_file.close()  # Close the file handle immediately
+        
+        try:
+            doc.save(temp_file.name)
+            
+            # Read the file content
+            with open(temp_file.name, 'rb') as f:
+                file_content = f.read()
+        finally:
+            # Clean up - use try/except to handle any deletion issues
+            try:
+                os.unlink(temp_file.name)
+            except OSError:
+                pass  # File might already be deleted or in use
+        
+        # Save record to database
+        template_record = {
+            "id": str(uuid4()),
+            "name": template_name,
+            "scenario_title": template_data.get("project_basics", {}).get("scenario_title", template_name),
+            "domain": template_data.get("project_basics", {}).get("training_domain", "General"),
+            "template_data": template_data,
+            "created_at": datetime.now().isoformat(),
+            "created_by": str(current_user.id),
+            "source": "word_template_fill",
+            "original_prompt": scenario_prompt,
+            "file_type": "docx"
+        }
+        
+        await db.templates.insert_one(template_record)
+        
+        # Return file for download
+        from fastapi.responses import Response
+        
+        return Response(
+            content=file_content,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f"attachment; filename=\"{template_name.replace(' ', '_')}_Training_Template.docx\"",
+                "Content-Length": str(len(file_content))
+            }
         )
         
-        persona_data = json.loads(response.choices[0].message.content)
-        
-        # Validate and ensure consistency
-        persona_data["gender"] = random_gender  # Force consistency
-        
-        return persona_data
-        
     except Exception as e:
-        print(f"Error generating persona: {str(e)}")
-        # Fallback persona with random diversity
-        fallback_names = {
-            "male": ["James", "Michael", "David", "Rajesh", "Oliver", "Ryan"],
-            "female": ["Sarah", "Jennifer", "Priya", "Emma", "Sophie", "Grace"]
+        raise HTTPException(status_code=500, detail=f"Error generating Word template: {str(e)}")
+
+
+def create_filled_word_template(template_data: Dict[str, Any], template_name: str) -> Document:
+    """
+    Create a filled Word document matching the structure of your template
+    """
+    doc = Document()
+    
+    # Title
+    title = doc.add_heading('AI Training Scenario Template', 0)
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    subtitle = doc.add_paragraph()
+    subtitle.add_run('📋 Complete this form to create your AI training scenario with accurate, document-backed responses').bold = True
+    subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    # SECTION 1: PROJECT BASICS
+    doc.add_heading('SECTION 1: PROJECT BASICS ⭐ REQUIRED', 1)
+    
+    # Create table for project basics
+    table = doc.add_table(rows=4, cols=2)
+    table.style = 'Table Grid'
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    
+    # Fill project basics table
+    basics = template_data.get("project_basics", {})
+    table.cell(0, 0).text = "Company Name"
+    table.cell(0, 1).text = basics.get("company_name", "Your Company Name")
+    
+    table.cell(1, 0).text = "Scenario Title"
+    table.cell(1, 1).text = basics.get("scenario_title", template_name)
+    
+    table.cell(2, 0).text = "Training Domain"
+    table.cell(2, 1).text = f"☑ {basics.get('training_domain', 'General Training')}"
+    
+    table.cell(3, 0).text = "Preferred Language"
+    table.cell(3, 1).text = basics.get("preferred_language", "English")
+    
+    # SECTION 2: TRAINING GOALS
+    doc.add_heading('SECTION 2: TRAINING GOALS ⭐ REQUIRED', 1)
+    
+    doc.add_heading('2.1 What Should Learners Be Able to Do?', 2)
+    doc.add_paragraph('📝 List 3-5 specific skills or knowledge areas:')
+    
+    goals = template_data.get("training_goals", {})
+    skills = goals.get("learner_skills", [])
+    
+    for i, skill in enumerate(skills[:5], 1):
+        doc.add_paragraph(f"{i}. {skill}")
+    
+    doc.add_heading('2.2 Who Are Your Learners?', 2)
+    
+    # Learners table
+    learner_table = doc.add_table(rows=3, cols=2)
+    learner_table.style = 'Table Grid'
+    
+    learner_table.cell(0, 0).text = "Job Roles"
+    learner_table.cell(0, 1).text = goals.get("job_roles", "All relevant roles")
+    
+    learner_table.cell(1, 0).text = "Experience Level"
+    learner_table.cell(1, 1).text = f"☑ {goals.get('experience_level', 'Mixed')}"
+    
+    learner_table.cell(2, 0).text = "Current Challenges"
+    learner_table.cell(2, 1).text = goals.get("current_challenges", "Domain-specific challenges")
+    
+    # SECTION 3: SCENARIO DESIGN
+    doc.add_heading('SECTION 3: SCENARIO DESIGN ⭐ REQUIRED', 1)
+    
+    doc.add_heading('3.1 Learn Mode: AI as Trainer', 2)
+    
+    design = template_data.get("scenario_design", {})
+    learn_mode = design.get("learn_mode", {})
+    
+    learn_table = doc.add_table(rows=3, cols=2)
+    learn_table.style = 'Table Grid'
+    
+    learn_table.cell(0, 0).text = "AI Trainer Role"
+    learn_table.cell(0, 1).text = learn_mode.get("ai_trainer_role", "Expert Trainer")
+    
+    learn_table.cell(1, 0).text = "Training Topics"
+    learn_table.cell(1, 1).text = learn_mode.get("training_topics", "Core topics for the domain")
+    
+    learn_table.cell(2, 0).text = "Teaching Style"
+    learn_table.cell(2, 1).text = f"☑ {learn_mode.get('teaching_style', 'Supportive')}"
+    
+    doc.add_heading('3.2 Assess/Try Mode: AI as Customer/Client', 2)
+    
+    assess_mode = design.get("assess_try_mode", {})
+    
+    assess_table = doc.add_table(rows=4, cols=2)
+    assess_table.style = 'Table Grid'
+    
+    assess_table.cell(0, 0).text = "AI Customer Role"
+    assess_table.cell(0, 1).text = assess_mode.get("ai_customer_role", "Customer/Client")
+    
+    assess_table.cell(1, 0).text = "Customer Background"
+    assess_table.cell(1, 1).text = assess_mode.get("customer_background", "Relevant background")
+    
+    assess_table.cell(2, 0).text = "Typical Concerns/Questions"
+    assess_table.cell(2, 1).text = assess_mode.get("typical_concerns", "Domain-specific concerns")
+    
+    assess_table.cell(3, 0).text = "Difficulty Level"
+    assess_table.cell(3, 1).text = f"☑ {assess_mode.get('difficulty_level', 'Mixed')}"
+    
+    # 3.3 Real Conversation Examples
+    doc.add_heading('3.3 Real Conversation Examples', 2)
+    doc.add_paragraph('📝 Provide examples of how conversations should go:')
+    
+    conversations = design.get("conversation_examples", [])
+    for i, conv in enumerate(conversations[:2], 1):
+        doc.add_paragraph(f'Example Conversation {i}:', style='Heading 3')
+        doc.add_paragraph(f"• Customer says: \"{conv.get('customer_says', 'Customer statement')}\"")
+        doc.add_paragraph(f"• Learner should respond: \"{conv.get('learner_should_respond', 'Ideal response')}\"")
+        doc.add_paragraph(f"• If learner says wrong thing: \"{conv.get('wrong_response', 'Wrong response example')}\"")
+        doc.add_paragraph(f"• Correct response should be: \"{conv.get('correct_response', 'Correct detailed response')}\"")
+        doc.add_paragraph()
+    
+    # SECTION 4: KNOWLEDGE BASE
+    doc.add_heading('SECTION 4: KNOWLEDGE BASE ⭐ REQUIRED', 1)
+    
+    doc.add_heading('4.1 What Information Must Be 100% Accurate?', 2)
+    doc.add_paragraph('📝 Check all that apply and provide details:')
+    
+    knowledge = template_data.get("knowledge_base", {})
+    accuracy_reqs = knowledge.get("accuracy_requirements", [])
+    
+    # Accuracy requirements table
+    accuracy_table = doc.add_table(rows=len(accuracy_reqs) + 1, cols=3)
+    accuracy_table.style = 'Table Grid'
+    
+    # Header row
+    accuracy_table.cell(0, 0).text = "Information Type"
+    accuracy_table.cell(0, 1).text = "Required"
+    accuracy_table.cell(0, 2).text = "Details"
+    
+    for i, req in enumerate(accuracy_reqs, 1):
+        accuracy_table.cell(i, 0).text = req.get("information_type", "")
+        required_text = "☑ Yes" if req.get("required", "").lower() == "yes" else "☐ No"
+        accuracy_table.cell(i, 1).text = required_text
+        accuracy_table.cell(i, 2).text = req.get("details", "")
+    
+    doc.add_heading('4.2 Common Situations & Responses', 2)
+    doc.add_paragraph('📝 Fill out for your specific domain:')
+    
+    # Common situations table
+    situations = knowledge.get("common_situations", [])
+    situations_table = doc.add_table(rows=len(situations) + 1, cols=3)
+    situations_table.style = 'Table Grid'
+    
+    # Header row
+    situations_table.cell(0, 0).text = "Common Situation/Question"
+    situations_table.cell(0, 1).text = "Correct Response/Information"
+    situations_table.cell(0, 2).text = "Source Document"
+    
+    for i, situation in enumerate(situations, 1):
+        situations_table.cell(i, 0).text = situation.get("situation", "")
+        situations_table.cell(i, 1).text = situation.get("correct_response", "")
+        situations_table.cell(i, 2).text = situation.get("source_document", "")
+    
+    # SECTION 5: ASSESSMENT & FEEDBACK
+    doc.add_heading('SECTION 5: ASSESSMENT & FEEDBACK ⭐ REQUIRED', 1)
+    
+    doc.add_heading('5.1 How Should AI Correct Mistakes?', 2)
+    
+    feedback = template_data.get("assessment_feedback", {})
+    
+    correction_table = doc.add_table(rows=3, cols=2)
+    correction_table.style = 'Table Grid'
+    
+    correction_table.cell(0, 0).text = "Tone"
+    tone = feedback.get("correction_tone", "Gentle coaching")
+    correction_table.cell(0, 1).text = f"☑ {tone}"
+    
+    correction_table.cell(1, 0).text = "Timing"
+    timing = feedback.get("correction_timing", "Immediately")
+    correction_table.cell(1, 1).text = f"☑ {timing}"
+    
+    correction_table.cell(2, 0).text = "Method"
+    method = feedback.get("correction_method", "Explain what's wrong")
+    correction_table.cell(2, 1).text = f"☑ {method}"
+    
+    doc.add_heading('5.2 Success Metrics', 2)
+    doc.add_paragraph('📝 How will you measure if training is working?')
+    
+    # Success metrics table
+    metrics = feedback.get("success_metrics", [])
+    metrics_table = doc.add_table(rows=len(metrics) + 1, cols=3)
+    metrics_table.style = 'Table Grid'
+    
+    metrics_table.cell(0, 0).text = "Metric"
+    metrics_table.cell(0, 1).text = "Target"
+    metrics_table.cell(0, 2).text = "How to Measure"
+    
+    for i, metric in enumerate(metrics, 1):
+        metrics_table.cell(i, 0).text = metric.get("metric", "")
+        metrics_table.cell(i, 1).text = metric.get("target", "")
+        metrics_table.cell(i, 2).text = metric.get("measurement", "")
+    
+    # SECTION 6: SUPPORTING DOCUMENTS
+    doc.add_heading('SECTION 6: SUPPORTING DOCUMENTS ⭐ REQUIRED', 1)
+    
+    doc.add_heading('6.1 Document Checklist', 2)
+    doc.add_paragraph('📎 Attach ALL documents that contain information the AI should know:')
+    
+    # Standard document checklist
+    doc_categories = [
+        ("Core Information Documents", [
+            "Product/Service Catalog - What you offer, features, benefits",
+            "Pricing Information - Current rates, costs, fee structures", 
+            "Policies & Procedures - Rules, guidelines, standard processes",
+            "FAQ Document - Common questions and approved answers"
+        ]),
+        ("Training & Reference Materials", [
+            "Training Manuals - Current training content",
+            "Best Practice Guides - How things should be done",
+            "Templates & Scripts - Standard responses, forms, processes",
+            "Case Studies - Real examples and scenarios"
+        ]),
+        ("Compliance & Standards", [
+            "Regulatory Guidelines - Legal requirements, compliance rules",
+            "Quality Standards - Service levels, performance criteria",
+            "Safety Procedures - Emergency protocols, safety guidelines",
+            "Competitive Information - How you compare to others"
+        ])
+    ]
+    
+    for category, items in doc_categories:
+        doc.add_paragraph(category, style='Heading 3')
+        for item in items:
+            doc.add_paragraph(f"• ☐ {item}")
+    
+    # SECTION 7: CONVERSATION EXAMPLES  
+    doc.add_heading('SECTION 7: CONVERSATION EXAMPLES ⭐ REQUIRED', 1)
+    
+    doc.add_heading('7.1 Learn Mode Example', 2)
+    doc.add_paragraph('📝 Show how AI trainer should teach:')
+    
+    # Add learn mode example from template data
+    if design.get("conversation_examples"):
+        example = design["conversation_examples"][0]
+        doc.add_paragraph(f'Topic: {basics.get("training_domain", "Training Topic")}')
+        doc.add_paragraph(f'AI Trainer: "{learn_mode.get("ai_trainer_role", "Expert")}, I\'m here to help you learn..."')
+        doc.add_paragraph(f'Learner Question: "How should I handle this situation?"')
+        doc.add_paragraph(f'AI Response: "{example.get("learner_should_respond", "Detailed educational response")}"')
+    
+    doc.add_heading('7.2 Assess Mode Example', 2)
+    doc.add_paragraph('📝 Show how AI customer should behave:')
+    
+    if design.get("conversation_examples"):
+        example = design["conversation_examples"][0]
+        doc.add_paragraph(f'Scenario: {assess_mode.get("customer_background", "Customer scenario")}')
+        doc.add_paragraph(f'AI Customer: "{example.get("customer_says", "Customer statement")}"')
+        doc.add_paragraph(f'Learner Response: "{example.get("learner_should_respond", "Learner response")}"')
+        doc.add_paragraph(f'If Correct: "Thank you, that helps clarify things."')
+        doc.add_paragraph(f'If Incorrect: "{example.get("wrong_response", "Im still confused about this.")}')
+    
+    doc.add_heading('7.3 Common Mistakes to Catch', 2)
+    doc.add_paragraph('📝 What errors should trigger [CORRECT] feedback?')
+    
+    # Common mistakes table
+    mistakes = template_data.get("common_mistakes", [])
+    if mistakes:
+        mistakes_table = doc.add_table(rows=len(mistakes) + 1, cols=3)
+        mistakes_table.style = 'Table Grid'
+        
+        mistakes_table.cell(0, 0).text = "Common Mistake"
+        mistakes_table.cell(0, 1).text = "Why It's Wrong"
+        mistakes_table.cell(0, 2).text = "Correct Information"
+        
+        for i, mistake in enumerate(mistakes, 1):
+            mistakes_table.cell(i, 0).text = mistake.get("mistake", "")
+            mistakes_table.cell(i, 1).text = mistake.get("why_wrong", "")
+            mistakes_table.cell(i, 2).text = mistake.get("correct_information", "")
+    
+    # Add footer note
+    doc.add_paragraph()
+    footer_note = doc.add_paragraph()
+    footer_note.add_run("✅ This template has been automatically filled based on your scenario description. ").bold = True
+    footer_note.add_run("Review and customize as needed for your specific training requirements.")
+    
+    # Format the document
+    for paragraph in doc.paragraphs:
+        if paragraph.style.name.startswith('Heading'):
+            for run in paragraph.runs:
+                run.font.name = 'Calibri'
+        else:
+            for run in paragraph.runs:
+                run.font.name = 'Calibri'
+                run.font.size = Pt(11)
+    
+    return doc
+
+
+def get_mock_word_template_data(scenario_prompt: str) -> Dict[str, Any]:
+    """Generate mock data for Word template when LLM is not available"""
+    
+    # Analyze prompt for domain
+    prompt_lower = scenario_prompt.lower()
+    
+    if 'dei' in prompt_lower or 'diversity' in prompt_lower:
+        domain = "HR"
+        title = "DEI Workplace Training"
+        trainer_role = "Senior HR Trainer in DEI"
+        customer_role = "Colleague with DEI concerns"
+    elif 'sales' in prompt_lower:
+        domain = "Sales" 
+        title = "Sales Skills Training"
+        trainer_role = "Senior Sales Coach"
+        customer_role = "Potential customer"
+    else:
+        domain = "Customer Service"
+        title = "Customer Service Training"
+        trainer_role = "Customer Service Expert"
+        customer_role = "Customer with issue"
+    
+    return {
+        "project_basics": {
+            "company_name": "Your Organization",
+            "scenario_title": title,
+            "training_domain": domain,
+            "preferred_language": "Primary: English"
+        },
+        "training_goals": {
+            "learner_skills": [
+                f"Understand core {domain.lower()} principles and best practices",
+                f"Demonstrate effective communication in {domain.lower()} situations", 
+                f"Apply appropriate responses to challenging {domain.lower()} scenarios",
+                f"Show cultural sensitivity and professional behavior",
+                f"Build confidence in handling real-world {domain.lower()} interactions"
+            ],
+            "job_roles": f"All employees involved in {domain.lower()} activities",
+            "experience_level": "Mixed (New to Expert)",
+            "current_challenges": f"Lack of confidence in {domain.lower()} situations, inconsistent responses, need for better cultural awareness"
+        },
+        "scenario_design": {
+            "learn_mode": {
+                "ai_trainer_role": trainer_role,
+                "training_topics": f"Core {domain.lower()} concepts, best practices, communication techniques, cultural considerations, real-world applications",
+                "teaching_style": "Supportive, Interactive, Step-by-step"
+            },
+            "assess_try_mode": {
+                "ai_customer_role": customer_role,
+                "customer_background": f"Professional seeking {domain.lower()} assistance with specific needs and concerns",
+                "typical_concerns": f"Domain-specific questions, requests for clarification, need for guidance on {domain.lower()} matters",
+                "difficulty_level": "Mixed"
+            },
+            "conversation_examples": [
+                {
+                    "customer_says": f"I have a {domain.lower()} situation that I'm not sure how to handle properly.",
+                    "learner_should_respond": f"I'd be happy to help you with your {domain.lower()} concern. Can you tell me more about the specific situation?",
+                    "wrong_response": "That's not really my area. You should probably ask someone else.",
+                    "correct_response": f"I understand you're facing a {domain.lower()} challenge. Let me help you work through this step by step. First, can you give me more details about what's happening?"
+                },
+                {
+                    "customer_says": f"I'm not sure if I'm approaching this {domain.lower()} situation correctly.",
+                    "learner_should_respond": f"Let's review your approach together. What steps have you taken so far regarding this {domain.lower()} matter?",
+                    "wrong_response": "Just do what feels right.",
+                    "correct_response": f"It's smart to double-check your approach. Let me help you evaluate your current strategy and suggest any adjustments that might improve your {domain.lower()} outcomes."
+                }
+            ]
+        },
+        "knowledge_base": {
+            "accuracy_requirements": [
+                {
+                    "information_type": "Policies/Procedures",
+                    "required": "Yes",
+                    "details": f"All {domain.lower()} policies and procedures must be current and accurate"
+                },
+                {
+                    "information_type": "Products/Services",
+                    "required": "Yes", 
+                    "details": f"Product/service information must match current {domain.lower()} offerings"
+                },
+                {
+                    "information_type": "Legal/Compliance",
+                    "required": "Yes",
+                    "details": f"Legal and compliance information must be up-to-date and jurisdiction-appropriate"
+                },
+                {
+                    "information_type": "Contact Information",
+                    "required": "Yes",
+                    "details": "Contact details must be current and verified"
+                }
+            ],
+            "common_situations": [
+                {
+                    "situation": f"Customer asks about {domain.lower()} process or procedure",
+                    "correct_response": f"Provide clear, step-by-step explanation of the {domain.lower()} process with relevant examples",
+                    "source_document": f"{domain} procedure manual or policy document"
+                },
+                {
+                    "situation": f"Customer expresses frustration or confusion about {domain.lower()} matter",
+                    "correct_response": f"Acknowledge their feelings, clarify the {domain.lower()} situation, and provide helpful guidance",
+                    "source_document": f"{domain} best practices guide or training manual"
+                },
+                {
+                    "situation": f"Customer needs specific {domain.lower()} information or assistance",
+                    "correct_response": f"Provide accurate, detailed information and offer appropriate {domain.lower()} solutions",
+                    "source_document": f"{domain} reference guide or official documentation"
+                }
+            ]
+        },
+        "assessment_feedback": {
+            "correction_tone": "Gentle coaching",
+            "correction_timing": "Immediately", 
+            "correction_method": "Explain what's wrong and show correct answer",
+            "success_metrics": [
+                {
+                    "metric": f"{domain} Knowledge Accuracy",
+                    "target": "At least 85% accuracy in domain-specific responses",
+                    "measurement": f"Compare responses against {domain.lower()} best practices rubric"
+                },
+                {
+                    "metric": "Professional Communication",
+                    "target": "Consistent professional tone and appropriate language",
+                    "measurement": "Evaluate communication style and cultural sensitivity"
+                },
+                {
+                    "metric": "Problem-Solving Effectiveness", 
+                    "target": "80% of responses provide actionable solutions",
+                    "measurement": "Assess whether responses include clear next steps and practical guidance"
+                }
+            ]
+        },
+        "common_mistakes": [
+            {
+                "mistake": f"Providing generic responses instead of {domain.lower()}-specific guidance",
+                "why_wrong": "Generic responses don't address the specific context and needs of the situation",
+                "correct_information": f"Provide targeted, domain-specific advice with relevant examples and clear implementation guidance"
+            },
+            {
+                "mistake": "Dismissing or minimizing customer concerns",
+                "why_wrong": "This approach undermines trust and fails to address underlying issues that may be important",
+                "correct_information": "Acknowledge concerns seriously, validate feelings, and provide thoughtful, comprehensive guidance"
+            },
+            {
+                "mistake": f"Using inappropriate terminology or culturally insensitive language in {domain.lower()} contexts",
+                "why_wrong": "Inappropriate language can offend, exclude, or create barriers to effective communication",
+                "correct_information": "Use inclusive, respectful language that is culturally appropriate and professionally suitable"
+            }
+        ]
+    }
+
+
+# Alternative endpoint that returns the Word file as base64 for frontend handling
+@router.post("/fill-word-template-base64")
+async def fill_word_template_base64(
+    scenario_prompt: str = Body(..., description="Natural language description of the training scenario"),
+    template_name: str = Body(..., description="Name for the scenario"),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """
+    Generate filled Word template and return as base64 for frontend download handling
+    """
+    try:
+        # Get template data (same logic as above)
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        
+        word_template_prompt = f"""
+        Create a comprehensive training scenario template based on this request: {scenario_prompt}
+        
+        Fill out all sections with specific, professional content suitable for corporate training.
+        Ensure all information is realistic and appropriate for Indian workplace context.
+        
+        Return the filled template data in JSON format with the exact structure needed for Word document generation.
+        
+        [Same detailed prompt structure as above...]
+        """
+        
+        if azure_openai_client:
+            response = await azure_openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are an expert at filling training scenario templates."},
+                    {"role": "user", "content": word_template_prompt}
+                ],
+                temperature=0.3,
+                max_tokens=8000
+            )
+            
+            response_text = response.choices[0].message.content
+            json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+            if json_match:
+                template_data = json.loads(json_match.group(1))
+            else:
+                template_data = json.loads(response_text)
+        else:
+            template_data = get_mock_word_template_data(scenario_prompt)
+        
+        # Generate Word document
+        doc = create_filled_word_template(template_data, template_name)
+        
+        # Convert to base64
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        
+        import base64
+        file_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        
+        # Save record to database
+        template_record = {
+            "id": str(uuid4()),
+            "name": template_name,
+            "scenario_title": template_data.get("project_basics", {}).get("scenario_title", template_name),
+            "domain": template_data.get("project_basics", {}).get("training_domain", "General"),
+            "template_data": template_data,
+            "created_at": datetime.now().isoformat(),
+            "created_by": str(current_user.id),
+            "source": "word_template_fill",
+            "original_prompt": scenario_prompt,
+            "file_type": "docx"
         }
+        
+        await db.templates.insert_one(template_record)
         
         return {
-            "name": random.choice(fallback_names[random_gender]),
-            "gender": random_gender,
-            "age": random.randint(25, 45),
-            "character_goal": f"Engage in {domain} scenario",
-            "location": random_location,
-            "persona_details": f"A {random_gender} professional with relevant {domain} experience",
-            "situation": f"Participating in {domain} training scenario", 
-            "background_story": f"Professional background in {domain} from {random_region['name']}"
+            "template_id": template_record["id"],
+            "file_base64": file_base64,
+            "filename": f"{template_name.replace(' ', '_')}_Training_Template.docx",
+            "file_size": len(buffer.getvalue()),
+            "template_data": template_data,
+            "scenario_title": template_data.get("project_basics", {}).get("scenario_title"),
+            "domain": template_data.get("project_basics", {}).get("training_domain"),
+            "message": "Word template generated successfully"
         }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating Word template: {str(e)}")
+
+
+# Endpoint to regenerate Word file from existing template data
+@router.post("/regenerate-word-template/{template_id}")
+async def regenerate_word_template(
+    template_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """
+    Regenerate Word document from existing template data in database
+    """
+    try:
+        # Get template from database
+        template = await db.templates.find_one({"id": template_id})
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        template_data = template.get("template_data", {})
+        template_name = template.get("name", "Training Template")
+        
+        # Convert your internal template format to Word template format
+        word_template_data = convert_internal_to_word_format(template_data)
+        
+        # Generate Word document
+        doc = create_filled_word_template(word_template_data, template_name)
+        
+        # Save to temporary file and return safely
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
+        temp_file.close()  # Close file handle immediately
+        
+        try:
+            doc.save(temp_file.name)
+            
+            with open(temp_file.name, 'rb') as f:
+                file_content = f.read()
+        finally:
+            # Safe cleanup
+            try:
+                os.unlink(temp_file.name)
+            except OSError:
+                pass
+        
+        from fastapi.responses import Response
+        
+        return Response(
+            content=file_content,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f"attachment; filename=\"{template_name.replace(' ', '_')}_Template.docx\"",
+                "Content-Length": str(len(file_content))
+            }
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error regenerating Word template: {str(e)}")
+
+
+def convert_internal_to_word_format(internal_template_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Convert your internal template format to the Word template format
+    """
+    
+    general_info = internal_template_data.get("general_info", {})
+    context_overview = internal_template_data.get("context_overview", {})
+    persona_definitions = internal_template_data.get("persona_definitions", {})
+    knowledge_base = internal_template_data.get("knowledge_base", {})
+    feedback_mechanism = internal_template_data.get("feedback_mechanism", {})
+    
+    return {
+        "project_basics": {
+            "company_name": "Your Organization",
+            "scenario_title": context_overview.get("scenario_title", "Training Scenario"),
+            "training_domain": general_info.get("domain", "General"),
+            "preferred_language": "Primary: English"
+        },
+        "training_goals": {
+            "learner_skills": knowledge_base.get("conversation_topics", [
+                "Develop professional communication skills",
+                "Learn to handle challenging situations",
+                "Build cultural awareness and sensitivity",
+                "Practice active listening techniques",
+                "Apply domain-specific best practices"
+            ]),
+            "job_roles": general_info.get("target_audience", "All relevant employees"),
+            "experience_level": "Mixed (all experience levels)",
+            "current_challenges": context_overview.get("purpose_of_scenario", "Need for improved skills and confidence")
+        },
+        "scenario_design": {
+            "learn_mode": {
+                "ai_trainer_role": persona_definitions.get("learn_mode_ai_bot", {}).get("role", "Expert Trainer"),
+                "training_topics": ", ".join(knowledge_base.get("conversation_topics", [])),
+                "teaching_style": persona_definitions.get("learn_mode_ai_bot", {}).get("behavioral_traits", "Supportive, Interactive")
+            },
+            "assess_try_mode": {
+                "ai_customer_role": persona_definitions.get("assess_mode_ai_bot", {}).get("role", "Customer/Client"),
+                "customer_background": persona_definitions.get("assess_mode_ai_bot", {}).get("background", "Professional seeking assistance"),
+                "typical_concerns": persona_definitions.get("assess_mode_ai_bot", {}).get("goal", "Domain-specific concerns and questions"),
+                "difficulty_level": "Mixed"
+            },
+            "conversation_examples": [
+                {
+                    "customer_says": "I need help understanding how to approach this situation properly.",
+                    "learner_should_respond": "I'd be happy to help you work through this. Can you tell me more about your specific concerns?",
+                    "wrong_response": "Just figure it out yourself.",
+                    "correct_response": "Let me help you understand the best approach. First, let's identify the key factors in your situation..."
+                }
+            ]
+        },
+        "knowledge_base": {
+            "accuracy_requirements": [
+                {
+                    "information_type": "Policies/Procedures",
+                    "required": "Yes",
+                    "details": "All policies and procedures must be current and accurate"
+                },
+                {
+                    "information_type": "Products/Services",
+                    "required": "Yes",
+                    "details": "Product and service information must be up-to-date"
+                },
+                {
+                    "information_type": "Legal/Compliance", 
+                    "required": "Yes",
+                    "details": "Legal and compliance information must be jurisdiction-appropriate"
+                }
+            ],
+            "common_situations": [
+                {
+                    "situation": situation,
+                    "correct_response": f"Provide appropriate guidance for: {situation}",
+                    "source_document": "Policy manual or best practices guide"
+                } for situation in knowledge_base.get("conversation_topics", ["General inquiries"])[:3]
+            ]
+        },
+        "assessment_feedback": {
+            "correction_tone": "Gentle coaching",
+            "correction_timing": "Immediately",
+            "correction_method": "Explain what's wrong and show correct answer",
+            "success_metrics": [
+                {
+                    "metric": f"{general_info.get('domain', 'Domain')} Knowledge Application",
+                    "target": "85% accuracy in responses",
+                    "measurement": "Compare responses to established best practices"
+                },
+                {
+                    "metric": "Professional Communication",
+                    "target": "Consistent professional tone",
+                    "measurement": "Evaluate communication style and appropriateness"
+                },
+                {
+                    "metric": "Cultural Sensitivity",
+                    "target": "100% culturally appropriate responses",
+                    "measurement": "Review responses for cultural awareness and inclusion"
+                }
+            ]
+        },
+        "common_mistakes": [
+            {
+                "mistake": mistake.replace("Don't ", "").replace("don't ", ""),
+                "why_wrong": f"This approach undermines the effectiveness of {general_info.get('domain', 'the domain')} interactions",
+                "correct_information": f"Instead, provide thoughtful, specific guidance appropriate for {general_info.get('domain', 'the situation')}"
+            } for mistake in knowledge_base.get("donts", ["Generic response", "Dismissive attitude", "Cultural insensitivity"])[:3]
+        ]
+    }
+
+
+# Enhanced endpoint with more customization options
+@router.post("/fill-word-template-advanced")
+async def fill_word_template_advanced(
+    scenario_prompt: str = Body(...),
+    template_name: str = Body(...),
+    customization_options: Dict[str, Any] = Body(default={}, description="Additional customization options"),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """
+    Advanced Word template filling with customization options
+    
+    customization_options can include:
+    - company_name: Override company name
+    - specific_domain: Force specific domain
+    - language_preferences: Additional language options
+    - complexity_level: Easy/Moderate/Advanced
+    - cultural_context: Specific cultural considerations
+    """
+    try:
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        
+        # Enhanced prompt with customization
+        customizations = customization_options
+        company_name = customizations.get("company_name", "Your Organization")
+        specific_domain = customizations.get("specific_domain", "")
+        complexity_level = customizations.get("complexity_level", "Mixed")
+        cultural_context = customizations.get("cultural_context", "Indian corporate workplace")
+        
+        enhanced_prompt = f"""
+        Create a comprehensive training scenario template for: {scenario_prompt}
+        
+        CUSTOMIZATION REQUIREMENTS:
+        - Company Name: {company_name}
+        - Complexity Level: {complexity_level}
+        - Cultural Context: {cultural_context}
+        {f"- Specific Domain: {specific_domain}" if specific_domain else ""}
+        
+        Fill out ALL sections with realistic, professional content.
+        Make the content specific to the scenario and appropriate for the cultural context.
+        Ensure all conversation examples and personas are authentic and engaging.
+        
+        [Include the same detailed JSON structure as previous prompts...]
+        """
+        
+        if azure_openai_client:
+            response = await azure_openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are an expert at creating customized training scenario templates."},
+                    {"role": "user", "content": enhanced_prompt}
+                ],
+                temperature=0.3,
+                max_tokens=8000
+            )
+            
+            response_text = response.choices[0].message.content
+            json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+            if json_match:
+                template_data = json.loads(json_match.group(1))
+            else:
+                template_data = json.loads(response_text)
+        else:
+            template_data = get_mock_word_template_data(scenario_prompt)
+            # Apply customizations to mock data
+            template_data["project_basics"]["company_name"] = company_name
+        
+        # Apply any additional customizations
+        if company_name != "Your Organization":
+            template_data["project_basics"]["company_name"] = company_name
+        
+        # Generate Word document
+        doc = create_filled_word_template(template_data, template_name)
+        
+        # Convert to base64
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        
+        import base64
+        file_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        
+        # Save record
+        template_record = {
+            "id": str(uuid4()),
+            "name": template_name,
+            "scenario_title": template_data.get("project_basics", {}).get("scenario_title", template_name),
+            "domain": template_data.get("project_basics", {}).get("training_domain", "General"),
+            "template_data": template_data,
+            "customization_options": customization_options,
+            "created_at": datetime.now().isoformat(),
+            "created_by": str(current_user.id),
+            "source": "word_template_advanced",
+            "original_prompt": scenario_prompt,
+            "file_type": "docx"
+        }
+        
+        await db.templates.insert_one(template_record)
+        
+        return {
+            "template_id": template_record["id"],
+            "file_base64": file_base64,
+            "filename": f"{template_name.replace(' ', '_')}_Training_Template.docx",
+            "file_size": len(buffer.getvalue()),
+            "template_data": template_data,
+            "customization_applied": customization_options,
+            "scenario_title": template_data.get("project_basics", {}).get("scenario_title"),
+            "domain": template_data.get("project_basics", {}).get("training_domain"),
+            "message": "Customized Word template generated successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating customized Word template: {str(e)}")
+
+
+# Endpoint to list previously generated Word templates
+@router.get("/list-word-templates")
+async def list_word_templates(
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """
+    List all Word templates generated by the current user
+    """
+    try:
+        cursor = db.templates.find(
+            {"created_by": str(current_user.id), "file_type": "docx"},
+            {"_id": 0}
+        ).sort("created_at", -1)
+        
+        templates = await cursor.to_list(length=100)
+        
+        return {
+            "templates": templates,
+            "total_count": len(templates),
+            "user_id": str(current_user.id)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing templates: {str(e)}")
+
+
+# Endpoint to download previously generated Word template
+@router.get("/download-word-template/{template_id}")
+async def download_word_template(
+    template_id: str,
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """
+    Download a previously generated Word template
+    """
+    try:
+        template = await db.templates.find_one({"id": template_id})
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        # Check ownership or admin access
+        if (template.get("created_by") != str(current_user.id) and 
+            current_user.role not in [UserRole.SUPERADMIN, UserRole.BOSS_ADMIN]):
+            raise HTTPException(status_code=403, detail="Not authorized")
+        
+        # Regenerate Word document from stored data
+        template_data = template.get("template_data", {})
+        template_name = template.get("name", "Training Template")
+        
+        doc = create_filled_word_template(template_data, template_name)
+        
+        # Return as file
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
+        doc.save(temp_file.name)
+        
+        with open(temp_file.name, 'rb') as f:
+            file_content = f.read()
+        
+        os.unlink(temp_file.name)
+        
+        from fastapi.responses import Response
+        
+        return Response(
+            content=file_content,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f"attachment; filename=\"{template_name.replace(' ', '_')}_Template.docx\"",
+                "Content-Length": str(len(file_content))
+            }
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error downloading template: {str(e)}")
+
+
+# Utility endpoint to preview what would be filled in the Word template
+@router.post("/preview-word-template-content")
+async def preview_word_template_content(
+    scenario_prompt: str = Body(...),
+    template_name: str = Body(...)
+):
+    """
+    Preview the content that would be filled in the Word template without generating the actual file
+    """
+    try:
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        
+        # Same prompt as fill-word-template but just return the data
+        word_template_prompt = f"""
+        Analyze this scenario request and provide the content that would fill a training template:
+        
+        SCENARIO: {scenario_prompt}
+        
+        Provide specific, realistic content for each section that would appear in the filled template.
+        Make it professional and appropriate for corporate training use.
+        
+        Return JSON with filled content for preview.
+        [Same structure as above...]
+        """
+        
+        if azure_openai_client:
+            response = await azure_openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are creating preview content for training templates."},
+                    {"role": "user", "content": word_template_prompt}
+                ],
+                temperature=0.3,
+                max_tokens=6000
+            )
+            
+            response_text = response.choices[0].message.content
+            json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+            if json_match:
+                template_data = json.loads(json_match.group(1))
+            else:
+                template_data = json.loads(response_text)
+        else:
+            template_data = get_mock_word_template_data(scenario_prompt)
+        
+        return {
+            "preview_content": template_data,
+            "scenario_prompt": scenario_prompt,
+            "template_name": template_name,
+            "estimated_sections": len(template_data),
+            "preview_summary": {
+                "domain": template_data.get("project_basics", {}).get("training_domain"),
+                "scenario_title": template_data.get("project_basics", {}).get("scenario_title"),
+                "trainer_role": template_data.get("scenario_design", {}).get("learn_mode", {}).get("ai_trainer_role"),
+                "customer_role": template_data.get("scenario_design", {}).get("assess_try_mode", {}).get("ai_customer_role"),
+                "skills_count": len(template_data.get("training_goals", {}).get("learner_skills", [])),
+                "situations_count": len(template_data.get("knowledge_base", {}).get("common_situations", []))
+            },
+            "message": "Preview generated successfully. Use /fill-word-template to generate the actual Word document."
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating preview: {str(e)}")
+
+
+# Add requirements.txt note for the Word document generation
+"""
+ADDITIONAL REQUIREMENTS FOR WORD GENERATION:
+Add to your requirements.txt:
+
+python-docx==0.8.11
+
+For enhanced Word formatting, also consider:
+python-docx2==0.1.0
+docx2txt==0.8
+
+Installation:
+pip install python-docx==0.8.11
+"""

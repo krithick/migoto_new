@@ -94,12 +94,13 @@ async def get_accessible_courses_for_user(db: Any, user: UserDB) -> List[CourseD
             
             # Build query for accessible courses
             accessible_companies = [str(user.company_id)] + mother_companies
-            
+            print(f"Accessible companies for user {user.id}: {accessible_companies}")
             cursor = db.courses.find({
                 "company_id": {"$in": accessible_companies},
                 "is_archived": False
             })
             async for document in cursor:
+                print(document["_id"],"courses")
                 courses.append(CourseDB(**document))
     
     return courses
@@ -158,11 +159,11 @@ async def get_assignable_courses_for_user(db: Any, user: UserDB) -> List[CourseD
         return []
     
     accessible_courses = await get_accessible_courses_for_user(db, user)
-    print(accessible_courses)
     assignable_courses = []
     
     for course in accessible_courses:
         if await can_user_assign_course(db, user, course):
+            print(f"User {user.id} can assign course {course.id}")
             assignable_courses.append(course)
     
     return assignable_courses

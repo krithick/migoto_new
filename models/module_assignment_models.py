@@ -65,7 +65,7 @@ class ModuleAssignmentResponse(ModuleAssignmentBase):
     source_company: UUID
     assignment_context: str
     assigned_by: UUID
-    
+    info: Optional[dict] = None  # Additional module details if needed
     # Archive status
     is_archived: bool = False
     archived_at: Optional[datetime] = None

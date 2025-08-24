@@ -9,6 +9,7 @@ from models.company_models import (
 )
 from models.user_models import UserDB, UserRole, AccountType
 from core.user import get_current_user, get_boss_admin_user, get_superadmin_user, get_admin_user
+from core.course_transfer import transfer_course_complete
 
 # Create router
 router = APIRouter(prefix="/companies", tags=["Company Management"])
@@ -689,3 +690,116 @@ async def get_company_users(
     
     return users
 
+
+
+@router.post("/transfer-course", response_model=Dict[str, Any])
+async def transfer_course_endpoint(
+    course_id: UUID = Body(..., description="Unique identifier of the course to transfer"),
+    to_company_id: UUID = Body(..., description="Unique identifier of the target company"),
+    new_admin_id: UUID = Body(..., description="Unique identifier of the new admin owner"),
+    db: Any = Depends(get_database),
+    boss_admin: UserDB = Depends(get_boss_admin_user)
+) -> Dict[str, Any]:
+    """
+    Transfer a course to a new company and admin (BOSS_ADMIN only).
+    
+    This endpoint transfers:
+    - Course ownership
+    - All associated modules
+    - All scenarios within modules
+    - Archives existing user assignments
+    
+    Args:
+        course_id: UUID of the course to transfer
+        to_company_id: UUID of the target company
+        new_admin_id: UUID of the new admin owner
+        db: Database dependency
+        boss_admin: Authenticated BOSS_ADMIN user
+    
+    Returns:
+        Dictionary containing the transfer result
+    
+    Raises:
+        HTTPException: If target company or new admin is invalid
+    """
+    # Validate target company exists
+    target_company = await db.companies.find_one({"_id": str(to_company_id)})
+    if not target_company:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Target company not found"
+        )
+
+    # Validate new admin exists in target company with proper role
+    new_admin = await db.users.find_one({
+        "_id": str(new_admin_id),
+        "company_id": str(to_company_id),
+        "role": {"$in": ["admin", "superadmin"]},
+        "is_active": True
+    })
+    if not new_admin:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New admin must be an active admin or superadmin in the target company"
+        )
+
+    # Execute course transfer
+    result = await transfer_course_complete(
+        db=db,
+        course_id=course_id,
+        to_company_id=to_company_id,
+        new_admin_id=new_admin_id,
+        boss_admin_id=boss_admin.id
+    )
+
+    return result
+
+@router.get("/transfer-history", response_model=List[Dict[str, Any]])
+async def get_transfer_history(
+    company_id: Optional[UUID] = Query(None, description="Filter by company ID (from or to)"),
+    course_id: Optional[UUID] = Query(None, description="Filter by specific course ID"),
+    db: Any = Depends(get_database),
+    boss_admin: UserDB = Depends(get_boss_admin_user)
+) -> List[Dict[str, Any]]:
+    """
+    Retrieve course transfer history (BOSS_ADMIN only).
+    
+    Returns a list of transfer records, optionally filtered by company or course.
+    
+    Args:
+        company_id: Optional UUID to filter by source or destination company
+        course_id: Optional UUID to filter by specific course
+        db: Database dependency
+        boss_admin: Authenticated BOSS_ADMIN user
+    
+    Returns:
+        List of dictionaries containing transfer history details
+    """
+    query = {"transfer_history": {"$exists": True, "$ne": []}}
+
+    # Apply filters if provided
+    if company_id:
+        query["$or"] = [
+            {"transfer_history.from_company": str(company_id)},
+            {"transfer_history.to_company": str(company_id)}
+        ]
+    
+    if course_id:
+        query["_id"] = str(course_id)
+
+    transfers = []
+    async for course in db.courses.find(query):
+        for transfer in course.get("transfer_history", []):
+            transfers.append({
+                "course_id": course["_id"],
+                "course_title": course.get("title", "Unknown"),
+                "from_company": transfer["from_company"],
+                "to_company": transfer["to_company"],
+                "transferred_by": transfer["transferred_by"],
+                "transferred_at": transfer["transferred_at"]
+            })
+
+    # Sort transfers by date (newest first)
+    transfers.sort(key=lambda x: x["transferred_at"], reverse=True)
+
+    return transfers

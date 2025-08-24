@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 from models.scenario_assignment_models import (
     ScenarioAssignmentCreate, ScenarioAssignmentDB, ScenarioAssignmentUpdate,
     BulkScenarioAssignmentCreate, ScenarioModeType, ModeProgressUpdate,
-    AssignmentContext
+    AssignmentContext,ScenarioAssignmentResponse
 )
 from models.user_models import UserDB, UserRole
 from models.company_models import CompanyType, CompanyDB
@@ -567,7 +567,19 @@ async def get_user_module_scenario_assignments(
     assignments = []
     cursor = db.user_scenario_assignments.find(query)
     async for document in cursor:
-        assignments.append(ScenarioAssignmentDB(**document))
+        print(f"Found assignment: {document}")
+        scenario_id = document["scenario_id"]
+        sceario_doc = await db.scenarios.find_one({"_id": str(scenario_id)})
+        if not sceario_doc:
+            continue  # Or log missing module
+        document["id"] = document["_id"]
+        response_obj = {
+            **document,
+            "info":{"title": sceario_doc.get("title"),
+            "description": sceario_doc.get("description"),
+            "thumbnail_url": sceario_doc.get("thumbnail_url")},
+        }
+        assignments.append(ScenarioAssignmentResponse(**response_obj))
     
     return assignments
 
