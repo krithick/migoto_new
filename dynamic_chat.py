@@ -28,6 +28,7 @@ import os
 from models.language_models import LanguageDB
 from core.azure_search_manager import AzureVectorSearchManager, EnhancedFactChecker
 
+from core.simple_token_logger import log_token_usage
 # Cache configuration
 CACHE_EXPIRY_MINUTES = 30  # How long to keep inactive handlers in cache
 
@@ -319,7 +320,7 @@ class DynamicChatHandler:
                 stream_options={"include_usage": True}
             )
             
-
+            log_token_usage(response, "process_message")
             if self.config.mode == "try_mode" and self.knowledge_base_id:
                 # TRY MODE: Fact-check AI responses for accuracy
                 return await self._process_with_fact_checking(response,message,conversation_history, name)
@@ -666,7 +667,7 @@ KEEP YOUR RESPONSE LIMITED TO 20 WORDS.
         temperature=0.1,
         max_tokens=200
     )
-    
+        log_token_usage(response, "_run_existing_coaching_logic")
         result = response.choices[0].message.content.strip()
         print("existing coaching result:", result)
     
@@ -781,7 +782,7 @@ KEEP YOUR RESPONSE LIMITED TO 20 WORDS.
                 temperature=0.2,
                 max_tokens=1000
             )
-            
+            log_token_usage(correction_response, "_apply_fact_check_corrections")
             return correction_response.choices[0].message.content
             
         except Exception as e:
@@ -993,7 +994,7 @@ KEEP YOUR RESPONSE LIMITED TO 20 WORDS.
             stream=True,
             stream_options={"include_usage": True}
             )
-        
+            log_token_usage(enhanced_response, "_generate_enhanced_expert_response")
             return enhanced_response
         
         except Exception as e:

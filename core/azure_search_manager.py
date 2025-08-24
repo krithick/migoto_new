@@ -13,6 +13,7 @@ from azure.core.credentials import AzureKeyCredential
 from openai import AsyncAzureOpenAI
 import re
 from models.enhanced_models import DocumentChunk, FactCheckVerification, FactCheckResult
+from core.simple_token_logger import log_token_usage
 
 class AzureVectorSearchManager:
     """Manages Azure Cognitive Search vector operations"""
@@ -281,6 +282,7 @@ class EnhancedFactChecker:
                 temperature=0.1,
                 max_tokens=500
             )
+            log_token_usage(response,"_extract_factual_claims")
             print(",response",response)
             result = response.choices[0].message.content
             print("result",result)
@@ -343,7 +345,7 @@ class EnhancedFactChecker:
                 temperature=0.1,
                 max_tokens=800
             )
-            
+            log_token_usage(response,"_verify_single_claim")
             result_json = json.loads(response.choices[0].message.content)
             
             return FactCheckVerification(
@@ -615,7 +617,7 @@ class EnhancedFactChecker:
             temperature=0.1,
             max_tokens=800
             )
-    
+            log_token_usage(response,"_verify_contextual_response")
             result_text = response.choices[0].message.content.strip()
         
             try:

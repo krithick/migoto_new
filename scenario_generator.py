@@ -14,6 +14,7 @@ import os
 from utils import convert_template_to_markdown
 from models.user_models import UserRole
 load_dotenv(".env")
+from core.simple_token_logger import log_token_usage
 
 router = APIRouter(prefix="/scenario", tags=["Scenario Generation"])
 api_key = os.getenv("api_key")
@@ -592,7 +593,7 @@ Return in the specified JSON format with rich, detailed content in each section.
             )
             
             response_text = response.choices[0].message.content
-            
+            log_token_usage(response, "extract_scenario_info")
         #     # Extract JSON from response
         #     json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
         #     if json_match:
@@ -709,7 +710,7 @@ Return in the specified JSON format with rich, detailed content in each section.
                 temperature=0.2,
                 max_tokens=1500
             )
-        
+            log_token_usage(response, "extract_evaluation_metrics_from_template")
             result_text = response.choices[0].message.content
         
             # Extract JSON
@@ -979,7 +980,7 @@ TRAINING VALUE:
                 temperature=0.7,
                 max_tokens=15000
             )
-            
+            log_token_usage(response, "generate_personas_from_template")
             response_text = response.choices[0].message.content
             
             # Extract JSON from response

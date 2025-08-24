@@ -11,6 +11,7 @@ from uuid import uuid4
 from datetime import datetime
 import json
 import re
+from core.simple_token_logger import log_embedding_usage,log_token_usage
 
 # Text extraction imports
 try:
@@ -270,7 +271,7 @@ class DocumentProcessor:
             input=texts,
             model="text-embedding-ada-002"
         )
-        
+        log_embedding_usage(response, "get_embeddings_batch", len(texts))
         return [data.embedding for data in response.data]
 
 class KnowledgeBaseManager:
@@ -486,7 +487,7 @@ class BasicFactChecker:
                 temperature=0.1,
                 max_tokens=500
             )
-            
+            log_token_usage(response,"extract_claims_from_text")
             result_text = response.choices[0].message.content
             
             # Try to parse JSON
@@ -564,7 +565,7 @@ class BasicFactChecker:
                 temperature=0.1,
                 max_tokens=800
             )
-            
+            log_token_usage(response,"verify_claim")
             result_text = response.choices[0].message.content
             
             try:
