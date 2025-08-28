@@ -18,6 +18,13 @@ from core.scenario_assignment import get_scenario_assignment
 
 from models.company_models import CompanyType, CompanyDB
 from models.scenario_models import ContentVisibility, ScenarioUpdate  # Add these to your imports
+from core.tier_utils import (
+    enforce_content_creation_limit,
+    enforce_chat_session_limit, 
+    enforce_analysis_limit,
+    check_feature_permission,
+    enforce_feature_access
+)
 
 # Create router
 router = APIRouter(tags=["Scenarios"])
@@ -1063,6 +1070,7 @@ async def create_scenario_endpoint(
     """
     Create a new scenario in a module (admin/superadmin only)
     """
+    await enforce_content_creation_limit(db, admin_user.company_id, "scenario", module_id=module_id)
     return await create_scenario(db, module_id, scenario, admin_user.id)
 
 @router.put("/scenarios/{scenario_id}", response_model=ScenarioResponse)

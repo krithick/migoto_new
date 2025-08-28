@@ -39,6 +39,11 @@ from core.analysis_report import router as analysis_report_router
 from core.dashboard import router as dashboard_router
 from core.companies import router as companies_router
 from core.knowledge_base_manager import router as knowledge_base_router  # ADD THIS
+from core.tier_boss_admin_routes import router as boss_tier_router
+from core.tier_admin_routes import router as admin_tier_router  
+from core.tier_user_routes import router as user_tier_router
+from core.tier_utils import enforce_analysis_limit
+
 # from core.document_processor import DocumentProcessor  # ADD THIS
 # from core.azure_search_manager import AzureVectorSearchManager  # ADD THIS
 
@@ -69,6 +74,9 @@ app.include_router(dashboard_router)
 app.include_router(companies_router)
 # Add this line with your other app.include_router() calls:
 app.include_router(knowledge_base_router)  # ADD THIS
+app.include_router(boss_tier_router)
+app.include_router(admin_tier_router)
+app.include_router(user_tier_router)
 
 # app.include_router(new_router)
 
@@ -655,8 +663,10 @@ async def startup_event():
     
     try:
         from database import get_db
+        from core.tier_management import tier_manager
         db = await get_db()
-        
+        await tier_manager.initialize_tier_system(db)
+
         # Step 1: Create Mother Company
         await create_mother_company(db)
         
@@ -768,6 +778,7 @@ async def get_session_analysis(
     db: MongoDB = Depends(get_db),
     current_user: UserDB = Depends(get_current_user)
 ):
+    await enforce_analysis_limit(db, current_user.company_id)
     session2 = await db.get_session_raw(id)
     analysis= await db.get_session_analysis(id)
     if not session2:

@@ -25,6 +25,14 @@ from core.course_assignment import (
 )
 from models.course_models import CourseWithAssignmentResponse
 from core.course_assignment import create_course_assignment, delete_course_assignment
+from core.tier_utils import (
+    enforce_content_creation_limit,
+    enforce_chat_session_limit, 
+    enforce_analysis_limit,
+    check_feature_permission,
+    enforce_feature_access
+)
+
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -776,6 +784,8 @@ async def create_user_endpoint(
     - If creator is regular user: can explicitly create demo users (boss admin/superadmin only)
     - Demo inheritance ensures all users under a demo hierarchy expire together
     """
+    for _ in users:
+        await enforce_content_creation_limit(db, admin_user.company_id, "user")
     created_users = await create_user(db, users, created_by=admin_user.id)
     
     # Return with demo status info

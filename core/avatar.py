@@ -212,7 +212,7 @@ async def delete_avatar(db: Any, avatar_id: UUID, deleted_by: UUID) -> bool:
 @router.get("/", response_model=List[AvatarResponse])
 async def get_avatars_endpoint(
     skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=100),
+    limit: int = Query(100, ge=1, le=10000),
     db: Any = Depends(get_database),
     current_user: UserDB = Depends(get_current_user)
 ):

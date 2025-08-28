@@ -13,6 +13,13 @@ from core.scenario_assignment import get_user_module_scenario_assignments
 
 from models.company_models import CompanyType, CompanyDB
 from models.modules_models import ContentVisibility, ModuleUpdate  
+from core.tier_utils import (
+    enforce_content_creation_limit,
+    enforce_chat_session_limit, 
+    enforce_analysis_limit,
+    check_feature_permission,
+    enforce_feature_access
+)
 # Create router
 router = APIRouter(tags=["Modules"])
 
@@ -765,6 +772,7 @@ async def create_module_endpoint(
     """
     Create a new module in a course (admin/superadmin only)
     """
+    await enforce_content_creation_limit(db, admin_user.company_id, "module", course_id=course_id)
     return await create_module(db, course_id, module, admin_user.id,admin_user.role)
 
 @router.put("/modules/{module_id}", response_model=ModuleResponse)

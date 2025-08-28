@@ -70,6 +70,8 @@ class MongoDB:
         self.supporting_documents = self.db.supporting_documents        
         # Existing course assignment collection
         self.user_course_assignments = self.db.user_course_assignments
+        self.tier_configurations=self.db.tier_configurations
+        self.company_usage=self.db.company_usage
         
         # New collections for module and scenario assignments
         self.user_module_assignments = self.db.user_module_assignments

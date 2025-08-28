@@ -10,7 +10,13 @@ from models.company_models import CompanyType, CompanyDB
 
 from core.user import get_current_user, get_admin_user, get_superadmin_user
 from core.module_assignment import get_user_course_module_assignments
-
+from core.tier_utils import (
+    enforce_content_creation_limit,
+    enforce_chat_session_limit, 
+    enforce_analysis_limit,
+    check_feature_permission,
+    enforce_feature_access
+)
 # Create router
 router = APIRouter(prefix="/courses", tags=["Courses"])
 
@@ -295,7 +301,7 @@ async def create_course(db: Any, course: CourseCreate, created_by: UUID, role: U
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins and superadmins can create courses"
         )
-    
+    # await enforce_content_creation_limit(db, creator_company_id, "course")
     # Create CourseDB model with company context
     course_dict = course.dict()
     
@@ -534,6 +540,8 @@ async def create_course_endpoint(
     admin_user: UserDB = Depends(get_admin_user)
 ):
     """Create a new course with company context"""
+    limit=await enforce_content_creation_limit(db, admin_user.company_id, "course")
+    print("limit",limit)
     return await create_course(db, course, admin_user.id, admin_user.role)
 
 @router.put("/{course_id}", response_model=CourseResponse)

@@ -9,7 +9,7 @@ from models.company_models import (
 )
 from models.user_models import UserDB, UserRole, AccountType
 from core.user import get_current_user, get_boss_admin_user, get_superadmin_user, get_admin_user
-from core.course_transfer import transfer_course_complete
+from core.course_transfer import transfer_course_complete,fix_already_transferred_course
 
 # Create router
 router = APIRouter(prefix="/companies", tags=["Company Management"])
@@ -803,3 +803,18 @@ async def get_transfer_history(
     transfers.sort(key=lambda x: x["transferred_at"], reverse=True)
 
     return transfers
+
+@router.post("/fix-transferred-course/{course_id}", response_model=Dict[str, Any])
+async def fix_already_transferred_course_endpoint(
+    course_id: UUID,
+    db: Any = Depends(get_database),
+    boss_admin: UserDB = Depends(get_boss_admin_user)
+):
+    """Fix courses that were transferred before the avatar interaction/template fix"""
+    
+    result = await fix_already_transferred_course(
+        db=db,
+        course_id=course_id,
+        boss_admin_id=boss_admin.id
+    )
+    return result

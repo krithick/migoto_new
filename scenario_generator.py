@@ -895,7 +895,7 @@ Return in the specified JSON format with rich, detailed content in each section.
             }
         }
 
-    async def generate_personas_from_template(self, template_data):
+    async def generate_personas_from_template(self, template_data,gender='',context=''):
         """Generate detailed personas based on template persona definitions"""
         
         try:
@@ -905,7 +905,8 @@ Return in the specified JSON format with rich, detailed content in each section.
             
             persona_prompt = f"""
            You are a psychology-informed persona architect creating realistic characters for professional training.
-
+Follow Gender if specified :{gender}
+Persona context:{context}
 PERSONA DEPTH REQUIREMENTS:
 - Full demographic profile (age, profession, family situation, location)
 - Psychological profile (personality traits, decision-making style, communication preferences)
@@ -930,7 +931,6 @@ TRAINING VALUE:
             Generate personas for both Learn Mode and Assessment Mode.
             
             Template Data:
-            {json.dumps(template_data.get('persona_definitions', {}), indent=2)}
             
             Context:
             - Domain: {template_data.get('general_info', {}).get('domain', 'general')}
@@ -971,7 +971,7 @@ TRAINING VALUE:
             Make sure you create either a male or female persona
             Make sure your Personas are of based in india
             """
-            
+            print(persona_prompt)
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
@@ -1910,7 +1910,8 @@ async def get_evaluation_metrics(
 async def generate_personas(
     template_id: str = Body(...),
     persona_type: str = Body(..., description="learn_mode_expert or assess_mode_character"),
-    
+    gender: str = Body(default="",description="Specify Gender if needed"),
+    prompt: str = Body(default="",description="Specify context if needed"),
     count: int = Body(default=1, description="Number of personas to generate"),
     db: Any = Depends(get_db)
 ):
@@ -1927,7 +1928,7 @@ async def generate_personas(
         
         # Generate personas using existing logic
         generator = EnhancedScenarioGenerator(azure_openai_client)
-        generated_personas = await generator.generate_personas_from_template(template_data)
+        generated_personas = await generator.generate_personas_from_template(template_data,gender,prompt)
         
         # Return requested persona type
         if persona_type in generated_personas:
