@@ -540,8 +540,8 @@ async def create_course_endpoint(
     admin_user: UserDB = Depends(get_admin_user)
 ):
     """Create a new course with company context"""
-    limit=await enforce_content_creation_limit(db, admin_user.company_id, "course")
-    print("limit",limit)
+    #limit=await enforce_content_creation_limit(db, admin_user.company_id, "course")
+    #print("limit",limit)
     return await create_course(db, course, admin_user.id, admin_user.role)
 
 @router.put("/{course_id}", response_model=CourseResponse)
