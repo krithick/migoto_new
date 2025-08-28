@@ -47,8 +47,7 @@ async def initialize_chat(
     - persona_id: Optional persona to use for this session
     - language_id: Optional language settings to use
     """
-    from core.tier_api import enforce_chat_session_limit
-    await enforce_chat_session_limit(db, current_user.company_id)
+    
     # Validate mode
     if mode not in ["learn_mode", "try_mode", "assess_mode"]:
         raise HTTPException(
