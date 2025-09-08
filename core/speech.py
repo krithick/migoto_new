@@ -8,6 +8,10 @@ from typing import List
 import aiofiles
 import asyncio
 from dotenv import load_dotenv
+import aiohttp
+import json
+import uuid
+import base64
 
 load_dotenv(".env")
 import datetime
@@ -128,3 +132,115 @@ async def text_to_speech(
     #         content=f"Speech synthesis failed: {result.cancellation_details}",
     #         status_code=500
     #     )
+
+@router.post("/tts-stream")
+async def test_streaming_tts(
+    message: str = Form(...),
+    voice_id: str = Form(default="ar-SA-HamedNeural"),
+):
+    """Test endpoint for streaming TTS"""
+    audio_data = await generate_audio_for_chat(message, voice_id)
+    if audio_data:
+        return Response(
+            content=audio_data,
+            media_type="audio/wav",
+            headers={"Content-Disposition": "attachment; filename=stream.wav"}
+        )
+    else:
+        raise HTTPException(status_code=500, detail="Streaming TTS failed")
+
+@router.get("/demo")
+async def tts_demo():
+    """Frontend demo for testing streaming TTS"""
+    with open("core/tts_demo.html", "r", encoding="utf-8") as f:
+        html = f.read()
+    return Response(content=html, media_type="text/html")
+
+@router.get("/stream-demo")
+async def streaming_tts_demo():
+    """Demo for true streaming TTS"""
+    with open("core/streaming_tts_demo.html", "r", encoding="utf-8") as f:
+        html = f.read()
+    return Response(content=html, media_type="text/html")
+
+class StreamingTTSHandler:
+    def __init__(self, voice_id: str = "ar-SA-HamedNeural"):
+        # Setup like your example
+        self.speech_config = speechsdk.SpeechConfig(
+            subscription=subscription,
+            region="centralindia"
+        )
+        self.speech_config.speech_synthesis_voice_name = voice_id
+        # self.speech_config.set_property(speechsdk.PropertyId.SpeechSynthesis_FrameTimeoutInterval, "100000000")
+        # self.speech_config.set_property(speechsdk.PropertyId.SpeechSynthesis_RtfTimeoutThreshold, "10")
+        
+        self.synthesizer = speechsdk.SpeechSynthesizer(speech_config=self.speech_config)
+        self.tts_request = None
+        self.tts_task = None
+        
+    def start_streaming(self):
+        # Create TextStream request like your example
+        self.tts_request = speechsdk.SpeechSynthesisRequest(
+            input_type=speechsdk.SpeechSynthesisRequestInputType.TextStream
+        )
+        self.tts_task = self.synthesizer.speak_async(self.tts_request)
+        
+    def add_text(self, text: str):
+        if self.tts_request and text:
+            self.tts_request.input_stream.write(text)
+            
+    def finish_streaming(self) -> bytes:
+        try:
+            if self.tts_request:
+                self.tts_request.input_stream.close()
+            if self.tts_task:
+                result = self.tts_task.get()
+                print(f"TTS result reason: {result.reason}")
+                if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+                    return result.audio_data
+                else:
+                    print(f"TTS failed: {result.reason}")
+                    if hasattr(result, 'cancellation_details'):
+                        print(f"TTS error: {result.cancellation_details.reason,result.cancellation_details.error_details}")
+        except Exception as e:
+            print(f"TTS exception: {e}")
+        return b""
+
+async def generate_audio_for_chat(message: str, voice_id: str = "ar-SA-HamedNeural") -> bytes:
+    """Generate audio using TextStream for real-time synthesis"""
+    try:
+        handler = StreamingTTSHandler(voice_id)
+        handler.start_streaming()
+        handler.add_text(message)
+        
+        loop = asyncio.get_event_loop()
+        audio_data = await loop.run_in_executor(None, handler.finish_streaming)
+        return audio_data
+        
+    except Exception as e:
+        print(f"Streaming TTS error: {e}")
+        return b""
+
+def create_wav_header(data_length: int) -> bytes:
+    """Create WAV header for 24kHz 16-bit mono PCM"""
+    sample_rate = 24000
+    bits_per_sample = 16
+    channels = 1
+    byte_rate = sample_rate * channels * bits_per_sample // 8
+    block_align = channels * bits_per_sample // 8
+    
+    header = b"RIFF"
+    header += (36 + data_length).to_bytes(4, "little")
+    header += b"WAVE"
+    header += b"fmt "
+    header += (16).to_bytes(4, "little")
+    header += (1).to_bytes(2, "little")  # PCM
+    header += channels.to_bytes(2, "little")
+    header += sample_rate.to_bytes(4, "little")
+    header += byte_rate.to_bytes(4, "little")
+    header += block_align.to_bytes(2, "little")
+    header += bits_per_sample.to_bytes(2, "little")
+    header += b"data"
+    header += data_length.to_bytes(4, "little")
+    
+    return header

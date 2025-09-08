@@ -5,7 +5,7 @@ Routes for handling chat functionality with dynamic avatar interactions and pers
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Body, Form, Query
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, HTMLResponse
 from typing import List, Optional, Dict, Any
 from uuid import UUID, uuid4
 from datetime import datetime
@@ -27,6 +27,80 @@ from dynamic_chat import (
 
 # Create router
 router = APIRouter(tags=["Chat"])
+
+@router.get("/chat/demo", response_class=HTMLResponse)
+async def chat_demo():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            .word.current { background-color: #ffeb3b; padding: 2px 4px; border-radius: 3px; }
+            .play-btn { margin: 10px 0; padding: 8px 16px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; }
+            #chat-container { padding: 20px; font-family: Arial; }
+        </style>
+    </head>
+    <body>
+        <div id="chat-container">Loading...</div>
+        
+        <script>
+            let textBuffer = "";
+            let audioData = null;
+            
+            const eventSource = new EventSource('/chat/stream?id=1668e186-c86e-456b-a7fc-b3033411c039');
+            
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log(data)
+                if (data.complete && data.audio) {
+    console.log("Audio received, length:", data.audio.length);
+    audioData = data.audio;
+} else if (data.complete) {
+    console.log("Complete but no audio data");
+}
+                if (data.response) {
+                    textBuffer = data.response;
+                    document.getElementById('chat-container').innerHTML = 
+                        `<div class="message">${textBuffer}</div>`;
+                }
+                
+                if (data.complete && data.audio) {
+                    audioData = data.audio;
+                    document.getElementById('chat-container').innerHTML += 
+                        `<button class="play-btn" onclick="playSynced()">🔊 Play Synced</button>`;
+                    eventSource.close();
+                }
+            };
+            
+            function playSynced() {
+                const audio = new Audio(`data:audio/wav;base64,${audioData}`);
+                const words = textBuffer.split(' ');
+                
+                audio.addEventListener('loadedmetadata', () => {
+                    const timePerWord = audio.duration / words.length;
+                    
+                    const container = document.getElementById('chat-container');
+                    container.innerHTML = words.map((word, i) => 
+                        `<span class="word" data-index="${i}">${word}</span>`
+                    ).join(' ');
+                    
+                    audio.play();
+                    
+                    words.forEach((word, i) => {
+                        setTimeout(() => {
+                            document.querySelectorAll('.word').forEach(w => w.classList.remove('current'));
+                            const current = document.querySelector(`[data-index="${i}"]`);
+                            if (current) current.classList.add('current');
+                        }, i * timePerWord * 1000);
+                    });
+                });
+                
+                audio.load();
+            }
+        </script>
+    </body>
+    </html>
+    """
 
 # Chat Routes
 @router.post("/chat/initialize")
@@ -198,7 +272,7 @@ async def chat_stream(
     id: str = Query(...),
     name: Optional[str] = Query(None),
     db: Any = Depends(get_db),
-    current_user: UserDB = Depends(get_current_user)  # Add this dependency
+    # current_user: UserDB = Depends(get_current_user)  # Add this dependency
 ):
     """
     Stream the response for a chat message.
@@ -299,9 +373,43 @@ async def chat_stream(
         )
         
         async def stream_chat():
-            res = ""
+            from core.speech import generate_audio_for_chat
+            import base64
+            import asyncio
+            
+            full_text = ""
+            audio_task = None
+            audio_data = None  # Initialize audio_data
+            
             async for chunk in response:
                 updated_message = chunk["chunk"]
+                full_text = updated_message
+                
+                # Start streaming TTS when we have first text
+                if len(updated_message) > 10 and not audio_task:
+                    try:
+                        from core.speech import StreamingTTSHandler
+                        tts_handler = StreamingTTSHandler("ar-SA-HamedNeural")
+                        tts_handler.start_streaming()
+                        audio_task = tts_handler
+                    except Exception as e:
+                        print(f"TTS handler error: {e}")
+                
+                # Add text chunks to TTS stream
+                if audio_task and hasattr(audio_task, 'add_text'):
+                    try:
+                        # Add only the new text (difference from previous)
+                        if hasattr(audio_task, 'last_length'):
+                            new_text = updated_message[audio_task.last_length:]
+                        else:
+                            new_text = updated_message
+                            audio_task.last_length = 0
+                        
+                        if new_text:
+                            audio_task.add_text(new_text)
+                            audio_task.last_length = len(updated_message)
+                    except Exception as e:
+                        print(f"TTS add text error: {e}")
                 
                 # Check if complete
                 if chunk["finish"] == "stop" and chunk["usage"] is not None:
@@ -319,6 +427,28 @@ async def chat_stream(
                                         
                     session.conversation_history.append(bot_message)
                     await update_chat_session(db, session)
+                    
+                    # Finish streaming TTS and get audio data
+                    if audio_task and hasattr(audio_task, 'finish_streaming'):
+                        try:
+                            print(f"🔊 Finishing TTS stream...")
+                            loop = asyncio.get_event_loop()
+                            audio_data = await loop.run_in_executor(None, audio_task.finish_streaming)
+                            print(f"🔊 TTS result: {len(audio_data) if audio_data else 0} bytes")
+                        except Exception as e:
+                            print(f"Streaming TTS completion failed: {e}")
+                            audio_data = None
+                    
+                    # Fallback to regular TTS if streaming failed
+                    if not audio_data or len(audio_data) == 0:
+                        try:
+                            print(f"🔊 Fallback TTS for: '{full_text[:50]}...'")
+                            from core.speech import generate_audio_for_chat
+                            audio_data = await generate_audio_for_chat(full_text, "ar-SA-HamedNeural")
+                            print(f"🔊 Fallback result: {len(audio_data) if audio_data else 0} bytes")
+                        except Exception as e:
+                            print(f"Fallback audio generation failed: {e}")
+                            audio_data = None
                 
                 # Parse for correct formatting tags
                 result = re.split(r"\[CORRECT\]", updated_message)
@@ -354,58 +484,58 @@ async def chat_stream(
                             scenario_id = scenarios[0]["_id"]
                             
                             # Update mode completion
-                            await db.user_scenario_assignments.update_one(
-                                {
-                                    "user_id": str(current_user.id),
-                                    "scenario_id": scenario_id
-                                },
-                                {
-                                    "$set": {
-                                        f"mode_progress.{mode}.completed": True,
-                                        f"mode_progress.{mode}.completed_date": datetime.now()
-                                    }
-                                }
-                            )
+                            # await db.user_scenario_assignments.update_one(
+                            #     {
+                            #         "user_id": str(current_user.id),
+                            #         "scenario_id": scenario_id
+                            #     },
+                            #     {
+                            #         "$set": {
+                            #             f"mode_progress.{mode}.completed": True,
+                            #             f"mode_progress.{mode}.completed_date": datetime.now()
+                            #         }
+                            #     }
+                            # )
                             
-                            # Check if all assigned modes are now completed
-                            assignment = await db.user_scenario_assignments.find_one({
-                                "user_id": str(current_user.id),
-                                "scenario_id": scenario_id
-                            })
+                            # # Check if all assigned modes are now completed
+                            # assignment = await db.user_scenario_assignments.find_one({
+                            #     "user_id": str(current_user.id),
+                            #     "scenario_id": scenario_id
+                            # })
                             
-                            if assignment:
-                                # Check if all modes are completed
-                                assigned_modes = assignment.get("assigned_modes", [])
-                                mode_progress = assignment.get("mode_progress", {})
+                            # if assignment:
+                            #     # Check if all modes are completed
+                            #     assigned_modes = assignment.get("assigned_modes", [])
+                            #     mode_progress = assignment.get("mode_progress", {})
                                 
-                                all_modes_completed = True
-                                for assigned_mode in assigned_modes:
-                                    if assigned_mode not in mode_progress or not mode_progress.get(assigned_mode, {}).get("completed", False):
-                                        all_modes_completed = False
-                                        break
+                            #     all_modes_completed = True
+                            #     for assigned_mode in assigned_modes:
+                            #         if assigned_mode not in mode_progress or not mode_progress.get(assigned_mode, {}).get("completed", False):
+                            #             all_modes_completed = False
+                            #             break
                                 
                                 # If all modes are completed, mark scenario as completed
-                                if all_modes_completed:
-                                    await db.user_scenario_assignments.update_one(
-                                        {
-                                            "user_id": str(current_user.id),
-                                            "scenario_id": scenario_id
-                                        },
-                                        {
-                                            "$set": {
-                                                "completed": True,
-                                                "completed_date": datetime.now()
-                                            }
-                                        }
-                                    )
+                                # if all_modes_completed:
+                                #     await db.user_scenario_assignments.update_one(
+                                #         {
+                                #             "user_id": str(current_user.id),
+                                #             "scenario_id": scenario_id
+                                #         },
+                                #         {
+                                #             "$set": {
+                                #                 "completed": True,
+                                #                 "completed_date": datetime.now()
+                                #             }
+                                #         }
+                                #     )
                                     
                                     # Update module completion
-                                    from core.module_assignment import update_module_completion_status
-                                    await update_module_completion_status(
-                                        db, 
-                                        current_user.id, 
-                                        UUID(assignment.get("module_id"))
-                                    )
+                                    # from core.module_assignment import update_module_completion_status
+                                    # await update_module_completion_status(
+                                    #     db, 
+                                    #     current_user.id, 
+                                    #     UUID(assignment.get("module_id"))
+                                    # )
                     except Exception as e:
                         print(f"Error updating mode completion: {e}")
                 else:
@@ -427,20 +557,26 @@ async def chat_stream(
                     correct_answer=correct_answer,
                     conversation_history=session.conversation_history
                 )
+                
                 response_data = {
-    "response": chat_response.response,
-    "emotion": getattr(chat_response, 'emotion', 'neutral'),
-    "complete": chat_response.complete,
-    "correct": getattr(chat_response, 'correct', True),
-    "correct_answer": getattr(chat_response, 'correct_answer', ''),
-    "fact_check_summary": getattr(chat_response, 'fact_check_summary', None),
-    "finish": "stop" if chat_response.complete else None  # Add this for frontend
-}
+                    "response": chat_response.response,
+                    "emotion": getattr(chat_response, 'emotion', 'neutral'),
+                    "complete": chat_response.complete,
+                    "correct": getattr(chat_response, 'correct', True),
+                    "correct_answer": getattr(chat_response, 'correct_answer', ''),
+                    "fact_check_summary": getattr(chat_response, 'fact_check_summary', None),
+                    "finish": "stop" if chat_response.complete else None
+                }
+                
+                # Add audio data if available and complete
+                if complete and audio_data and len(audio_data) > 0:
+                    response_data["audio"] = base64.b64encode(audio_data).decode('utf-8')
+                    response_data["audio_format"] = "wav"
 
                 if chunk.get("fact_check_summary"):
                     print("chunk.get("")",chunk.get("fact_check_summary"))
                     chat_response.fact_check_summary = chunk["fact_check_summary"]                
-                # yield f"data: {chat_response.json()}\n\n"
+                
                 yield f"data: {json.dumps(response_data)}\n\n"
 
                 
