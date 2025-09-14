@@ -1,0 +1,96 @@
+graph TD
+    subgraph "Multi-Tenant User Hierarchy"
+        BOSS[Boss Admin<br/>🔑 Global Access<br/>Manages All Companies]
+        
+        subgraph "Mother Company"
+            MOTHER_COMPANY[NovacTech Solutions<br/>Mother Company<br/>🏢 Platform Owner]
+        end
+        
+        subgraph "Client Company A"
+            COMPANY_A[Acme Healthcare<br/>Client Company<br/>🏥 Healthcare Training]
+            SUPER_A[Super Admin A<br/>👑 Company Owner<br/>Manages Company A]
+            ADMIN_A1[Admin A1<br/>👨‍💼 Team Manager<br/>Manages Users A1-A5]
+            ADMIN_A2[Admin A2<br/>👩‍💼 Team Manager<br/>Manages Users A6-A10]
+            USER_A1[User A1<br/>👤 Learner]
+            USER_A2[User A2<br/>👤 Learner]
+            USER_A3[User A3<br/>👤 Learner]
+            USER_A4[User A4<br/>👤 Learner]
+            USER_A5[User A5<br/>👤 Learner]
+        end
+        
+        subgraph "Client Company B"
+            COMPANY_B[TechCorp Solutions<br/>Client Company<br/>💻 Tech Training]
+            SUPER_B[Super Admin B<br/>👑 Company Owner<br/>Manages Company B]
+            ADMIN_B1[Admin B1<br/>👨‍💼 Team Manager<br/>Manages Users B1-B8]
+            USER_B1[User B1<br/>👤 Learner]
+            USER_B2[User B2<br/>👤 Learner]
+            USER_B3[User B3<br/>👤 Learner]
+        end
+    end
+    
+    %% Hierarchy Relationships
+    BOSS --> MOTHER_COMPANY
+    BOSS -.-> COMPANY_A
+    BOSS -.-> COMPANY_B
+    BOSS -.-> SUPER_A
+    BOSS -.-> SUPER_B
+    
+    SUPER_A --> COMPANY_A
+    SUPER_A --> ADMIN_A1
+    SUPER_A --> ADMIN_A2
+    
+    SUPER_B --> COMPANY_B
+    SUPER_B --> ADMIN_B1
+    
+    ADMIN_A1 --> USER_A1
+    ADMIN_A1 --> USER_A2
+    ADMIN_A1 --> USER_A3
+    
+    ADMIN_A2 --> USER_A4
+    ADMIN_A2 --> USER_A5
+    
+    ADMIN_B1 --> USER_B1
+    ADMIN_B1 --> USER_B2
+    ADMIN_B1 --> USER_B3
+    
+    %% Permissions Legend
+    subgraph "Permission Levels"
+        PERM1[🔑 Boss Admin<br/>• Create/Delete Companies<br/>• Manage All Users<br/>• Global Analytics<br/>• System Configuration]
+        PERM2[👑 Super Admin<br/>• Manage Company Users<br/>• Create Admins & Users<br/>• Company Analytics<br/>• Content Management]
+        PERM3[👨‍💼 Admin<br/>• Manage Assigned Users<br/>• Create Users Only<br/>• Team Analytics<br/>• Content Assignment]
+        PERM4[👤 User/Learner<br/>• Access Assigned Content<br/>• Complete Training<br/>• View Own Progress<br/>• Chat Sessions]
+    end
+    
+    %% Demo Account Flow
+    subgraph "Demo Account Hierarchy"
+        DEMO_SUPER[Demo Super Admin<br/>⏰ 30 Days<br/>Company: Demo Corp]
+        DEMO_ADMIN[Demo Admin<br/>⏰ 30 Days<br/>Created by Demo Super]
+        DEMO_USER1[Demo User 1<br/>⏰ 30 Days<br/>Created by Demo Admin]
+        DEMO_USER2[Demo User 2<br/>⏰ 30 Days<br/>Created by Demo Admin]
+        
+        DEMO_SUPER --> DEMO_ADMIN
+        DEMO_ADMIN --> DEMO_USER1
+        DEMO_ADMIN --> DEMO_USER2
+        
+        %% Extension Flow
+        BOSS -.->|Extend 30 Days| DEMO_SUPER
+        DEMO_SUPER -.->|Auto Cascade| DEMO_ADMIN
+        DEMO_ADMIN -.->|Auto Cascade| DEMO_USER1
+        DEMO_ADMIN -.->|Auto Cascade| DEMO_USER2
+    end
+    
+    %% Styling
+    classDef bossAdmin fill:#ff6b6b,stroke:#d63031,color:#fff
+    classDef superAdmin fill:#4ecdc4,stroke:#00b894,color:#fff
+    classDef admin fill:#45b7d1,stroke:#0984e3,color:#fff
+    classDef user fill:#96ceb4,stroke:#00b894,color:#333
+    classDef company fill:#ffeaa7,stroke:#fdcb6e,color:#333
+    classDef demo fill:#fd79a8,stroke:#e84393,color:#fff
+    classDef permission fill:#e17055,stroke:#d63031,color:#fff
+    
+    class BOSS bossAdmin
+    class SUPER_A,SUPER_B,DEMO_SUPER superAdmin
+    class ADMIN_A1,ADMIN_A2,ADMIN_B1,DEMO_ADMIN admin
+    class USER_A1,USER_A2,USER_A3,USER_A4,USER_A5,USER_B1,USER_B2,USER_B3,DEMO_USER1,DEMO_USER2 user
+    class MOTHER_COMPANY,COMPANY_A,COMPANY_B company
+    class PERM1,PERM2,PERM3,PERM4 permission

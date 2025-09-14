@@ -1,0 +1,88 @@
+sequenceDiagram
+    participant User as User/Learner
+    participant Frontend as Frontend Client
+    participant FastAPI as FastAPI Gateway
+    participant Auth as JWT Auth
+    participant BotFactory as Bot Factory
+    participant OpenAI as Azure OpenAI
+    participant TTS as Text-to-Speech
+    participant VectorSearch as Vector Search
+    participant FactChecker as Fact Checker
+    participant MongoDB as MongoDB
+    participant SSE as Server-Sent Events
+    
+    %% Authentication
+    User->>Frontend: Login Request
+    Frontend->>FastAPI: POST /auth/login
+    FastAPI->>Auth: Validate Credentials
+    Auth->>MongoDB: Check User Data
+    MongoDB-->>Auth: User Info + Permissions
+    Auth-->>FastAPI: JWT Token + User Role
+    FastAPI-->>Frontend: Access Token + User Info
+    Frontend-->>User: Login Success
+    
+    %% Chat Session Initialization
+    User->>Frontend: Start Training Session
+    Frontend->>FastAPI: POST /chat/initialize
+    Note over FastAPI: avatar_interaction_id, mode,persona_id
+    FastAPI->>MongoDB: Create Chat Session
+    FastAPI->>BotFactory: Get Chat Handler
+    BotFactory-->>FastAPI: Specialized Bot Instance
+    MongoDB-->>FastAPI: Session Created
+    FastAPI-->>Frontend: Session ID + Config
+    
+    %% Real-time Chat Flow
+    User->>Frontend: Send Message
+    Frontend->>FastAPI: POST /chat (message)
+    FastAPI->>MongoDB: Store User Message
+    MongoDB-->>FastAPI: Message Stored
+    FastAPI-->>Frontend: Message Received
+    
+    %% Streaming Response
+    Frontend->>FastAPI: GET /chat/stream (SSE)
+    FastAPI->>BotFactory: Process Message
+    BotFactory->>VectorSearch: Get Knowledge Context
+    VectorSearch-->>BotFactory: Relevant Information
+    BotFactory->>FactChecker: Initialize Fact Checking
+    FactChecker-->>BotFactory: Fact Check Ready
+    
+    %% AI Processing Loop
+    loop Response Generation
+        BotFactory->>OpenAI: Generate Response Chunk
+        OpenAI-->>BotFactory: Text Chunk
+        BotFactory->>SSE: Stream Text Chunk
+        SSE-->>Frontend: Real-time Text Update
+        Frontend-->>User: Live Text Display
+    end
+    
+    %% Audio Generation
+    BotFactory->>TTS: Generate Audio for Complete Text
+    TTS-->>BotFactory: Audio Data (WAV)
+    BotFactory->>FactChecker: Verify Response Claims
+    FactChecker->>VectorSearch: Check Against Knowledge Base
+    VectorSearch-->>FactChecker: Verification Results
+    FactChecker-->>BotFactory: Fact Check Summary
+    
+    %% Final Response
+    BotFactory->>SSE: Complete Response + Audio + Fact Check
+    SSE-->>Frontend: Final Data Package
+    Frontend-->>User: Text + Synchronized Audio
+    
+    %% Data Persistence
+    BotFactory->>MongoDB: Store Bot Response + Metadata
+    MongoDB-->>BotFactory: Response Stored
+    FastAPI->>MongoDB: Update Session History
+    MongoDB-->>FastAPI: Session Updated
+    
+    %% Analysis Generation (Optional)
+    alt If Assessment Mode
+        User->>Frontend: Request Analysis
+        Frontend->>FastAPI: POST /chat/evaluate/{session_id}
+        FastAPI->>BotFactory: Get Analyzer Bot
+        BotFactory->>OpenAI: Generate Analysis Report
+        OpenAI-->>BotFactory: Detailed Analysis
+        BotFactory->>MongoDB: Store Analysis Results
+        MongoDB-->>BotFactory: Analysis Stored
+        FastAPI-->>Frontend: Analysis Report
+        Frontend-->>User: Performance Feedback
+    end

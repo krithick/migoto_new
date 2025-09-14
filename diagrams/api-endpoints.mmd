@@ -1,0 +1,127 @@
+graph LR
+    subgraph "Authentication APIs"
+        AUTH_LOGIN[POST /auth/login<br/>🔐 User Login]
+        AUTH_TOKEN[POST /auth/token<br/>🎫 OAuth2 Token]
+        AUTH_ME[GET /auth/users/me<br/>👤 Current User Profile]
+        AUTH_CHANGE_PWD[POST /auth/password/change<br/>🔑 Change Password]
+    end
+    
+    subgraph "User Management APIs"
+        USER_CREATE[POST /auth/users<br/>➕ Create Users Bulk]
+        USER_LIST[GET /auth/users<br/>📋 List Users]
+        USER_GET[GET /auth/users/id<br/>👤 Get User Details]
+        USER_UPDATE[PUT /auth/users/id<br/>✏️ Update User]
+        USER_DELETE[DELETE /auth/users/id<br/>🗑️ Delete User]
+        USER_DETAILED[GET /auth/users/id/detailed<br/>🔍 Admin User View]
+        USER_EXTEND_DEMO[POST /auth/users/extend-demo-hierarchy<br/>⏰ Extend Demo Account]
+    end
+    
+    subgraph "Chat & Conversation APIs"
+        CHAT_INIT[POST /chat/initialize<br/>🚀 Start Chat Session]
+        CHAT_SEND[POST /chat<br/>💬 Send Message]
+        CHAT_STREAM[GET /chat/stream<br/>📡 Real-time Stream SSE]
+        CHAT_HISTORY[GET /chat/history/id<br/>📜 Conversation History]
+        CHAT_EVALUATE[POST /chat/evaluate/id<br/>📊 Generate Analysis]
+        CHAT_DEMO[GET /chat/demo<br/>🎮 Interactive Demo]
+    end
+    
+    subgraph "Learning Management APIs"
+        COURSE_CREATE[POST /courses<br/>📚 Create Course]
+        COURSE_LIST[GET /courses<br/>📖 List Courses]
+        MODULE_CREATE[POST /modules<br/>📑 Create Module]
+        MODULE_LIST[GET /modules<br/>📄 List Modules]
+        SCENARIO_CREATE[POST /scenarios<br/>🎭 Create Scenario]
+        SCENARIO_LIST[GET /scenarios<br/>🎪 List Scenarios]
+        SCENARIO_ASSIGN[POST /scenario-assignments<br/>📌 Assign Scenarios]
+    end
+    
+    subgraph "Analytics & Progress APIs"
+        PROGRESS_DASHBOARD[GET /auth/users/me/progress-dashboard<br/>📈 User Progress Dashboard]
+        COMPLETED_SCENARIOS[GET /auth/users/me/completed-scenario-analysis<br/>✅ Completed Analysis]
+        SCENARIO_MODE_ANALYSIS[GET /scenario/id/mode/mode/analysis<br/>🔬 Mode-specific Analysis]
+        ADMIN_USER_SESSIONS[GET /admin/users/id/scenario-sessions<br/>👨💼 Admin Session View]
+        COMPANY_ANALYTICS[GET /auth/analytics/company/id<br/>🏢 Company Analytics]
+    end
+    
+    subgraph "Company & Multi-tenancy APIs"
+        COMPANY_CREATE[POST /companies<br/>🏢 Create Company]
+        COMPANY_LIST[GET /companies<br/>🏬 List Companies]
+        COMPANY_UPDATE[PUT /companies/id<br/>✏️ Update Company]
+        TIER_ASSIGN[POST /tiers/id/assign<br/>⭐ Assign Tier]
+        TIER_LIMITS[GET /tiers/limits/company_id<br/>📊 Check Limits]
+    end
+    
+    subgraph "Avatar & AI Management APIs"
+        AVATAR_CREATE[POST /avatars<br/>🤖 Create Avatar]
+        AVATAR_LIST[GET /avatars<br/>👥 List Avatars]
+        PERSONA_CREATE[POST /personas<br/>🎭 Create Persona]
+        PERSONA_LIST[GET /personas<br/>🎪 List Personas]
+        BOT_CREATE[POST /bots<br/>🧠 Create Bot Config]
+        BOT_ANALYZER[POST /bots/analyzers<br/>🔍 Create Analyzer Bot]
+        SESSION_ANALYZE[GET /session-analyzer/id<br/>📊 Analyze Session]
+    end
+    
+    subgraph "File & Knowledge Management APIs"
+        UPLOAD_AUDIO[POST /upload/audio<br/>🎵 Upload Audio]
+        UPLOAD_DOCUMENT[POST /upload/document<br/>📄 Upload Document]
+        UPLOAD_VIDEO[POST /upload/video<br/>🎥 Upload Video]
+        KB_CREATE[POST /knowledge-bases<br/>🧠 Create Knowledge Base]
+        KB_SEARCH[POST /knowledge-bases/id/search<br/>🔍 Search Knowledge]
+        FACT_CHECK[POST /knowledge-bases/id/fact-check<br/>✅ Fact Check]
+    end
+    
+    subgraph "Administrative APIs"
+        SYSTEM_HEALTH[GET /admin/system/health<br/>💚 System Health]
+        SYSTEM_METRICS[GET /admin/system/metrics<br/>📊 System Metrics]
+        FEATURE_TOGGLE[POST /admin/features/id/toggle<br/>🎛️ Feature Flags]
+        TIER_MANAGEMENT[GET /admin/tiers<br/>⭐ Manage Tiers]
+    end
+    
+    %% API Flow Connections
+    AUTH_LOGIN --> USER_CREATE
+    USER_CREATE --> COURSE_CREATE
+    COURSE_CREATE --> MODULE_CREATE
+    MODULE_CREATE --> SCENARIO_CREATE
+    SCENARIO_CREATE --> SCENARIO_ASSIGN
+    SCENARIO_ASSIGN --> CHAT_INIT
+    CHAT_INIT --> CHAT_SEND
+    CHAT_SEND --> CHAT_STREAM
+    CHAT_STREAM --> CHAT_EVALUATE
+    CHAT_EVALUATE --> PROGRESS_DASHBOARD
+    
+    %% Authentication Required
+    AUTH_LOGIN -.-> AUTH_ME
+    AUTH_LOGIN -.-> USER_LIST
+    AUTH_LOGIN -.-> CHAT_INIT
+    AUTH_LOGIN -.-> PROGRESS_DASHBOARD
+    
+    %% Admin Only APIs
+    USER_CREATE -.-> COMPANY_CREATE
+    COMPANY_CREATE -.-> TIER_ASSIGN
+    SCENARIO_CREATE -.-> BOT_CREATE
+    
+    %% File Dependencies
+    AVATAR_CREATE --> UPLOAD_AUDIO
+    SCENARIO_CREATE --> UPLOAD_VIDEO
+    KB_CREATE --> UPLOAD_DOCUMENT
+    
+    %% Styling
+    classDef authAPI fill:#ff7675,stroke:#d63031,color:#fff
+    classDef userAPI fill:#74b9ff,stroke:#0984e3,color:#fff
+    classDef chatAPI fill:#00b894,stroke:#00a085,color:#fff
+    classDef learningAPI fill:#fdcb6e,stroke:#e17055,color:#fff
+    classDef analyticsAPI fill:#a29bfe,stroke:#6c5ce7,color:#fff
+    classDef companyAPI fill:#fd79a8,stroke:#e84393,color:#fff
+    classDef avatarAPI fill:#55a3ff,stroke:#2d3436,color:#fff
+    classDef fileAPI fill:#00cec9,stroke:#00b894,color:#fff
+    classDef adminAPI fill:#e17055,stroke:#d63031,color:#fff
+    
+    class AUTH_LOGIN,AUTH_TOKEN,AUTH_ME,AUTH_CHANGE_PWD authAPI
+    class USER_CREATE,USER_LIST,USER_GET,USER_UPDATE,USER_DELETE,USER_DETAILED,USER_EXTEND_DEMO userAPI
+    class CHAT_INIT,CHAT_SEND,CHAT_STREAM,CHAT_HISTORY,CHAT_EVALUATE,CHAT_DEMO chatAPI
+    class COURSE_CREATE,COURSE_LIST,MODULE_CREATE,MODULE_LIST,SCENARIO_CREATE,SCENARIO_LIST,SCENARIO_ASSIGN learningAPI
+    class PROGRESS_DASHBOARD,COMPLETED_SCENARIOS,SCENARIO_MODE_ANALYSIS,ADMIN_USER_SESSIONS,COMPANY_ANALYTICS analyticsAPI
+    class COMPANY_CREATE,COMPANY_LIST,COMPANY_UPDATE,TIER_ASSIGN,TIER_LIMITS companyAPI
+    class AVATAR_CREATE,AVATAR_LIST,PERSONA_CREATE,PERSONA_LIST,BOT_CREATE,BOT_ANALYZER,SESSION_ANALYZE avatarAPI
+    class UPLOAD_AUDIO,UPLOAD_DOCUMENT,UPLOAD_VIDEO,KB_CREATE,KB_SEARCH,FACT_CHECK fileAPI
+    class SYSTEM_HEALTH,SYSTEM_METRICS,FEATURE_TOGGLE,TIER_MANAGEMENT adminAPI

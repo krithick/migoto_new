@@ -1,0 +1,109 @@
+graph TB
+    subgraph "Client Layer"
+        WEB[Web Frontend<br/>React]
+        MOB[Mobile App<br/>iOS/Android]
+        %% API_CLIENT[Third-party<br/>API Clients]
+    end
+    
+    subgraph "API Gateway "
+        FASTAPI[FastAPI Application<br/>API Gateway]
+        CORS[CORS Middleware]
+        AUTH[JWT Authentication<br/>Bearer Token]
+        RATE[Rate Limiting<br/>Tier-based]
+    end
+    
+    subgraph "Core Business Services"
+        USER_SVC[User Management<br/>Authentication & Profiles]
+        CHAT_SVC[Chat Engine<br/>Real-time Conversations]
+        AVATAR_SVC[Avatar System<br/>3D Models & Interactions]
+        SCENARIO_SVC[Scenario Engine<br/>Training Content]
+        ANALYTICS_SVC[Analytics Engine<br/>Performance Reports]
+        TIER_SVC[Tier Management<br/>Feature Access Control]
+        COMPANY_SVC[Company Management<br/>Multi-tenant Organization]
+    end
+    
+    subgraph "AI/ML Layer"
+        OPENAI[Azure OpenAI<br/>GPT-4o Model]
+        BOT_FACTORY[Dynamic Bot Factory<br/>AI Model Management]
+        TTS[Text-to-Speech<br/>Azure Speech]
+        VECTOR_SEARCH[Azure Cognitive Search<br/>Vector Store]
+        FACT_CHECK[Enhanced Fact Checker<br/>Real-time Validation]
+    end
+    
+    subgraph "Data Storage Layer"
+        MONGO[(MongoDB Atlas<br/>Primary Database)]
+        AZURE_SEARCH[(Azure Search Index<br/>Knowledge Base)]
+        FILE_STORAGE[File Storage<br/>Audio/Video/Documents]
+        CACHE[Redis Cache<br/>Session & Config]
+    end
+    
+    subgraph "External Services"
+        AZURE_SERVICES[Azure Cloud Services<br/>OpenAI + Speech + Search]
+    end
+    
+    %% Client connections
+    WEB --> FASTAPI
+    MOB --> FASTAPI
+    %% API_CLIENT --> FASTAPI
+    
+    %% Gateway processing
+    FASTAPI --> CORS
+    FASTAPI --> AUTH
+    FASTAPI --> RATE
+    
+    %% Service routing
+    FASTAPI --> USER_SVC
+    FASTAPI --> CHAT_SVC
+    FASTAPI --> AVATAR_SVC
+    FASTAPI --> SCENARIO_SVC
+    FASTAPI --> ANALYTICS_SVC
+    FASTAPI --> TIER_SVC
+    FASTAPI --> COMPANY_SVC
+    
+    %% AI integrations
+    CHAT_SVC --> BOT_FACTORY
+    CHAT_SVC --> OPENAI
+    CHAT_SVC --> TTS
+    CHAT_SVC --> VECTOR_SEARCH
+    CHAT_SVC --> FACT_CHECK
+    
+    %% Data connections
+    USER_SVC --> MONGO
+    CHAT_SVC --> MONGO
+    AVATAR_SVC --> MONGO
+    SCENARIO_SVC --> MONGO
+    ANALYTICS_SVC --> MONGO
+    TIER_SVC --> MONGO
+    COMPANY_SVC --> MONGO
+    
+    %% Cache connections
+    USER_SVC --> CACHE
+    CHAT_SVC --> CACHE
+    BOT_FACTORY --> CACHE
+    
+    %% External service connections
+    VECTOR_SEARCH --> AZURE_SEARCH
+    FACT_CHECK --> AZURE_SEARCH
+    OPENAI --> AZURE_SERVICES
+    TTS --> AZURE_SERVICES
+
+    
+    %% File storage
+    AVATAR_SVC --> FILE_STORAGE
+    SCENARIO_SVC --> FILE_STORAGE
+    TTS --> FILE_STORAGE
+    
+    %% Styling
+    classDef clientLayer fill:#2c3e50,stroke:#34495e,color:#fff
+    classDef gatewayLayer fill:#e74c3c,stroke:#c0392b,color:#fff
+    classDef serviceLayer fill:#3498db,stroke:#2980b9,color:#fff
+    classDef aiLayer fill:#f39c12,stroke:#e67e22,color:#fff
+    classDef dataLayer fill:#27ae60,stroke:#229954,color:#fff
+    classDef externalLayer fill:#9b59b6,stroke:#8e44ad,color:#fff
+    
+    class WEB,MOB,API_CLIENT clientLayer
+    class FASTAPI,CORS,AUTH,RATE gatewayLayer
+    class USER_SVC,CHAT_SVC,AVATAR_SVC,SCENARIO_SVC,ANALYTICS_SVC,TIER_SVC,COMPANY_SVC serviceLayer
+    class OPENAI,BOT_FACTORY,TTS,VECTOR_SEARCH,FACT_CHECK aiLayer
+    class MONGO,AZURE_SEARCH,FILE_STORAGE,CACHE dataLayer
+    class AZURE_SERVICES externalLayer

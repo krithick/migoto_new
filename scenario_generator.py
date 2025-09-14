@@ -177,7 +177,7 @@ Follow the provided template structures exactly, maintaining all headings and sp
 - Keep responses clear, balanced, and focused on practical guidance
 
 - Balance {knowledge_type} with realistic practical considerations
-
+------- Keep Your Responses Under 30 Words------------
 ## Character Background
 
 [PERSONA_PLACEHOLDER]

@@ -1,0 +1,180 @@
+graph TB
+    subgraph "Production Deployment Architecture"
+        subgraph "Load Balancer Tier"
+            LB[Azure Load Balancer<br/>🌐 Traffic Distribution<br/>SSL Termination]
+            CDN[Azure CDN<br/>📡 Static Content<br/>Global Distribution]
+        end
+        
+        subgraph "Application Tier - Auto Scaling"
+            APP1[FastAPI Instance 1<br/>🚀 Port 9000<br/>Container: migoto-api-1]
+            APP2[FastAPI Instance 2<br/>🚀 Port 9000<br/>Container: migoto-api-2]
+            APP3[FastAPI Instance 3<br/>🚀 Port 9000<br/>Container: migoto-api-3]
+        end
+        
+        subgraph "Caching Layer"
+            REDIS_PRIMARY[Redis Primary<br/>💾 Session Cache<br/>Bot Configurations]
+            REDIS_REPLICA[Redis Replica<br/>💾 Read Replica<br/>High Availability]
+        end
+        
+        subgraph "Database Tier"
+            MONGO_PRIMARY[(MongoDB Primary<br/>📊 Main Database<br/>Read/Write Operations)]
+            MONGO_SECONDARY1[(MongoDB Secondary 1<br/>📊 Read Replica<br/>Backup & Analytics)]
+            MONGO_SECONDARY2[(MongoDB Secondary 2<br/>📊 Read Replica<br/>Disaster Recovery)]
+        end
+        
+        subgraph "AI Services Layer"
+            AZURE_OPENAI[Azure OpenAI<br/>🧠 GPT-4o Model<br/>Conversation AI]
+            AZURE_SPEECH[Azure Speech Services<br/>🎵 Text-to-Speech<br/>Audio Generation]
+            AZURE_SEARCH[Azure Cognitive Search<br/>🔍 Vector Search<br/>Knowledge Base]
+        end
+        
+        subgraph "Storage Layer"
+            BLOB_STORAGE[Azure Blob Storage<br/>📁 File Storage<br/>Audio/Video/Documents]
+            BACKUP_STORAGE[Azure Backup<br/>💾 Database Backups<br/>Point-in-time Recovery]
+        end
+        
+        subgraph "Monitoring & Logging"
+            APP_INSIGHTS[Azure Application Insights<br/>📊 Performance Monitoring<br/>Error Tracking]
+            LOG_ANALYTICS[Azure Log Analytics<br/>📝 Centralized Logging<br/>Query & Analysis]
+            ALERTS[Azure Monitor Alerts<br/>🚨 Automated Alerting<br/>Incident Response]
+        end
+        
+        subgraph "Security Layer"
+            KEY_VAULT[Azure Key Vault<br/>🔐 Secrets Management<br/>SSL Certificates]
+            FIREWALL[Azure Firewall<br/>🛡️ Network Security<br/>Traffic Filtering]
+            IDENTITY[Azure Active Directory<br/>👤 Identity Management<br/>SSO Integration]
+        end
+    end
+    
+    subgraph "Development Environment"
+        DEV_DOCKER[Docker Compose<br/>🐳 Local Development<br/>All Services Containerized]
+        DEV_MONGO[MongoDB Local<br/>📊 Development Database]
+        DEV_REDIS[Redis Local<br/>💾 Development Cache]
+    end
+    
+    subgraph "CI/CD Pipeline"
+        GITHUB[GitHub Repository<br/>📚 Source Code<br/>Version Control]
+        GITHUB_ACTIONS[GitHub Actions<br/>⚙️ CI/CD Pipeline<br/>Automated Deployment]
+        DOCKER_REGISTRY[Azure Container Registry<br/>📦 Container Images<br/>Secure Storage]
+        KUBERNETES[Azure Kubernetes Service<br/>☸️ Container Orchestration<br/>Auto Scaling]
+    end
+    
+    %% Traffic Flow
+    USERS[👥 Users] --> CDN
+    CDN --> LB
+    LB --> APP1
+    LB --> APP2
+    LB --> APP3
+    
+    %% Application Dependencies
+    APP1 --> REDIS_PRIMARY
+    APP2 --> REDIS_PRIMARY
+    APP3 --> REDIS_PRIMARY
+    
+    APP1 --> MONGO_PRIMARY
+    APP2 --> MONGO_PRIMARY
+    APP3 --> MONGO_PRIMARY
+    
+    %% Database Replication
+    MONGO_PRIMARY --> MONGO_SECONDARY1
+    MONGO_PRIMARY --> MONGO_SECONDARY2
+    REDIS_PRIMARY --> REDIS_REPLICA
+    
+    %% AI Service Connections
+    APP1 --> AZURE_OPENAI
+    APP2 --> AZURE_SPEECH
+    APP3 --> AZURE_SEARCH
+    
+    %% Storage Connections
+    APP1 --> BLOB_STORAGE
+    APP2 --> BLOB_STORAGE
+    APP3 --> BLOB_STORAGE
+    
+    MONGO_PRIMARY --> BACKUP_STORAGE
+    
+    %% Monitoring Connections
+    APP1 --> APP_INSIGHTS
+    APP2 --> APP_INSIGHTS
+    APP3 --> APP_INSIGHTS
+    
+    APP1 --> LOG_ANALYTICS
+    APP2 --> LOG_ANALYTICS
+    APP3 --> LOG_ANALYTICS
+    
+    APP_INSIGHTS --> ALERTS
+    LOG_ANALYTICS --> ALERTS
+    
+    %% Security Connections
+    APP1 --> KEY_VAULT
+    APP2 --> KEY_VAULT
+    APP3 --> KEY_VAULT
+    
+    LB --> FIREWALL
+    APP1 --> IDENTITY
+    
+    %% CI/CD Flow
+    GITHUB --> GITHUB_ACTIONS
+    GITHUB_ACTIONS --> DOCKER_REGISTRY
+    DOCKER_REGISTRY --> KUBERNETES
+    KUBERNETES --> APP1
+    KUBERNETES --> APP2
+    KUBERNETES --> APP3
+    
+    %% Development Flow
+    DEV_DOCKER --> DEV_MONGO
+    DEV_DOCKER --> DEV_REDIS
+    
+    %% Network Zones
+    subgraph "Public Zone"
+        USERS
+        CDN
+        LB
+    end
+    
+    subgraph "Application Zone"
+        APP1
+        APP2
+        APP3
+        REDIS_PRIMARY
+        REDIS_REPLICA
+    end
+    
+    subgraph "Data Zone"
+        MONGO_PRIMARY
+        MONGO_SECONDARY1
+        MONGO_SECONDARY2
+        BLOB_STORAGE
+        BACKUP_STORAGE
+    end
+    
+    subgraph "Management Zone"
+        APP_INSIGHTS
+        LOG_ANALYTICS
+        ALERTS
+        KEY_VAULT
+        FIREWALL
+        IDENTITY
+    end
+    
+    %% Styling
+    classDef loadBalancer fill:#ff6b6b,stroke:#d63031,color:#fff
+    classDef application fill:#4ecdc4,stroke:#00b894,color:#fff
+    classDef database fill:#45b7d1,stroke:#0984e3,color:#fff
+    classDef cache fill:#96ceb4,stroke:#00b894,color:#333
+    classDef aiService fill:#ffeaa7,stroke:#fdcb6e,color:#333
+    classDef storage fill:#fd79a8,stroke:#e84393,color:#fff
+    classDef monitoring fill:#a29bfe,stroke:#6c5ce7,color:#fff
+    classDef security fill:#e17055,stroke:#d63031,color:#fff
+    classDef development fill:#74b9ff,stroke:#0984e3,color:#fff
+    classDef cicd fill:#00b894,stroke:#00a085,color:#fff
+    
+    class LB,CDN loadBalancer
+    class APP1,APP2,APP3 application
+    class MONGO_PRIMARY,MONGO_SECONDARY1,MONGO_SECONDARY2 database
+    class REDIS_PRIMARY,REDIS_REPLICA cache
+    class AZURE_OPENAI,AZURE_SPEECH,AZURE_SEARCH aiService
+    class BLOB_STORAGE,BACKUP_STORAGE storage
+    class APP_INSIGHTS,LOG_ANALYTICS,ALERTS monitoring
+    class KEY_VAULT,FIREWALL,IDENTITY security
+    class DEV_DOCKER,DEV_MONGO,DEV_REDIS development
+    class GITHUB,GITHUB_ACTIONS,DOCKER_REGISTRY,KUBERNETES cicd

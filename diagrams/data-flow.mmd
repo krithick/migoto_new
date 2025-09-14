@@ -1,0 +1,136 @@
+flowchart TD
+    subgraph "User Authentication & Session Management"
+        A1[User Login Request] --> A2{Valid Credentials?}
+        A2 -->|Yes| A3[Generate JWT Token]
+        A2 -->|No| A4[Return 401 Error]
+        A3 --> A5[Store Session Data]
+        A5 --> A6[Return Token + User Info]
+    end
+    
+    subgraph "Chat Session Initialization"
+        B1[Initialize Chat Request] --> B2[Validate User Permissions]
+        B2 --> B3{User Assigned to Scenario?}
+        B3 -->|Yes| B4[Create Chat Session]
+        B3 -->|No| B5[Return 403 Forbidden]
+        B4 --> B6[Load Bot Configuration]
+        B6 --> B7[Initialize AI Context]
+        B7 --> B8[Return Session ID]
+    end
+    
+    subgraph "Real-time Conversation Processing"
+        C1[User Message] --> C2[Store Message in DB]
+        C2 --> C3[Load Conversation Context]
+        C3 --> C4[Get Knowledge Base Context]
+        C4 --> C5[Initialize Fact Checker]
+        C5 --> C6[Send to AI Model]
+        C6 --> C7[Stream Response Chunks]
+        C7 --> C8[Generate Audio TTS]
+        C8 --> C9[Fact Check Response]
+        C9 --> C10[Return Complete Response]
+        C10 --> C11[Store Bot Response]
+    end
+    
+    subgraph "Analysis & Evaluation Pipeline"
+        D1[Evaluation Request] --> D2[Get Session History]
+        D2 --> D3[Load Template Rules]
+        D3 --> D4[Perform Fact Checking]
+        D4 --> D5[Generate AI Analysis]
+        D5 --> D6[Calculate Scores]
+        D6 --> D7[Store Analysis Report]
+        D7 --> D8[Update User Progress]
+        D8 --> D9[Return Analysis Results]
+    end
+    
+    subgraph "User Progress & Analytics"
+        E1[Progress Request] --> E2[Get User Assignments]
+        E2 --> E3[Calculate Completion Status]
+        E3 --> E4[Get Analysis Reports]
+        E4 --> E5[Aggregate Performance Data]
+        E5 --> E6[Generate Dashboard Data]
+        E6 --> E7[Return Progress Summary]
+    end
+    
+    subgraph "Administrative Operations"
+        F1[Admin Action] --> F2{Check Admin Permissions}
+        F2 -->|Authorized| F3[Validate Tier Limits]
+        F2 -->|Unauthorized| F4[Return 403 Error]
+        F3 --> F5{Within Limits?}
+        F5 -->|Yes| F6[Execute Operation]
+        F5 -->|No| F7[Return Limit Exceeded]
+        F6 --> F8[Update Database]
+        F8 --> F9[Log Admin Action]
+        F9 --> F10[Return Success]
+    end
+    
+    subgraph "Data Storage & Retrieval"
+        G1[(MongoDB Primary)] --> G2[User Data]
+        G1 --> G3[Session Data]
+        G1 --> G4[Analysis Data]
+        G1 --> G5[Configuration Data]
+        
+        H1[(Azure Search)] --> H2[Knowledge Base]
+        H1 --> H3[Vector Embeddings]
+        H1 --> H4[Fact Check Data]
+        
+        I1[File Storage] --> I2[Audio Files]
+        I1 --> I3[Video Files]
+        I1 --> I4[Document Files]
+        I1 --> I5[Avatar Models]
+    end
+    
+    %% Cross-system Data Flow
+    A6 --> B1
+    B8 --> C1
+    C11 --> D1
+    D9 --> E1
+    
+    %% Database Interactions
+    A5 --> G2
+    B4 --> G3
+    C2 --> G3
+    C11 --> G3
+    D7 --> G4
+    F8 --> G1
+    
+    %% AI Service Interactions
+    C4 --> H2
+    C9 --> H3
+    D4 --> H4
+    
+    %% File System Interactions
+    C8 --> I2
+    B6 --> I5
+    
+    %% Error Handling Flows
+    A4 --> ERROR1[Error Response]
+    B5 --> ERROR1
+    F4 --> ERROR1
+    F7 --> ERROR1
+    
+    %% Success Flows
+    A6 --> SUCCESS1[Successful Response]
+    B8 --> SUCCESS1
+    C10 --> SUCCESS1
+    D9 --> SUCCESS1
+    E7 --> SUCCESS1
+    F10 --> SUCCESS1
+    
+    %% Styling
+    classDef authFlow fill:#ff7675,stroke:#d63031,color:#fff
+    classDef chatFlow fill:#00b894,stroke:#00a085,color:#fff
+    classDef analysisFlow fill:#a29bfe,stroke:#6c5ce7,color:#fff
+    classDef progressFlow fill:#fdcb6e,stroke:#e17055,color:#fff
+    classDef adminFlow fill:#fd79a8,stroke:#e84393,color:#fff
+    classDef dataStore fill:#74b9ff,stroke:#0984e3,color:#fff
+    classDef errorFlow fill:#d63031,stroke:#b71c1c,color:#fff
+    classDef successFlow fill:#00b894,stroke:#00a085,color:#fff
+    
+    class A1,A2,A3,A4,A5,A6 authFlow
+    class B1,B2,B3,B4,B5,B6,B7,B8 chatFlow
+    class C1,C2,C3,C4,C5,C6,C7,C8,C9,C10,C11 chatFlow
+    class D1,D2,D3,D4,D5,D6,D7,D8,D9 analysisFlow
+    class E1,E2,E3,E4,E5,E6,E7 progressFlow
+    class F1,F2,F3,F4,F5,F6,F7,F8,F9,F10 adminFlow
+    class G1,G2,G3,G4,G5,H1,H2,H3,H4,I1,I2,I3,I4,I5 dataStore
+    class ERROR1 errorFlow
+    class SUCCESS1 successFlow
