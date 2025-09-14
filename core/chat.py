@@ -24,7 +24,7 @@ from dynamic_chat import (
     get_chat_session,
     update_chat_session
 )
-
+from core.simple_token_logger import log_token_usage
 # Create router
 router = APIRouter(tags=["Chat"])
 
@@ -385,31 +385,7 @@ async def chat_stream(
                 updated_message = chunk["chunk"]
                 full_text = updated_message
                 
-                # Start streaming TTS when we have first text
-                if len(updated_message) > 10 and not audio_task:
-                    try:
-                        from core.speech import StreamingTTSHandler
-                        tts_handler = StreamingTTSHandler("ar-SA-HamedNeural")
-                        tts_handler.start_streaming()
-                        audio_task = tts_handler
-                    except Exception as e:
-                        print(f"TTS handler error: {e}")
-                
-                # Add text chunks to TTS stream
-                if audio_task and hasattr(audio_task, 'add_text'):
-                    try:
-                        # Add only the new text (difference from previous)
-                        if hasattr(audio_task, 'last_length'):
-                            new_text = updated_message[audio_task.last_length:]
-                        else:
-                            new_text = updated_message
-                            audio_task.last_length = 0
-                        
-                        if new_text:
-                            audio_task.add_text(new_text)
-                            audio_task.last_length = len(updated_message)
-                    except Exception as e:
-                        print(f"TTS add text error: {e}")
+                # Skip streaming TTS - will generate at the end
                 
                 # Check if complete
                 if chunk["finish"] == "stop" and chunk["usage"] is not None:
@@ -428,27 +404,15 @@ async def chat_stream(
                     session.conversation_history.append(bot_message)
                     await update_chat_session(db, session)
                     
-                    # Finish streaming TTS and get audio data
-                    if audio_task and hasattr(audio_task, 'finish_streaming'):
-                        try:
-                            print(f"🔊 Finishing TTS stream...")
-                            loop = asyncio.get_event_loop()
-                            audio_data = await loop.run_in_executor(None, audio_task.finish_streaming)
-                            print(f"🔊 TTS result: {len(audio_data) if audio_data else 0} bytes")
-                        except Exception as e:
-                            print(f"Streaming TTS completion failed: {e}")
-                            audio_data = None
-                    
-                    # Fallback to regular TTS if streaming failed
-                    if not audio_data or len(audio_data) == 0:
-                        try:
-                            print(f"🔊 Fallback TTS for: '{full_text[:50]}...'")
-                            from core.speech import generate_audio_for_chat
-                            audio_data = await generate_audio_for_chat(full_text, "ar-SA-HamedNeural")
-                            print(f"🔊 Fallback result: {len(audio_data) if audio_data else 0} bytes")
-                        except Exception as e:
-                            print(f"Fallback audio generation failed: {e}")
-                            audio_data = None
+                    # Generate TTS for complete response
+                    try:
+                        print(f"🔊 Generating TTS for: '{full_text[:50]}...'")
+                        from core.speech import generate_audio_for_chat
+                        audio_data = await generate_audio_for_chat(full_text, "ar-SA-HamedNeural")
+                        print(f"🔊 TTS result: {len(audio_data) if audio_data else 0} bytes")
+                    except Exception as e:
+                        print(f"TTS generation failed: {e}")
+                        audio_data = None
                 
                 # Parse for correct formatting tags
                 result = re.split(r"\[CORRECT\]", updated_message)
@@ -914,7 +878,7 @@ DETAILED FACT-CHECK RESULTS:
             temperature=0.2,
             max_tokens=1000
         )
-        
+        log_token_usage(response, "analyse")
         # Your existing JSON parsing (keep this)
         result_text = response.choices[0].message.content.strip()
         print(f"🔍 LLM Response: {result_text[:200]}...")
@@ -1204,7 +1168,7 @@ SUCCESS METRICS EVALUATION:
             temperature=0.2,
             max_tokens=2000
         )
-        
+        log_token_usage(response,"evalute")
         # ===== PARSE EVALUATION RESULT =====
         result_text = response.choices[0].message.content.strip()
         print(f"🔍 Evaluation LLM Response: {result_text[:300]}...")
@@ -1362,7 +1326,7 @@ async def analyze_success_metrics(
             temperature=0.1,
             max_tokens=800
         )
-        
+        log_token_usage(response,"evalute")
         result_text = response.choices[0].message.content.strip()
         
         try:
@@ -1429,7 +1393,7 @@ async def analyze_template_compliance(
             temperature=0.1,
             max_tokens=600
         )
-        
+        log_token_usage(response,"evalute")
         result_text = response.choices[0].message.content.strip()
         
         try:

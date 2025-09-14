@@ -207,18 +207,28 @@ class StreamingTTSHandler:
         return b""
 
 async def generate_audio_for_chat(message: str, voice_id: str = "ar-SA-HamedNeural") -> bytes:
-    """Generate audio using TextStream for real-time synthesis"""
+    """Generate audio using simple TTS synthesis"""
     try:
-        handler = StreamingTTSHandler(voice_id)
-        handler.start_streaming()
-        handler.add_text(message)
+        speech_config = speechsdk.SpeechConfig(
+            subscription=subscription,
+            region="centralindia"
+        )
+        speech_config.speech_synthesis_voice_name = voice_id
+        
+        synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
+        
+        def sync_tts():
+            result = synthesizer.speak_text_async(message).get()
+            if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+                return result.audio_data
+            return b""
         
         loop = asyncio.get_event_loop()
-        audio_data = await loop.run_in_executor(None, handler.finish_streaming)
+        audio_data = await loop.run_in_executor(None, sync_tts)
         return audio_data
         
     except Exception as e:
-        print(f"Streaming TTS error: {e}")
+        print(f"TTS error: {e}")
         return b""
 
 def create_wav_header(data_length: int) -> bytes:
