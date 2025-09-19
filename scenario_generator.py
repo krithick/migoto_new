@@ -64,29 +64,119 @@ async def extract_text_from_docx(file_content):
             doc = docx.Document(f)
             text_parts = []
             
-            # Extract paragraphs
-            for para in doc.paragraphs:
-                if para.text.strip():
-                    text_parts.append(para.text.strip())
+            print(f"DOCX Document has {len(doc.paragraphs)} paragraphs and {len(doc.tables)} tables")
             
-            # Extract tables (important for your structured document)
-            for table in doc.tables:
-                for row in table.rows:
+            # Extract paragraphs with section markers
+            for i, para in enumerate(doc.paragraphs):
+                if para.text.strip():
+                    text_parts.append(f"PARAGRAPH_{i}: {para.text.strip()}")
+            
+            # Extract tables with better structure preservation
+            for table_idx, table in enumerate(doc.tables):
+                text_parts.append(f"\nTABLE_{table_idx}_START:")
+                for row_idx, row in enumerate(table.rows):
                     row_text = []
-                    for cell in row.cells:
+                    for cell_idx, cell in enumerate(row.cells):
                         if cell.text.strip():
-                            row_text.append(cell.text.strip())
+                            row_text.append(f"CELL_{cell_idx}: {cell.text.strip()}")
                     if row_text:
-                        text_parts.append(" | ".join(row_text))
+                        text_parts.append(f"ROW_{row_idx}: {' | '.join(row_text)}")
+                text_parts.append(f"TABLE_{table_idx}_END\n")
             
             full_text = "\n".join(text_parts)
             print(f"Extracted {len(full_text)} characters from DOCX")
+            print(f"First 500 characters: {full_text[:500]}...")
+            
+            # Check for key template sections
+            key_sections = ["SECTION 1", "SECTION 2", "SECTION 3", "AI Trainer Role", "Success Metrics"]
+            found_sections = [section for section in key_sections if section.lower() in full_text.lower()]
+            print(f"Found template sections: {found_sections}")
+            
             return full_text if full_text.strip() else None
             
     except Exception as e:
         print(f"DOCX extraction error: {str(e)}")
         print(f"Error type: {type(e).__name__}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
         return None
+
+# async def extract_text_from_docx_structured(file_content):
+#     """Enhanced DOCX extraction that preserves template structure and key-value pairs"""
+#     try:
+#         with io.BytesIO(file_content) as f:
+#             doc = docx.Document(f)
+#             structured_data = {
+#                 "sections": {},
+#                 "tables": [],
+#                 "key_value_pairs": {},
+#                 "conversation_examples": []
+#             }
+            
+#             current_section = "header"
+            
+#             # Extract paragraphs with section awareness
+#             for para in doc.paragraphs:
+#                 text = para.text.strip()
+#                 if not text:
+#                     continue
+                
+#                 # Detect section headers
+#                 if text.startswith("SECTION"):
+#                     current_section = text
+#                     structured_data["sections"][current_section] = []
+#                 elif current_section:
+#                     structured_data["sections"].setdefault(current_section, []).append(text)
+            
+#             # Extract tables with structure preservation
+#             for table_idx, table in enumerate(doc.tables):
+#                 table_data = {
+#                     "table_index": table_idx,
+#                     "rows": [],
+#                     "key_value_pairs": {}
+#                 }
+                
+#                 for row_idx, row in enumerate(table.rows):
+#                     row_data = []
+#                     for cell in row.cells:
+#                         cell_text = cell.text.strip()
+#                         row_data.append(cell_text)
+                    
+#                     if len(row_data) >= 2 and row_data[0] and row_data[1]:
+#                         # Extract key-value pairs from tables
+#                         key = row_data[0].replace("**", "").strip()
+#                         value = row_data[1].replace("**", "").strip()
+#                         if key and value and len(value) > 2:
+#                             table_data["key_value_pairs"][key] = value
+#                             structured_data["key_value_pairs"][key] = value
+                    
+#                     table_data["rows"].append(row_data)
+                
+#                 structured_data["tables"].append(table_data)
+            
+#             # Extract conversation examples
+#             full_text = "\n".join([para.text for para in doc.paragraphs])
+            
+#             # Look for conversation patterns
+#             conversation_patterns = [
+#                 r"Conversation Topic:\s*([^\n]+)",
+#                 r"AI Colleague:\s*[\"']([^\"']+)[\"']",
+#                 r"Correct Learner Response:\s*[\"']([^\"']+)[\"']",
+#                 r"Incorrect Learner Response:\s*[\"']([^\"']+)[\"']",
+#                 r"AI Trainer:\s*[\"']([^\"']+)[\"']"
+#             ]
+            
+#             for pattern in conversation_patterns:
+#                 matches = re.findall(pattern, full_text, re.IGNORECASE | re.DOTALL)
+#                 if matches:
+#                     structured_data["conversation_examples"].extend(matches)
+            
+#             return structured_data
+            
+#     except Exception as e:
+#         print(f"Enhanced DOCX extraction error: {str(e)}")
+#         return None
+
 async def extract_text_from_pdf(file_content):
     """Extract text from PDF file content using pypdf"""
     try:
@@ -248,12 +338,11 @@ Follow the provided template structures exactly, maintaining all headings and sp
 [LANGUAGE_INSTRUCTIONS]
 
 ## Core Character Rules
-
-- You are an AI playing the role of a {bot_role} who {bot_situation}
+- You are an AI embodying the specific character described in [PERSONA_PLACEHOLDER]. Let this character's background, personality, and situation drive every aspect of your conversation
 
 - NEVER play the {trainer_role} role - only respond as the {bot_role}
 
-- Maintain a natural, conversational tone throughout
+- Respond naturally as this specific person would, considering their unique circumstances, communication style, and emotional state
 
 - NEVER suggest the learner "reach out to you" - you're the one {user_interaction_type}
 
@@ -320,11 +409,10 @@ NEVER use [CORRECT] tags in your initial messages or questions to the learner. O
 
 ## Important Instructions
 
-- When the learner recommends a specific approach to addressing the {issue_type}:
-
-  - Ask follow-up questions to understand how to implement their suggestion
-
-  - Express realistic concerns about potential challenges or consequences
+- When the learner provides guidance:
+  - Ask follow-up questions that your character would naturally ask based on their background and level of understanding
+  - Express concerns or reactions that are authentic to your character's personality and situation from [PERSONA_PLACEHOLDER]
+  - Let your character's unique perspective and circumstances shape how you respond to their suggestions
 
   - Ensure you understand both immediate actions and longer-term strategies
 
@@ -348,12 +436,11 @@ NEVER use [CORRECT] tags in your initial messages or questions to the learner. O
 [LANGUAGE_INSTRUCTIONS]
 
 ## Core Character Rules
-
-- You are an AI playing the role of a {bot_role} who {bot_situation}
+- You are an AI embodying the specific character described in [PERSONA_PLACEHOLDER]. Let this character's background, personality, and situation drive every aspect of your conversation
 
 - NEVER play the {trainer_role} role - only respond as the {bot_role}
 
-- Maintain a natural, conversational tone throughout
+- Respond naturally as this specific person would, considering their unique circumstances, communication style, and emotional state
 
 - NEVER suggest the learner "reach out to you" - you're the one {user_interaction_type}
 
@@ -372,18 +459,15 @@ NEVER use [CORRECT] tags in your initial messages or questions to the learner. O
 {context_details}
 
 ## Areas to Explore in the Conversation
-
-Throughout the conversation, try to naturally cover any four of these topics (not as a checklist, but as part of an organic conversation):
-
+Let the conversation develop naturally based on your character's needs and concerns from [PERSONA_PLACEHOLDER]. The topics that emerge should feel authentic to what this specific person would actually discuss given their background and situation.
 {areas_to_explore}
 
 # Handling Uncooperative Learner Responses
 
 - If the learner is unhelpful, vague, or unwilling to provide guidance:
 
-- First attempt: Politely repeat your concern, emphasizing {emphasis_point}
-
-- Example: "{polite_repeat_example}"
+- First attempt: React as your character naturally would based on their personality from [PERSONA_PLACEHOLDER], emphasizing what matters most to this specific person
+- Your reaction should reflect how this character would realistically respond to unhelpful guidance
 
 - If still unhelpful:
 
@@ -417,8 +501,52 @@ Throughout the conversation, try to naturally cover any four of these topics (no
 
 - Negative closing (if faced with disrespectful behavior): "{disrespectful_closing} [FINISH]"""
 
+    def _clean_document_for_llm(self, document_content: str) -> str:
+        """Clean document content for better LLM processing"""
+        lines = document_content.split('\n')
+        cleaned_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            
+            # Skip empty lines and table markers
+            if not line or (line.startswith('TABLE_') and ('_START:' in line or '_END' in line)):
+                continue
+                
+            # Clean paragraph markers
+            if line.startswith('PARAGRAPH_') and ':' in line:
+                content = line.split(':', 1)[1].strip()
+                if len(content) > 10:
+                    cleaned_lines.append(content)
+                    
+            # Clean row/cell markers and extract field-value pairs
+            elif line.startswith('ROW_') and 'CELL_' in line:
+                if 'CELL_1:' in line:
+                    parts = line.split('CELL_1:')
+                    if len(parts) > 1:
+                        field_part = parts[0]
+                        if 'CELL_0:' in field_part:
+                            field = field_part.split('CELL_0:')[-1].strip(' |').strip()
+                        else:
+                            field = field_part.replace('ROW_', '').split(':')[1].strip(' |').strip()
+                        
+                        value = parts[1].strip()
+                        
+                        if field and value and len(value) > 3:
+                            cleaned_lines.append(f"{field}: {value}")
+            
+            # Keep important conversation content
+            elif any(keyword in line for keyword in ['Conversation Topic:', 'AI Colleague:', 'AI Stakeholder:', 'Correct Learner Response:', 'Incorrect Learner Response:']):
+                cleaned_lines.append(line)
+        
+        return '\n'.join(cleaned_lines)
+
     async def extract_scenario_info(self, scenario_document):
         """Extract structured information from any type of scenario document using LLM"""
+        
+        # Clean the document for better LLM processing
+        cleaned_document = self._clean_document_for_llm(scenario_document)
+        print(f"Cleaned document: {len(cleaned_document)} chars vs original {len(scenario_document)} chars")
         
         extraction_prompt = f"""
       You are an expert instructional designer and training scenario architect. Analyze this document to create a sophisticated, psychologically-informed training scenario.
@@ -448,7 +576,7 @@ SCENARIO REALISM:
 - Add coaching opportunities and learning moments
         Document content:
         ```
-        {scenario_document}
+        {cleaned_document}
         ```
         
         Extract the following information in valid JSON format:
@@ -462,8 +590,8 @@ SCENARIO REALISM:
             "context_overview": {{
                 "scenario_title": "The title of the scenario",
                 "learn_mode_description": "What happens in learn mode",
-                "assess_mode_description": "What happens in assessment mode",
-                "try_mode_description": "What happens in try mode",
+                 "assess_mode_description": "Extract and enhance the assess mode description to be persona-driven Refer to [PERSONA_PLACEHOLDER] for the persona",
+                "try_mode_description": "Extract and enhance the try mode description to be persona-driven Refer to [PERSONA_PLACEHOLDER] for the persona",
                 "purpose_of_scenario": "Learning objectives"
             }},
             "persona_definitions": {{
@@ -486,7 +614,7 @@ SCENARIO REALISM:
             }},
             "dialogue_flow": {{
                 "learn_mode_initial_prompt": "How expert starts conversation",
-                "assess_mode_initial_prompt": "How bot character starts conversation",
+                    "assess_mode_initial_prompt": "Create a persona-driven instruction: 'Start the conversation in a way that authentically reflects your character's personality and current situation from [PERSONA_PLACEHOLDER]. Let your character's natural concerns or needs guide how you begin the interaction.' Adapt this based on the specific AI role mentioned in the document.",
                 "key_interaction_steps": [
                     {{"user_query": "Expected user input", "ai_response": "Expected AI response"}}
                 ]
@@ -567,6 +695,17 @@ SCENARIO REALISM:
 Generate a comprehensive training scenario with the depth and sophistication of professional corporate training programs. Focus on creating realistic, challenging, and educationally valuable experiences.
 make sure the feedback_mechanism details are in line with in the current conversation and it should not be a generic thing it should be like the bot who is playing the character will sound like
 Return in the specified JSON format with rich, detailed content in each section.
+PERSONA-DRIVEN EXTRACTION RULES:
+- When extracting context descriptions, make them reference [PERSONA_PLACEHOLDER] 
+- When extracting conversation flow instructions, make them character-driven
+- Replace generic instructions like "explain your situation" with "authentically reflect your character's situation from [PERSONA_PLACEHOLDER]"
+- Make all extracted instructions emphasize using the persona details to drive behavior
+
+IMPORTANT EXTRACTION RULE:
+When extracting any descriptions or instructions for assess/try modes, rewrite them to be persona-driven. 
+Replace generic phrases like "explain your situation" with "authentically reflect your character's situation from [PERSONA_PLACEHOLDER]".
+Make all behavioral instructions reference the character's background and personality.
+
         """
         
         try:
@@ -647,6 +786,8 @@ Return in the specified JSON format with rich, detailed content in each section.
             "domain_specific_validation": {}
             }
             return mock_data            
+    
+    
     async def extract_evaluation_metrics_from_template(self, scenario_text: str, template_data: Dict[str, Any]) -> Dict[str, Any]:
         """Extract evaluation metrics and criteria from scenario document"""
     
@@ -1711,10 +1852,29 @@ async def analyze_template_with_docs(
         
         if template_file.filename.lower().endswith(('.doc', '.docx')):
             scenario_text = await extract_text_from_docx(content)
+            
+            # Fallback extraction if primary method fails
+            if not scenario_text or len(scenario_text.strip()) < 100:
+                print("Primary DOCX extraction failed, trying alternative methods...")
+                try:
+                    # Try simple text extraction
+                    scenario_text = content.decode('utf-8', errors='ignore')
+                    print(f"Fallback text extraction got {len(scenario_text)} characters")
+                except Exception as e2:
+                    print(f"Fallback extraction also failed: {e2}")
+                    raise HTTPException(400, "Could not extract text from Word document")
+                    
         elif template_file.filename.lower().endswith('.pdf'):
             scenario_text = await extract_text_from_pdf(content)
         else:
             scenario_text = content.decode('utf-8')
+            
+        # Validate extraction before processing
+        if not scenario_text or len(scenario_text.strip()) < 50:
+            raise HTTPException(400, f"Insufficient content extracted from document. Got {len(scenario_text) if scenario_text else 0} characters")
+            
+        print(f"Successfully extracted {len(scenario_text)} characters for processing")
+        print(f"Content preview: {scenario_text[:300]}...")
             
         # 2. Analyze template to get editable structure
         generator = EnhancedScenarioGenerator(azure_openai_client)
