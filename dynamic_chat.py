@@ -68,28 +68,32 @@ class DynamicChatHandler:
             # Get knowledge base ID from session
             knowledge_base_id = await self._get_knowledge_base_for_session(session_id)
             print("checkkkk",knowledge_base_id)
-            if knowledge_base_id:
-                self.knowledge_base_id = knowledge_base_id
-                # Check if this is try_mode (only mode that needs fact-checking)
-                self.fact_checker = EnhancedFactChecker(
+            
+            # Initialize fact checker with or without knowledge base
+            self.fact_checker = EnhancedFactChecker(
                 self.vector_search, 
                 self.llm_client,
                 coaching_rules=coaching_rules or {}  # Pass coaching rules here
             )
-                avatar_interaction = await self.db.avatar_interactions.find_one(
-                    {"_id": str(self.config.avatar_interaction_id)}
-                )
-                # self.fact_checking_enabled = (
-                #     avatar_interaction and 
-                #     avatar_interaction.get("mode") == "try_mode"
-                # )
-                self.fact_checking_enabled = (
-                    avatar_interaction and 
-                    avatar_interaction.get("mode") in ["try_mode", "learn_mode"]  # Both modes use knowledge base
-                    )
-                print("self.fact_checking_enabled",self.fact_checking_enabled)
+            
+            avatar_interaction = await self.db.avatar_interactions.find_one(
+                {"_id": str(self.config.avatar_interaction_id)}
+            )
+            
+            # Enable fact-checking for try_mode and learn_mode, even without knowledge base
+            self.fact_checking_enabled = (
+                avatar_interaction and 
+                avatar_interaction.get("mode") in ["try_mode", "learn_mode"]
+            )
+            
+            if knowledge_base_id:
+                self.knowledge_base_id = knowledge_base_id
             else:
-                raise Exception("no knowledge id")
+                self.knowledge_base_id = None
+                print("No knowledge base - coaching will work without document search")
+                
+            print("self.fact_checking_enabled",self.fact_checking_enabled)
+            
         except Exception as e:
             print(f"Error initializing fact-checking: {e}")
             self.fact_checking_enabled = False
@@ -596,16 +600,21 @@ class DynamicChatHandler:
                                      knowledge_base_id: str, language_instructions: str) -> Optional[str]:
         """Your existing coaching logic - UNCHANGED"""
     
-        # Search for relevant info in documents
-        search_results = await self.vector_search.vector_search(
-            user_message, knowledge_base_id, top_k=3, openai_client=self.llm_client
-        )
+        # Search for relevant info in documents (skip if no knowledge base)
+        search_results = []
+        if knowledge_base_id:
+            search_results = await self.vector_search.vector_search(
+                user_message, knowledge_base_id, top_k=3, openai_client=self.llm_client
+            )
     
-        if not search_results:
-            return None
+        # Continue with coaching even without search results
+        context = ""
+        if search_results:
+            context = "\n".join([result['content'] for result in search_results])
+        else:
+            context = "No specific company information available - provide general customer service coaching."
         
-        # Build context from search results
-        context = "\n".join([result['content'] for result in search_results])
+        # Context already built above
         convo_context = ""
         for msg in conversation_history[-4:]:  # Last 4 messages for context
             role = "Customer" if msg.role == self.config.bot_role else "Learner"

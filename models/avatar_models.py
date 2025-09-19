@@ -81,3 +81,6 @@ class AddGLBFile(BaseModel):
 # New model for updating selected components
 class UpdateSelectedComponents(BaseModel):
     selected: List[AvatarSelectedComponent]
+
+class AvatarIdList(BaseModel):
+    avatar_ids: List[UUID]

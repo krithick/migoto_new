@@ -3,7 +3,7 @@ from typing import List, Optional, Dict, Any
 from uuid import UUID
 from datetime import datetime
 
-from models.avatar_models import  AvatarBase, AvatarCreate, AvatarResponse, AvatarDB , AvatarGLBFile ,AvatarSelectedComponent
+from models.avatar_models import  AvatarBase, AvatarCreate, AvatarResponse, AvatarDB , AvatarGLBFile ,AvatarSelectedComponent,AvatarIdList
 from models.user_models import UserDB ,UserRole
 
 from core.user import get_current_user, get_admin_user, get_superadmin_user
@@ -379,3 +379,21 @@ async def update_selected_components(
     # Return updated avatar
     updated_avatar = await db.avatars.find_one({"_id": str(avatar_id)})
     return AvatarDB(**updated_avatar)
+@router.post("/batch", response_model=List[AvatarResponse])
+async def get_avatars_batch(
+    avatar_id_list: AvatarIdList,
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+): 
+    """
+    Get avatar list
+    """
+    if admin_user is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view avatars")
+
+    id_strs = [str(avid) for avid in avatar_id_list.avatar_ids]
+    cursor = db.avatars.find({"_id": {"$in":id_strs}})
+    avatars = []
+    async for document in cursor:
+        avatars.append(AvatarDB(**document))
+    return avatars

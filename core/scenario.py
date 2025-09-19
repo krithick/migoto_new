@@ -278,6 +278,47 @@ async def get_scenarios(
 #     print(scenario)
 #     if not scenario:
 #         return None
+# async def get_scenario(
+#     db: Any, 
+#     scenario_id: UUID, 
+#     current_user: Optional[UserDB] = None
+# ) -> Optional[ScenarioDB]:
+#     """Get a scenario by ID with permission checks"""
+#     scenario = await db.scenarios.find_one({"_id": str(scenario_id)})
+#     if not scenario:
+#         return None
+    
+#     # ADD THIS: Check if archived
+#     if scenario.get("is_archived", False):
+#         if not current_user or current_user.role != UserRole.BOSS_ADMIN:
+#             return None    
+#     # If admin or superadmin, allow access
+#     if current_user and current_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
+#         return ScenarioDB(**scenario)
+    
+#     # For regular users, check if scenario is assigned
+#     if current_user and current_user.role == UserRole.USER:
+#         # Check if scenario is assigned to user
+#         assignment = await db.user_scenario_assignments.find_one({
+#             "user_id": str(current_user.id),
+#             "scenario_id": str(scenario_id)
+#         })
+        
+#         if assignment:
+#             scenario_obj = ScenarioDB(**scenario)
+#             scenario_obj_dict = scenario_obj.model_dump()
+            
+#             # Add assignment data
+#             scenario_obj_dict["assigned_modes"] = assignment.get("assigned_modes", [])
+#             scenario_obj_dict["completed"] = assignment.get("completed", False)
+#             scenario_obj_dict["completed_date"] = assignment.get("completed_date")
+#             scenario_obj_dict["assigned_date"] = assignment.get("assigned_date")
+#             print(scenario_obj_dict)
+#             return scenario_obj_dict
+    
+#     return None
+
+
 async def get_scenario(
     db: Any, 
     scenario_id: UUID, 
@@ -294,7 +335,20 @@ async def get_scenario(
             return None    
     # If admin or superadmin, allow access
     if current_user and current_user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
-        return ScenarioDB(**scenario)
+        scenario_obj = ScenarioDB(**scenario)
+        scenario_dict = scenario_obj.model_dump()
+        
+        # Add expanded creator info
+        creator = await db.users.find_one({"_id": scenario.get("created_by")})
+        if creator:
+            scenario_dict["created_by_info"] = {
+                "id": str(creator["_id"]),
+                "username": creator.get("username", "Unknown"),
+                "role": creator.get("role", "USER"),
+                "company_id": str(creator.get("company_id", ""))
+            }
+        
+        return scenario_dict
     
     # For regular users, check if scenario is assigned
     if current_user and current_user.role == UserRole.USER:
@@ -313,10 +367,99 @@ async def get_scenario(
             scenario_obj_dict["completed"] = assignment.get("completed", False)
             scenario_obj_dict["completed_date"] = assignment.get("completed_date")
             scenario_obj_dict["assigned_date"] = assignment.get("assigned_date")
-            print(scenario_obj_dict)
+            
+            # Add expanded creator info
+            creator = await db.users.find_one({"_id": scenario.get("created_by")})
+            if creator:
+                scenario_obj_dict["created_by_info"] = {
+                    "id": str(creator["_id"]),
+                    "username": creator.get("username", "Unknown"),
+                    "role": creator.get("role", "USER"),
+                    "company_id": str(creator.get("company_id", ""))
+                }
+            
             return scenario_obj_dict
     
     return None
+
+# async def get_scenarios_by_module(
+#     db: Any, 
+#     module_id: UUID, 
+#     current_user: Optional[UserDB] = None
+# ) -> List[ScenarioDB]:
+#     """
+#     Get all scenarios belonging to a specific module, with permission checks
+#     """
+#     # First check if user can access this module
+#     module = await get_module(db, module_id, current_user)
+#     if not module:
+#         return []
+    
+#     scenarios = []
+#     scenario_ids = module.dict().get("scenarios", [])
+    
+#     # Convert scenario_ids to strings for MongoDB
+#     scenario_ids_str = [str(scenario_id) for scenario_id in scenario_ids]
+    
+#     # If user is regular user, filter scenarios by assignment
+#     if current_user and current_user.role == UserRole.USER:
+#         # Check if module is assigned to user
+#         module_assigned = await db.user_module_assignments.find_one({
+#             "user_id": str(current_user.id),
+#             "module_id": str(module_id)
+#         })
+        
+#         if not module_assigned:
+#             return []  # Not assigned to this module
+        
+#         # Get assigned scenarios for this module
+#         assignments_cursor = db.user_scenario_assignments.find({
+#             "user_id": str(current_user.id),
+#             "module_id": str(module_id)
+#         })
+        
+#         # Get assigned scenario IDs and data
+#         assigned_scenario_ids = []
+#         assigned_scenario_data = {}
+        
+#         async for assignment in assignments_cursor:
+#             scenario_id = assignment["scenario_id"]
+#             assigned_scenario_ids.append(scenario_id)
+#             assigned_scenario_data[scenario_id] = {
+#                 "assigned_modes": assignment.get("assigned_modes", []),
+#                 "completed": assignment.get("completed", False),
+#                 "completed_date": assignment.get("completed_date"),
+#                 "assigned_date": assignment.get("assigned_date")
+#             }
+        
+#         # Filter scenario_ids to only show assigned ones
+#         scenario_ids_str = [s_id for s_id in scenario_ids_str if s_id in assigned_scenario_ids]
+        
+#         # Fetch scenarios with assignment data
+#         for scenario_id in scenario_ids_str:
+#             scenario = await db.scenarios.find_one({"_id": scenario_id})
+#             if scenario:
+#                 scenario_obj = ScenarioDB(**scenario)
+#                 scenario_obj_dict= scenario_obj.model_dump()
+#                 # Add assignment data
+#                 if scenario_id in assigned_scenario_data:
+#                     data = assigned_scenario_data[scenario_id]
+#                     scenario_obj_dict["assigned_modes"] = data["assigned_modes"]
+#                     scenario_obj_dict["completed"] = data["completed"]
+#                     scenario_obj_dict["completed_date"] = data["completed_date"]
+#                     scenario_obj_dict["assigned_date"] = data["assigned_date"]
+                
+#                 scenarios.append(scenario_obj_dict)
+#     else:
+#         # For admins/superadmins, show all scenarios
+#         for scenario_id in scenario_ids_str:
+#             scenario = await db.scenarios.find_one({"_id": scenario_id})
+#             if scenario:
+#                 scenario_dict = ScenarioDB(**scenario)
+#                 scenarios.append(scenario_dict.model_dump())
+                
+    
+#     return scenarios
 
 async def get_scenarios_by_module(
     db: Any, 
@@ -385,14 +528,36 @@ async def get_scenarios_by_module(
                     scenario_obj_dict["completed_date"] = data["completed_date"]
                     scenario_obj_dict["assigned_date"] = data["assigned_date"]
                 
+                # Add expanded creator info
+                creator = await db.users.find_one({"_id": scenario.get("created_by")})
+                if creator:
+                    scenario_obj_dict["created_by_info"] = {
+                        "id": str(creator["_id"]),
+                        "username": creator.get("username", "Unknown"),
+                        "role": creator.get("role", "USER"),
+                        "company_id": str(creator.get("company_id", ""))
+                    }
+                
                 scenarios.append(scenario_obj_dict)
     else:
         # For admins/superadmins, show all scenarios
         for scenario_id in scenario_ids_str:
             scenario = await db.scenarios.find_one({"_id": scenario_id})
             if scenario:
-                scenario_dict = ScenarioDB(**scenario)
-                scenarios.append(scenario_dict.model_dump())
+                scenario_obj = ScenarioDB(**scenario)
+                scenario_dict = scenario_obj.model_dump()
+                
+                # Add expanded creator info
+                creator = await db.users.find_one({"_id": scenario.get("created_by")})
+                if creator:
+                    scenario_dict["created_by_info"] = {
+                        "id": str(creator["_id"]),
+                        "username": creator.get("username", "Unknown"),
+                        "role": creator.get("role", "USER"),
+                        "company_id": str(creator.get("company_id", ""))
+                    }
+                
+                scenarios.append(scenario_dict)
                 
     
     return scenarios

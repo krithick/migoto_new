@@ -159,19 +159,51 @@ async def can_user_assign_course(db: Any, user: UserDB, course: CourseDB) -> boo
     # All other cases: no access
     return False
 
+# async def get_assignable_courses_for_user(db: Any, user: UserDB) -> List[CourseDB]:
+#     """Get courses that user can ASSIGN to others"""
+#     if user.role == UserRole.USER:
+#         return []
+    
+#     accessible_courses = await get_accessible_courses_for_user(db, user)
+#     assignable_courses = []
+    
+#     for course in accessible_courses:
+#         if await can_user_assign_course(db, user, course):
+#             print(f"User {user.id} can assign course {course.id}")
+#             assignable_courses.append(course)
+    
+#     return assignable_courses
+
 async def get_assignable_courses_for_user(db: Any, user: UserDB) -> List[CourseDB]:
     """Get courses that user can ASSIGN to others"""
     if user.role == UserRole.USER:
         return []
-    
+
     accessible_courses = await get_accessible_courses_for_user(db, user)
     assignable_courses = []
-    
+
+    company_ids = list(set([str(course.company_id) for course in accessible_courses]))
+    companies = await db.companies.find({"_id": {"$in": company_ids}}).to_list(length=None)
+    company_type_map = {str(c["_id"]): c["company_type"] for c in companies}
+
+    user_company_type = company_type_map.get(str(user.company_id), CompanyType.CLIENT)
+    user_id_str = str(user.id)
+
+    assignable_courses = []
     for course in accessible_courses:
-        if await can_user_assign_course(db, user, course):
-            print(f"User {user.id} can assign course {course.id}")
+        course_company_type = company_type_map.get(str(course.company_id), CompanyType.CLIENT)
+        if course.is_archived:
+            continue
+        if user.role == UserRole.BOSS_ADMIN:
             assignable_courses.append(course)
-    
+        elif str(user.company_id) == str(course.company_id):
+            if course.visibility == ContentVisibility.CREATOR_ONLY:
+                if str(course.created_by) == user_id_str:
+                    assignable_courses.append(course)
+            elif course.visibility == ContentVisibility.COMPANY_WIDE:
+                assignable_courses.append(course)
+        elif course_company_type == CompanyType.MOTHER:
+            assignable_courses.append(course)
     return assignable_courses
 
 # Updated course operations with company context

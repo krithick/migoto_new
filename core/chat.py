@@ -532,8 +532,8 @@ async def chat_stream(
                     "finish": "stop" if chat_response.complete else None
                 }
                 
-                # Add audio data if available and complete
-                if complete and audio_data and len(audio_data) > 0:
+                # Add audio data if available and streaming is finished
+                if chunk["finish"] == "stop" and audio_data and len(audio_data) > 0:
                     response_data["audio"] = base64.b64encode(audio_data).decode('utf-8')
                     response_data["audio_format"] = "wav"
 
