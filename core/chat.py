@@ -47,7 +47,7 @@ async def chat_demo():
             let textBuffer = "";
             let audioData = null;
             
-            const eventSource = new EventSource('/chat/stream?id=1668e186-c86e-456b-a7fc-b3033411c039');
+            const eventSource = new EventSource('/api/chat/stream?id=1668e186-c86e-456b-a7fc-b3033411c039');
             
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
