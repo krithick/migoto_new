@@ -325,8 +325,8 @@ class DynamicChatHandler:
             )
             
             log_token_usage(response, "process_message")
-            if self.config.mode == "try_mode" and self.knowledge_base_id:
-                # TRY MODE: Fact-check AI responses for accuracy
+            if self.config.mode == "try_mode" and self.fact_checking_enabled:
+                # TRY MODE: Fact-check AI responses for accuracy (works with or without knowledge base)
                 return await self._process_with_fact_checking(response,message,conversation_history, name)
             elif self.config.mode == "learn_mode" and self.knowledge_base_id:
                 # LEARN MODE: Enhance responses with knowledge base
@@ -612,7 +612,7 @@ class DynamicChatHandler:
         if search_results:
             context = "\n".join([result['content'] for result in search_results])
         else:
-            context = "No specific company information available - provide general customer service coaching."
+            context = "No specific company information available - provide general customer service coaching based on best practices."
         
         # Context already built above
         convo_context = ""
@@ -636,17 +636,15 @@ OFFICIAL COMPANY INFORMATION:
 EVALUATION PROCESS - FOLLOW THIS EXACT ORDER:
 
 STEP 1: FACTUAL ACCURACY CHECK (HIGHEST PRIORITY)
-Check if the learner's response contains ANY incorrect information about:
-- Package existence (Cloudnine HAS Economy, Standard, Premium packages)
-- Package pricing (Economy: ₹45,000-₹65,000, Standard: ₹65,000-₹85,000, Premium: ₹85,000-₹1,20,000)
-- Package inclusions/exclusions
-- Insurance partnerships and coverage
-- Booking procedures and policies
-- Any other company facts
+If company information is available, check if the learner's response contains incorrect facts.
+If no company information is available, focus on general customer service principles.
 
-IF ANY FACTUAL ERRORS FOUND:
+IF FACTUAL ERRORS FOUND (when company info available):
 "Dear Learner, you said '[wrong information]' but according to our official information: [correct facts]. You should respond: '[specific correct response]'."
 STOP EVALUATION HERE - DO NOT PROCEED TO STEP 2.
+
+IF NO COMPANY INFO AVAILABLE:
+Proceed to Step 2 for general customer service evaluation.
 
 STEP 2: CUSTOMER SERVICE APPROPRIATENESS (ONLY IF STEP 1 PASSES)
 Is this response appropriate customer service behavior?

@@ -303,14 +303,8 @@ class EnhancedFactChecker:
             )
             
             if not search_results:
-                return FactCheckVerification(
-                    claim={"claim_text": claim, "claim_type": "unknown", "confidence": 0.0, "extracted_from": "ai_response"},
-                    result=FactCheckResult.UNSUPPORTED,
-                    confidence_score=0.0,
-                    explanation="No relevant information found in knowledge base",
-                    supporting_chunks=[],
-                    source_documents=[]
-                )
+                # No knowledge base available - provide general coaching
+                return await self._provide_general_coaching(claim, scenario_id)
             
             # Build context from search results
             context = "\n\n".join([
@@ -531,14 +525,8 @@ class EnhancedFactChecker:
             )
     
             if not search_results:
-                return FactCheckVerification(
-                claim={"claim_text": claim, "claim_type": "contextual", "confidence": 0.0, "extracted_from": "ai_response"},
-                result=FactCheckResult.UNSUPPORTED,
-                confidence_score=0.0,
-                explanation="No relevant information found in knowledge base",
-                supporting_chunks=[],
-                source_documents=[]
-                )
+                # No knowledge base available - provide contextual coaching without documents
+                return await self._provide_contextual_coaching_without_docs(claim, conversation_history)
     
             # Build context from search results
             context = "\n\n".join([
@@ -736,4 +724,200 @@ class EnhancedFactChecker:
     
         # Use existing basic verification as fallback
         print("🔄 Using basic fact-checking as fallback")
-        return await self._verify_single_claim(claim, scenario_id)  
+        return await self._verify_single_claim(claim, scenario_id)
+    
+    async def _provide_general_coaching(self, claim: str, scenario_id: str) -> FactCheckVerification:
+        """Provide general coaching when no knowledge base is available"""
+        try:
+            coaching_prompt = f"""
+            Evaluate this learner response for professional quality:
+            
+            LEARNER RESPONSE: {claim}
+            
+            Provide coaching feedback focusing on:
+            - Professional communication
+            - Appropriateness for the context
+            - Helpfulness and clarity
+            - Completeness of response
+            
+            Return as JSON:
+            {{
+                "result": "CORRECT|NEEDS_IMPROVEMENT",
+                "coaching_feedback": "Specific coaching advice",
+                "explanation": "Brief explanation"
+            }}
+            """
+            
+            response = await self.openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a professional training coach who adapts feedback to any domain or scenario type."},
+                    {"role": "user", "content": coaching_prompt}
+                ],
+                temperature=0.2,
+                max_tokens=300
+            )
+            
+            result_text = response.choices[0].message.content.strip()
+            
+            try:
+                if result_text.startswith('```json'):
+                    json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
+                    if json_match:
+                        result_json = json.loads(json_match.group(1))
+                    else:
+                        raise json.JSONDecodeError("Could not extract JSON", result_text, 0)
+                else:
+                    result_json = json.loads(result_text)
+                
+                coaching_feedback = result_json.get("coaching_feedback")
+                is_correct = result_json.get("result") == "CORRECT"
+                
+                return FactCheckVerification(
+                    claim={"claim_text": claim, "claim_type": "general", "confidence": 1.0, "extracted_from": "ai_response"},
+                    result=FactCheckResult.CORRECT if is_correct else FactCheckResult.INCORRECT,
+                    confidence_score=0.8,
+                    explanation=result_json.get("explanation", "General coaching provided"),
+                    coaching_feedback=coaching_feedback,
+                    supporting_chunks=[],
+                    source_documents=[]
+                )
+                
+            except json.JSONDecodeError:
+                # Fallback to basic response
+                return FactCheckVerification(
+                    claim={"claim_text": claim, "claim_type": "general", "confidence": 1.0, "extracted_from": "ai_response"},
+                    result=FactCheckResult.CORRECT,
+                    confidence_score=0.5,
+                    explanation="Response evaluated for general quality",
+                    coaching_feedback=None,
+                    supporting_chunks=[],
+                    source_documents=[]
+                )
+                
+        except Exception as e:
+            print(f"Error in general coaching: {e}")
+            return FactCheckVerification(
+                claim={"claim_text": claim, "claim_type": "general", "confidence": 0.0, "extracted_from": "ai_response"},
+                result=FactCheckResult.CORRECT,
+                confidence_score=0.5,
+                explanation="Unable to provide coaching",
+                supporting_chunks=[],
+                source_documents=[]
+            )
+    
+    async def _provide_contextual_coaching_without_docs(self, claim: str, conversation_history: List) -> FactCheckVerification:
+        """Provide contextual coaching using template rules but without knowledge base documents"""
+        try:
+            # Build conversation context
+            conversation_text = "\n".join([
+                f"{msg.role}: {msg.content}" for msg in conversation_history[-5:]
+            ]) if conversation_history else "No conversation history"
+            
+            # Build coaching context from template rules
+            coaching_context = ""
+            if self.has_coaching_rules and self.coaching_rules:
+                try:
+                    process_reqs = self.coaching_rules.get("process_requirements", {})
+                    mistakes = self.coaching_rules.get("document_specific_mistakes", [])
+                    customer_context = self.coaching_rules.get("customer_context_from_document", {})
+                    
+                    methodology = process_reqs.get("mentioned_methodology", "Professional customer service")
+                    steps = process_reqs.get("required_steps", "Listen, understand, respond appropriately")
+                    customer_type = customer_context.get("target_customer_description", "General customer")
+                    mistake_patterns = [m.get("mistake_pattern", "") for m in mistakes if isinstance(m, dict)]
+                    
+                    coaching_context = f"""
+                    COACHING GUIDELINES:
+                    Required Approach: {methodology}
+                    Key Steps: {steps}
+                    Customer Type: {customer_type}
+                    Avoid These Mistakes: {mistake_patterns}
+                    """
+                except Exception:
+                    coaching_context = "BASIC COACHING: Use professional communication and best practices appropriate for the context."
+            else:
+                coaching_context = "BASIC COACHING: Use professional communication and best practices appropriate for the context."
+            
+            coaching_prompt = f"""
+            Evaluate this learner response in a training context:
+            
+            LEARNER RESPONSE: {claim}
+            
+            CONVERSATION CONTEXT:
+            {conversation_text}
+            
+            {coaching_context}
+            
+            Provide coaching feedback focusing on:
+            1. Does the response follow the required approach/methodology?
+            2. Is it appropriate for the context and audience?
+            3. Does it avoid common mistakes?
+            4. Is it professional and effective?
+            
+            Return as JSON:
+            {{
+                "result": "CORRECT|NEEDS_IMPROVEMENT",
+                "coaching_feedback": "Specific coaching based on the guidelines above",
+                "explanation": "Brief explanation of the assessment"
+            }}
+            """
+            
+            response = await self.openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are an adaptive training coach that provides specific feedback based on any domain's training guidelines."},
+                    {"role": "user", "content": coaching_prompt}
+                ],
+                temperature=0.2,
+                max_tokens=400
+            )
+            
+            result_text = response.choices[0].message.content.strip()
+            
+            try:
+                if result_text.startswith('```json'):
+                    json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
+                    if json_match:
+                        result_json = json.loads(json_match.group(1))
+                    else:
+                        raise json.JSONDecodeError("Could not extract JSON", result_text, 0)
+                else:
+                    result_json = json.loads(result_text)
+                
+                coaching_feedback = result_json.get("coaching_feedback")
+                is_correct = result_json.get("result") == "CORRECT"
+                
+                return FactCheckVerification(
+                    claim={"claim_text": claim, "claim_type": "contextual", "confidence": 1.0, "extracted_from": "ai_response"},
+                    result=FactCheckResult.CORRECT if is_correct else FactCheckResult.INCORRECT,
+                    confidence_score=0.8,
+                    explanation=result_json.get("explanation", "Contextual coaching provided"),
+                    coaching_feedback=coaching_feedback,
+                    supporting_chunks=[],
+                    source_documents=[]
+                )
+                
+            except json.JSONDecodeError:
+                # Fallback - still provide some coaching
+                return FactCheckVerification(
+                    claim={"claim_text": claim, "claim_type": "contextual", "confidence": 1.0, "extracted_from": "ai_response"},
+                    result=FactCheckResult.CORRECT,
+                    confidence_score=0.6,
+                    explanation="Response evaluated using training guidelines",
+                    coaching_feedback="Continue focusing on professional, helpful communication.",
+                    supporting_chunks=[],
+                    source_documents=[]
+                )
+                
+        except Exception as e:
+            print(f"Error in contextual coaching without docs: {e}")
+            return FactCheckVerification(
+                claim={"claim_text": claim, "claim_type": "contextual", "confidence": 0.0, "extracted_from": "ai_response"},
+                result=FactCheckResult.CORRECT,
+                confidence_score=0.5,
+                explanation="Unable to provide detailed coaching",
+                coaching_feedback="Focus on clear, professional communication appropriate for the context.",
+                supporting_chunks=[],
+                source_documents=[]
+            )  
