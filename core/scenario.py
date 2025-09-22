@@ -1195,7 +1195,7 @@ async def get_scenario_endpoint(
     if not scenario:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail="Scenario not found or access denied")
-    return scenario.model_dump()
+    return scenario
 
 @router.get("/modules/{module_id}/scenarios", response_model=List[Dict[str, Any]])
 async def get_scenarios_by_module_endpoint(

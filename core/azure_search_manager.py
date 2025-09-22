@@ -206,9 +206,10 @@ class AzureVectorSearchManager:
 class EnhancedFactChecker:
     """Advanced fact-checking with vector search"""
     
-    def __init__(self, vector_search: AzureVectorSearchManager, openai_client: AsyncAzureOpenAI,coaching_rules: Dict = None):
+    def __init__(self, vector_search: AzureVectorSearchManager, openai_client: AsyncAzureOpenAI,coaching_rules: Dict = None, language_instructions: str = None):
         self.vector_search = vector_search
         self.openai_client = openai_client
+        self.language_instructions = language_instructions or "Provide coaching feedback in clear, professional language."
         print(coaching_rules,"coaching_rulesin class enchanced fact checker")
         if coaching_rules and isinstance(coaching_rules, dict):
             self.coaching_rules = coaching_rules
@@ -568,6 +569,8 @@ class EnhancedFactChecker:
     
             # Enhanced verification prompt with template rules
             verification_prompt = f"""
+        {self.language_instructions}
+        
         Verify this user response in the context of a training scenario:
     
         USER RESPONSE TO VERIFY: {claim}
@@ -730,6 +733,8 @@ class EnhancedFactChecker:
         """Provide general coaching when no knowledge base is available"""
         try:
             coaching_prompt = f"""
+            {self.language_instructions}
+            
             Evaluate this learner response for professional quality:
             
             LEARNER RESPONSE: {claim}
@@ -840,6 +845,8 @@ class EnhancedFactChecker:
                 coaching_context = "BASIC COACHING: Use professional communication and best practices appropriate for the context."
             
             coaching_prompt = f"""
+            {self.language_instructions}
+            
             Evaluate this learner response in a training context:
             
             LEARNER RESPONSE: {claim}

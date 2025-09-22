@@ -69,11 +69,15 @@ class DynamicChatHandler:
             knowledge_base_id = await self._get_knowledge_base_for_session(session_id)
             print("checkkkk",knowledge_base_id)
             
+            # Get language instructions
+            language_instructions = await self._get_language_instructions()
+            
             # Initialize fact checker with or without knowledge base
             self.fact_checker = EnhancedFactChecker(
                 self.vector_search, 
                 self.llm_client,
-                coaching_rules=coaching_rules or {}  # Pass coaching rules here
+                coaching_rules=coaching_rules or {},  # Pass coaching rules here
+                language_instructions=language_instructions  # Pass language instructions
             )
             
             avatar_interaction = await self.db.avatar_interactions.find_one(
@@ -693,6 +697,7 @@ KEEP YOUR RESPONSE LIMITED TO 20 WORDS.
             language = await self.db.languages.find_one({"_id": str(self.config.language_id)})
         
             if language and language.get("prompt"):
+                print("language",language)
                 return language["prompt"]
             else:
                 return "Provide coaching feedback in clear, professional language."
