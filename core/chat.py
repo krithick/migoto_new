@@ -271,6 +271,7 @@ async def chat(
 async def chat_stream(
     id: str = Query(...),
     name: Optional[str] = Query(None),
+    voice_id: Optional[str] = Query(default="ar-SA-HamedNeural"), 
     db: Any = Depends(get_db),
     # current_user: UserDB = Depends(get_current_user)  # Add this dependency
 ):
@@ -408,7 +409,7 @@ async def chat_stream(
                     try:
                         print(f"🔊 Generating TTS for: '{full_text[:50]}...'")
                         from core.speech import generate_audio_for_chat
-                        audio_data = await generate_audio_for_chat(full_text, "ar-SA-HamedNeural")
+                        audio_data = await generate_audio_for_chat(full_text, voice_id)
                         print(f"🔊 TTS result: {len(audio_data) if audio_data else 0} bytes")
                     except Exception as e:
                         print(f"TTS generation failed: {e}")
