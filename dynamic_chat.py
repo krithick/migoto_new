@@ -583,20 +583,19 @@ class DynamicChatHandler:
                     print(f"Enhanced coaching failed: {enhanced_error}")
                     enhanced_coaching = None
         
-            # FALLBACK: Your existing coaching logic (ALWAYS run this too)
-            existing_coaching = await self._run_existing_coaching_logic(
-                user_message, conversation_history, knowledge_base_id, language_instructions
-            )
-        
-            # 🎯 COMBINE RESULTS: Use enhanced if available, otherwise use existing
-            if enhanced_coaching and enhanced_coaching != "Dear Learner, ":
+            # FALLBACK: Only run existing coaching if enhanced failed
+            if not enhanced_coaching or enhanced_coaching == "Dear Learner, ":
+                existing_coaching = await self._run_existing_coaching_logic(
+                    user_message, conversation_history, knowledge_base_id, language_instructions
+                )
+                if existing_coaching:
+                    print("✅ Using existing coaching logic")
+                    return existing_coaching
+            else:
                 print("✅ Using enhanced template coaching")
                 return enhanced_coaching
-            elif existing_coaching:
-                print("✅ Using existing coaching logic")
-                return existing_coaching
-            else:
-                return None
+            
+            return None
             
         except Exception as e:
             print(f"Fact-checking error: {e}")
