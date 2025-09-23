@@ -557,7 +557,8 @@ class DynamicChatHandler:
         """Hybrid coaching: Enhanced template coaching + existing verification"""
     
         try:
-            if len(conversation_history) <= 1:
+            # Don't coach on first few responses - let conversation develop
+            if len(conversation_history) <= 3:
                 return None
             
             language_instructions = await self._get_language_instructions()
@@ -641,28 +642,24 @@ OFFICIAL COMPANY INFORMATION:
 EVALUATION PROCESS - FOLLOW THIS EXACT ORDER:
 
 STEP 1: FACTUAL ACCURACY CHECK (HIGHEST PRIORITY)
-If company information is available, check if the learner's response contains incorrect facts.
-If no company information is available, focus on general customer service principles.
+Only flag CLEAR, OBVIOUS factual errors about specific company information.
+DO NOT flag general customer service approaches or reasonable responses.
 
-IF FACTUAL ERRORS FOUND (when company info available):
-"Dear Learner, you said '[wrong information]' but according to our official information: [correct facts]. You should respond: '[specific correct response]'."
-STOP EVALUATION HERE - DO NOT PROCEED TO STEP 2.
-
-IF NO COMPANY INFO AVAILABLE:
-Proceed to Step 2 for general customer service evaluation.
+IF CLEAR FACTUAL ERRORS FOUND:
+"Dear Learner, you provided incorrect information about [specific fact]. The correct information is: [correct facts]."
+STOP EVALUATION HERE.
 
 STEP 2: CUSTOMER SERVICE APPROPRIATENESS (ONLY IF STEP 1 PASSES)
-Is this response appropriate customer service behavior?
-- Asking clarifying questions = ALWAYS APPROPRIATE
-- Showing empathy/acknowledgment = ALWAYS APPROPRIATE  
-- Requesting details to provide better help = ALWAYS APPROPRIATE
-- Being polite and professional = ALWAYS APPROPRIATE
+Be VERY LENIENT - only flag responses that are:
+- Clearly rude or dismissive
+- Completely ignoring the customer
+- Providing no help whatsoever
 
-IF APPROPRIATE CUSTOMER SERVICE:
+OTHERWISE RESPOND:
 "[CORRECT]"
 
-IF INAPPROPRIATE (ignoring customer, being rude, not addressing their question):
-"Dear Learner, the customer was [asking/expressing concern about X], but your response doesn't address their need. You should [specific actions] to properly help them with their [specific concern]."
+Remember: Asking questions, showing empathy, being polite = ALWAYS CORRECT
+Different approaches to help customers = USUALLY CORRECT
 
 IMPORTANT: Provide your response in the same language as specified in the language instructions above.
 
@@ -856,18 +853,16 @@ KEEP YOUR RESPONSE LIMITED TO 20 WORDS.
         return coaching_message
 
     async def _is_response_unhelpful(self, user_message: str) -> bool:
-        """Check if user response is unhelpful based on patterns"""
+        """Check if user response is unhelpful based on patterns - MORE RESTRICTIVE"""
     
         message_lower = user_message.lower().strip()
     
-        # Check for dismissive/unhelpful patterns
+        # Only flag VERY unhelpful patterns
         unhelpful_patterns = [
-        len(message_lower) < 10,  # Too short
-        message_lower in ["no", "i don't know", "not sure", "maybe", "idk"],
+        message_lower in ["no", "i don't know", "idk"],  # Removed length check
         "figure it out" in message_lower,
         "not my problem" in message_lower,
         "don't care" in message_lower,
-        message_lower.startswith("just ") and len(message_lower) < 20,
     ]
     
         return any(unhelpful_patterns)    
