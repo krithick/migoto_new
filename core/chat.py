@@ -405,11 +405,13 @@ async def chat_stream(
                     session.conversation_history.append(bot_message)
                     await update_chat_session(db, session)
                     
-                    # Generate TTS for complete response
+                    # Generate TTS for complete response (remove [FINISH] tag)
                     try:
                         print(f"🔊 Generating TTS for: '{full_text[:50]}...'")
                         from core.speech import generate_audio_for_chat
-                        audio_data = await generate_audio_for_chat(full_text, voice_id)
+                        # Remove [FINISH] tag before generating audio
+                        clean_text = full_text.replace("[FINISH]", "").strip()
+                        audio_data = await generate_audio_for_chat(clean_text, voice_id)
                         print(f"🔊 TTS result: {len(audio_data) if audio_data else 0} bytes")
                     except Exception as e:
                         print(f"TTS generation failed: {e}")
