@@ -557,8 +557,12 @@ class DynamicChatHandler:
         """Hybrid coaching: Enhanced template coaching + existing verification"""
     
         try:
-            # Don't coach on first few responses - let conversation develop
-            if len(conversation_history) <= 3:
+            # Wait longer before coaching and only flag major issues
+            if len(conversation_history) <= 5:
+                return None
+            
+            # Only check for major factual errors if we have a knowledge base
+            if not knowledge_base_id:
                 return None
             
             language_instructions = await self._get_language_instructions()
@@ -626,50 +630,33 @@ class DynamicChatHandler:
             role = "Customer" if msg.role == self.config.bot_role else "Learner"
             convo_context += f"{role}: {msg.content}\n"
 
-        # Your existing fact-check prompt (UNCHANGED)
+        # Much more restrictive coaching - only major factual errors
         fact_check_prompt = f"""
 {language_instructions}
 
-You are a training coach reviewing a learner's response in a customer service conversation.
+You are reviewing a learner's response. ONLY flag MAJOR factual errors.
 
-RECENT CONVERSATION:
-{convo_context}
-LEARNER'S LATEST RESPONSE: "{user_message}"
+LEARNER'S RESPONSE: "{user_message}"
+COMPANY INFORMATION: {context}
 
-OFFICIAL COMPANY INFORMATION:
-{context}
+ONLY flag if the learner stated:
+- Completely wrong product/service names
+- Wildly incorrect prices (off by >50%)
+- Non-existent services/features
+- Clearly false company policies
 
-EVALUATION PROCESS - FOLLOW THIS EXACT ORDER:
+DO NOT flag:
+- Spelling/grammar errors
+- Different conversation styles
+- Step-by-step questioning
+- Not mentioning everything at once
+- General customer service approaches
 
-STEP 1: FACTUAL ACCURACY CHECK (HIGHEST PRIORITY)
-Only flag CLEAR, OBVIOUS factual errors about specific company information.
-DO NOT flag general customer service approaches or reasonable responses.
+IF MAJOR FACTUAL ERROR:
+"Dear Learner, [specific wrong fact] is incorrect. The correct information is [right fact]."
 
-IF CLEAR FACTUAL ERRORS FOUND:
-"Dear Learner, you provided incorrect information about [specific fact]. The correct information is: [correct facts]."
-STOP EVALUATION HERE.
-
-STEP 2: CUSTOMER SERVICE APPROPRIATENESS (ONLY IF STEP 1 PASSES)
-Be VERY LENIENT - only flag responses that are:
-- Clearly rude or dismissive
-- Completely ignoring the customer
-- Providing no help whatsoever
-
-OTHERWISE RESPOND:
+OTHERWISE:
 "[CORRECT]"
-
-Remember: Asking questions, showing empathy, being polite = ALWAYS CORRECT
-Different approaches to help customers = USUALLY CORRECT
-
-IMPORTANT: Provide your response in the same language as specified in the language instructions above.
-
-REMEMBER:
-- FACT-CHECKING IS MORE IMPORTANT THAN CONVERSATION FLOW
-- Giving wrong company information is ALWAYS incorrect, regardless of tone
-- Asking questions to understand customer needs better is ALWAYS good customer service
-- Only evaluate conversation appropriateness if all facts are correct
-
-KEEP YOUR RESPONSE LIMITED TO 20 WORDS.
 """
     
         print(f"Using language instructions: {language_instructions[:50]}...")
