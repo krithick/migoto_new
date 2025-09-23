@@ -73,6 +73,7 @@ class DynamicChatHandler:
             language_instructions = await self._get_language_instructions()
             
             # Initialize fact checker with or without knowledge base
+            print(f"Initializing fact checker with language instructions: {language_instructions[:50] if language_instructions else 'None'}...")
             self.fact_checker = EnhancedFactChecker(
                 self.vector_search, 
                 self.llm_client,
@@ -567,8 +568,9 @@ class DynamicChatHandler:
             # TRY: Enhanced contextual coaching if available
             if hasattr(self, 'fact_checker') and self.fact_checker.has_coaching_rules:
                 try:
+                    print(f"Using enhanced coaching with language: {language_instructions[:50] if language_instructions else 'None'}...")
                     verification = await self.fact_checker.verify_response_with_coaching(
-                        user_message, conversation_history, knowledge_base_id
+                        user_message, conversation_history, knowledge_base_id, language_instructions
                     )
                 
                     if verification.result != FactCheckResult.CORRECT:
@@ -663,6 +665,8 @@ IF APPROPRIATE CUSTOMER SERVICE:
 IF INAPPROPRIATE (ignoring customer, being rude, not addressing their question):
 "Dear Learner, the customer was [asking/expressing concern about X], but your response doesn't address their need. You should [specific actions] to properly help them with their [specific concern]."
 
+IMPORTANT: Provide your response in the same language as specified in the language instructions above.
+
 REMEMBER:
 - FACT-CHECKING IS MORE IMPORTANT THAN CONVERSATION FLOW
 - Giving wrong company information is ALWAYS incorrect, regardless of tone
@@ -672,9 +676,13 @@ REMEMBER:
 KEEP YOUR RESPONSE LIMITED TO 20 WORDS.
 """
     
+        print(f"Using language instructions: {language_instructions[:50]}...")
         response = await self.llm_client.chat.completions.create(
         model="gpt-4o",
-        messages=[{"role": "user", "content": fact_check_prompt}],
+        messages=[
+            {"role": "system", "content": f"You are a training coach. CRITICAL: You must respond in the exact same language as these instructions: {language_instructions}"},
+            {"role": "user", "content": fact_check_prompt}
+        ],
         temperature=0.1,
         max_tokens=200
     )
@@ -691,20 +699,23 @@ KEEP YOUR RESPONSE LIMITED TO 20 WORDS.
         """Get language instructions from session"""
         try:
             if not hasattr(self, 'config') or not self.config.language_id:
-                return "Provide coaching feedback in clear, professional language."
+                print("No language_id found, using default")
+                return "Respond in English. Provide coaching feedback in clear, professional language."
         
             # Get language from database
             language = await self.db.languages.find_one({"_id": str(self.config.language_id)})
         
             if language and language.get("prompt"):
-                print("language",language)
-                return language["prompt"]
+                instructions = language["prompt"]
+                print(f"Language instructions retrieved: {instructions[:100]}...")
+                return instructions
             else:
-                return "Provide coaching feedback in clear, professional language."
+                print("No language prompt found, using default")
+                return "Respond in English. Provide coaching feedback in clear, professional language."
             
         except Exception as e:
             print(f"Error getting language instructions: {e}")
-            return "Provide coaching feedback in clear, professional language."    
+            return "Respond in English. Provide coaching feedback in clear, professional language."    
 # 
     async def _process_normal_stream(self, response, name: Optional[str]):
         """Process normal streaming response (learn/assess modes)"""

@@ -209,7 +209,8 @@ class EnhancedFactChecker:
     def __init__(self, vector_search: AzureVectorSearchManager, openai_client: AsyncAzureOpenAI,coaching_rules: Dict = None, language_instructions: str = None):
         self.vector_search = vector_search
         self.openai_client = openai_client
-        self.language_instructions = language_instructions or "Provide coaching feedback in clear, professional language."
+        self.language_instructions = language_instructions or "Respond in English. Provide coaching feedback in clear, professional language."
+        print(f"FactChecker initialized with language instructions: {self.language_instructions[:50]}...")
         print(coaching_rules,"coaching_rulesin class enchanced fact checker")
         if coaching_rules and isinstance(coaching_rules, dict):
             self.coaching_rules = coaching_rules
@@ -516,7 +517,7 @@ class EnhancedFactChecker:
     #         )    
     # 
     async def _verify_contextual_response(self, claim: str, conversation_history: List, 
-                                    scenario_id: str) -> FactCheckVerification:
+                                    scenario_id: str, language_instructions: str = None) -> FactCheckVerification:
         """Enhanced verification with template-specific coaching rules"""
 
         try:
@@ -569,7 +570,7 @@ class EnhancedFactChecker:
     
             # Enhanced verification prompt with template rules
             verification_prompt = f"""
-        {self.language_instructions}
+        {language_instructions or self.language_instructions}
         
         Verify this user response in the context of a training scenario:
     
@@ -589,6 +590,8 @@ class EnhancedFactChecker:
         3. CUSTOMER APPROPRIATENESS: Is the response suitable for the customer type?
         4. COACHING COMPLIANCE: Does it avoid the common mistakes mentioned?
     
+        IMPORTANT: Provide all feedback in the same language as specified in the language instructions above.
+    
         Provide assessment as JSON:
         {{
         "result": "CORRECT|INCORRECT|PARTIALLY_CORRECT|PROCESS_VIOLATION|CUSTOMER_MISMATCH|UNSUPPORTED",
@@ -602,7 +605,7 @@ class EnhancedFactChecker:
             response = await self.openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are a contextual training coach that provides specific feedback based on document requirements."},
+                {"role": "system", "content": f"You are a contextual training coach. CRITICAL: You must respond in the exact same language as these instructions: {language_instructions or self.language_instructions}"},
                 {"role": "user", "content": verification_prompt}
             ],
             temperature=0.1,
@@ -706,13 +709,13 @@ class EnhancedFactChecker:
     
     #     # Use existing basic verification as fallback
     #     return await self._verify_single_claim(claim, scenario_id)  
-    async def verify_response_with_coaching(self, claim: str, conversation_history: List, scenario_id: str) -> FactCheckVerification:
+    async def verify_response_with_coaching(self, claim: str, conversation_history: List, scenario_id: str, language_instructions: str = None) -> FactCheckVerification:
         """Smart verification that uses contextual coaching if available, falls back to basic fact-checking"""
     
         if self.has_coaching_rules:
             try:
                 # Use enhanced contextual verification
-                result = await self._verify_contextual_response(claim, conversation_history, scenario_id)
+                result = await self._verify_contextual_response(claim, conversation_history, scenario_id, language_instructions)
             
                 # ✅ FIX: Make sure we return the result, not None
                 if result:
@@ -745,6 +748,8 @@ class EnhancedFactChecker:
             - Helpfulness and clarity
             - Completeness of response
             
+            IMPORTANT: Provide all feedback in the same language as specified in the language instructions above.
+            
             Return as JSON:
             {{
                 "result": "CORRECT|NEEDS_IMPROVEMENT",
@@ -756,7 +761,7 @@ class EnhancedFactChecker:
             response = await self.openai_client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "You are a professional training coach who adapts feedback to any domain or scenario type."},
+                    {"role": "system", "content": f"You are a professional training coach. CRITICAL: You must respond in the exact same language as these instructions: {self.language_instructions}"},
                     {"role": "user", "content": coaching_prompt}
                 ],
                 temperature=0.2,
@@ -862,6 +867,8 @@ class EnhancedFactChecker:
             3. Does it avoid common mistakes?
             4. Is it professional and effective?
             
+            IMPORTANT: Provide all feedback in the same language as specified in the language instructions above.
+            
             Return as JSON:
             {{
                 "result": "CORRECT|NEEDS_IMPROVEMENT",
@@ -873,7 +880,7 @@ class EnhancedFactChecker:
             response = await self.openai_client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "You are an adaptive training coach that provides specific feedback based on any domain's training guidelines."},
+                    {"role": "system", "content": f"You are an adaptive training coach. CRITICAL: You must respond in the exact same language as these instructions: {self.language_instructions}"},
                     {"role": "user", "content": coaching_prompt}
                 ],
                 temperature=0.2,
