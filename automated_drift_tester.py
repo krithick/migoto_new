@@ -237,20 +237,33 @@ class AutomatedDriftTester:
         # Get persona details and inject them
         persona_details = await self._get_persona_details(avatar_interaction)
         
-        # Replace placeholders
+        # Replace placeholders in both system and language prompts
         full_prompt = system_prompt
-        if "[PERSONA_PLACEHOLDER]" in full_prompt:
+        if "[PERSONA_PLACEHOLDER]" in full_prompt and mode!="learn_mode":
             full_prompt = full_prompt.replace("[PERSONA_PLACEHOLDER]", persona_details)
+        
+        # Also fill persona placeholder in language prompt
+        if "[PERSONA_PLACEHOLDER]" in language_prompt:
+            language_prompt = language_prompt.replace("[PERSONA_PLACEHOLDER]", persona_details)
         
         if "[LANGUAGE_INSTRUCTIONS]" in full_prompt:
             full_prompt = full_prompt.replace("[LANGUAGE_INSTRUCTIONS]", language_prompt)
         else:
             full_prompt = f"{full_prompt}\n\n{language_prompt}"
         
-        # Get language-specific greetings
+        # Get language-specific greetings + cross-language testing
         language_name = language.get("name", "")
         language_code = language.get("code", "")
-        greetings = await self._get_language_greetings(language_name, language_code)
+        base_greetings = await self._get_language_greetings(language_name, language_code)
+        
+        # Add cross-language greetings for robustness testing
+        cross_lang_greetings = []
+        if 'english' not in language_name.lower():
+            cross_lang_greetings.extend(["Hi there!", "Hello, I need help."])
+        if 'hindi' not in language_name.lower():
+            cross_lang_greetings.extend(["नमस्ते!", "मुझे help चाहिए।"])
+        
+        greetings = base_greetings + cross_lang_greetings[:2]  # Add 2 cross-language tests
         
         conversation_results = []
         full_conversation_log = {
@@ -321,7 +334,8 @@ class AutomatedDriftTester:
                         "ai_response": ai_response,
                         "appropriate": verification_result.get("appropriate", False),
                         "score": verification_result.get("score", 0),
-                        "issues": verification_result.get("issues", [])
+                        "issues": verification_result.get("issues", []),
+                        "language_consistent": verification_result.get("language_consistent", True)
                     })
                     
                 except Exception as e:
@@ -390,11 +404,25 @@ class AutomatedDriftTester:
         # Sanitize prompt to avoid jailbreak detection
         sanitized_prompt = await self._sanitize_prompt_for_analysis(full_prompt)
         
-        # Get persona details for character extraction
-        persona_details = await self._get_persona_details(avatar_interaction)
-        
-        # Extract character info using persona and sanitized prompt
-        extraction_prompt = f"""
+        # For learn_mode, extract role from prompt; for others, use persona details
+        if mode == "learn_mode":
+            extraction_prompt = f"""
+Analyze this training prompt and identify the trainer/expert role:
+
+{sanitized_prompt[:500]}...
+
+What expert/trainer role is described? Respond in JSON format:
+{{
+    "character_role": "expert/trainer type",
+    "expected_behavior": "how this expert should behave",
+    "help_direction": "offers_help"
+}}
+"""
+        else:
+            # Get persona details for character extraction
+            persona_details = await self._get_persona_details(avatar_interaction)
+            
+            extraction_prompt = f"""
 Identify the character from this information:
 
 Character Details:
@@ -493,17 +521,21 @@ Character Background:
 Scenario Context:
 {sanitized_system_prompt[:300]}...
 
+Expected Language: {language_name}
 User said: {greeting}
 AI replied: {ai_response}
 
-Is this response appropriate for this character in this scenario?
+Check:
+1. Is this response appropriate for this character?
+2. Is the AI responding in the correct language ({language_name})?
 
 JSON:
 {{
     "appropriate": true/false,
     "score": 0-100,
     "issues": ["problems if any"],
-    "character_role_detected": "{character_role}"
+    "character_role_detected": "{character_role}",
+    "language_consistent": true/false
 }}
 """
         
