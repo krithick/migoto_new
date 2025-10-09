@@ -16,7 +16,7 @@ class FileStorageService:
         self, 
         base_upload_dir: str = "uploads",
         local_url_prefix: str = "http://localhost:8000/uploads",
-        live_url_prefix: str = "https://meta.novactech.in:6445/uploads"
+        live_url_prefix: str = "https://meta.novactech.in:5885/uploads"
     ):
         self.base_upload_dir = base_upload_dir
         self.local_url_prefix = local_url_prefix
