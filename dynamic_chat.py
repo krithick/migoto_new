@@ -952,16 +952,21 @@ OTHERWISE:
     - Current situation: {persona.situation}
     - Context: {persona.business_or_personal}
     """
-        language_markdown = f"""
-- Primary language: {language.name}
-- Language instructions: {language.prompt}
-
-"""
-        # print(language.name,language.prompt,"language_markdown",language,"language")
         # Add background story if available
         if persona.background_story:
             persona_markdown += f"- Background: {persona.background_story}\n"
-    # Replace placeholders
+        
+        # Check if language prompt has [PERSONA_PLACEHOLDER] and inject persona details
+        language_prompt = language.prompt
+        if "[PERSONA_PLACEHOLDER]" in language_prompt:
+            language_prompt = language_prompt.replace("[PERSONA_PLACEHOLDER]", persona_markdown)
+        
+        language_markdown = f"""
+- Primary language: {language.name}
+- Language instructions: {language_prompt}
+
+"""
+        # Replace placeholders
         scenario_prompt = scenario_prompt.replace("[LANGUAGE_INSTRUCTIONS]", language_markdown)
         scenario_prompt = scenario_prompt.replace("[PERSONA_PLACEHOLDER]", persona_markdown)
         return scenario_prompt
