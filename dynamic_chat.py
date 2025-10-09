@@ -907,28 +907,24 @@ OTHERWISE:
         # Add system prompt
         system_content = self.config.system_prompt
         
-        # If conversation is empty and mode is try/assess, add explicit wait instruction
-        if len(conversation_history) == 0 and self.config.mode in ["try_mode", "assess_mode"]:
-            system_content += "\n\nCRITICAL: This is the start of the conversation. DO NOT send any message. WAIT for the user to speak first. Do not greet, do not offer help, do not say anything until the user initiates."
-        
-        contents.append({"role": "system", "content": system_content})
         # Get persona if available
-        # print(self.config)
         if self.config.persona_id:
             try:
                 print(self.config.persona_id,"self.config.persona_id")
                 persona = await self.db.personas.find_one({"_id": str(self.config.persona_id)})
                 language = await self.db.languages.find_one({"_id": str(self.config.language_id)})
-                # print("language",language)
                 if persona:
                     persona_obj = PersonaDB(**persona)
                     language_obj= LanguageDB(**language)
-                    persona_context = self.format_persona_context(scenario_prompt=self.config.system_prompt,persona=persona_obj,language=language_obj)
-                    # Add persona information to system prompt
-                    contents[0]["content"] = persona_context
-                    # print("actual scenariossss",persona_context)
+                    system_content = self.format_persona_context(scenario_prompt=system_content,persona=persona_obj,language=language_obj)
             except Exception as e:
                 print(f"Error loading persona: {e}")
+        
+        # If conversation is empty and mode is try/assess, add explicit wait instruction AFTER persona
+        if len(conversation_history) == 0 and self.config.mode in ["try_mode", "assess_mode"]:
+            system_content += "\n\nCRITICAL: This is the start of the conversation. DO NOT send any message. WAIT for the user to speak first. Do not greet, do not offer help, do not say anything until the user initiates."
+        
+        contents.append({"role": "system", "content": system_content})
         
         # Add conversation history
         for message in conversation_history:
