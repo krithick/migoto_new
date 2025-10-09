@@ -28,6 +28,10 @@ azure_openai_client = AsyncAzureOpenAI(
             azure_endpoint=endpoint
         )
 
+print(f"🔍 Azure OpenAI Client initialized: {azure_openai_client is not None}")
+print(f"🔑 API Key present: {bool(api_key)}")
+print(f"🌐 Endpoint: {endpoint}")
+
 import io
 import docx
 import pypdf
@@ -564,9 +568,13 @@ Let these topics emerge organically based on what your specific character would 
     async def extract_scenario_info(self, scenario_document):
         """Extract structured information from any type of scenario document using LLM"""
         
-        # Clean the document for better LLM processing
-        cleaned_document = self._clean_document_for_llm(scenario_document)
-        print(f"Cleaned document: {len(cleaned_document)} chars vs original {len(scenario_document)} chars")
+        # Only clean if document has structured markers (uploaded documents)
+        if 'TABLE_' in scenario_document or 'PARAGRAPH_' in scenario_document or 'ROW_' in scenario_document:
+            cleaned_document = self._clean_document_for_llm(scenario_document)
+            print(f"Cleaned document: {len(cleaned_document)} chars vs original {len(scenario_document)} chars")
+        else:
+            cleaned_document = scenario_document
+            print(f"Using original prompt: {len(cleaned_document)} chars")
         
         extraction_prompt = f"""
       You are an expert instructional designer and training scenario architect. Analyze this document to create a sophisticated, psychologically-informed training scenario.
@@ -730,6 +738,7 @@ Make all behavioral instructions reference the character's background and person
         
         try:
             if self.client is None:
+                print("**********************",self.client)
                 # Return mock data for testing
                 mock_data = self._get_mock_template_data(scenario_document)
             # ADD: Empty coaching rules for mock data
@@ -754,27 +763,13 @@ Make all behavioral instructions reference the character's background and person
             
             response_text = response.choices[0].message.content
             log_token_usage(response, "extract_scenario_info")
-        #     # Extract JSON from response
-        #     json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
-        #     if json_match:
-        #         try:
-        #             return json.loads(json_match.group(1))
-        #         except json.JSONDecodeError:
-        #             pass
-            
-        #     try:
-        #         return json.loads(response_text)
-        #     except json.JSONDecodeError:
-        #         return self._get_mock_template_data(scenario_document)
-                
-        # except Exception as e:
-        #     print(f"Error in extract_scenario_info: {str(e)}")
-        #     return self._get_mock_template_data(scenario_document)
+   
             json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
             if json_match:
                 try:
                     template_data = json.loads(json_match.group(1))
                 except json.JSONDecodeError:
+                    print("*****************************************","json errorrr")
                     template_data = self._get_mock_template_data(scenario_document)
             else:
                 try:
