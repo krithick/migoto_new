@@ -905,7 +905,13 @@ OTHERWISE:
         contents = []
         
         # Add system prompt
-        contents.append({"role": "system", "content": self.config.system_prompt})
+        system_content = self.config.system_prompt
+        
+        # If conversation is empty and mode is try/assess, add explicit wait instruction
+        if len(conversation_history) == 0 and self.config.mode in ["try_mode", "assess_mode"]:
+            system_content += "\n\nCRITICAL: This is the start of the conversation. DO NOT send any message. WAIT for the user to speak first. Do not greet, do not offer help, do not say anything until the user initiates."
+        
+        contents.append({"role": "system", "content": system_content})
         # Get persona if available
         # print(self.config)
         if self.config.persona_id:
