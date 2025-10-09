@@ -359,7 +359,7 @@ Follow the provided template structures exactly, maintaining all headings and sp
 Based on your character details above, let your specific background, emotional state, concerns, and communication style drive every aspect of this conversation.
 
 ## Conversation Flow
-Start the conversation in a way that authentically reflects your selected character's personality and current situation from [PERSONA_PLACEHOLDER]. Let your character's natural concerns or needs guide how you begin the interaction.
+Wait for the learner to approach you and start the conversation. Respond naturally based on your character from [PERSONA_PLACEHOLDER].
 
 {conversation_flow}
 
@@ -465,7 +465,7 @@ NEVER use [CORRECT] tags in your initial messages or questions to the learner. O
 Based on your character details above, let your specific background, emotional state, concerns, and communication style drive every aspect of this conversation.
 
 ## Conversation Flow
-Start the conversation in a way that authentically reflects your selected character's personality and current situation from [PERSONA_PLACEHOLDER]. Let your character's natural concerns or needs guide how you begin the interaction.
+Wait for the learner to approach you and start the conversation. Respond naturally based on your character from [PERSONA_PLACEHOLDER].
 
 {conversation_flow}
 
@@ -642,7 +642,7 @@ SCENARIO REALISM:
             }},
             "dialogue_flow": {{
                 "learn_mode_initial_prompt": "How expert starts conversation",
-                    "assess_mode_initial_prompt": "Create a persona-driven instruction: 'Start the conversation in a way that authentically reflects your character's personality and current situation from [PERSONA_PLACEHOLDER]. Let your character's natural concerns or needs guide how you begin the interaction.' Adapt this based on the specific AI role mentioned in the document.",
+                    "assess_mode_initial_prompt": "Wait for the learner to approach you and start the conversation. Respond naturally based on your character from [PERSONA_PLACEHOLDER].",
                 "key_interaction_steps": [
                     {{"user_query": "Expected user input", "ai_response": "Expected AI response"}}
                 ]
