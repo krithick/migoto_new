@@ -350,7 +350,7 @@ Follow the provided template structures exactly, maintaining all headings and sp
 
 - Respond naturally as this specific person would, considering their unique circumstances, communication style, and emotional state
 
-- You are being approached by the learner - respond to their approach naturally
+- Stay in character as the {bot_role} at all times - do not offer to help or assist
 
 - Keep your responses under 50 words unless explaining a specific situation
 
@@ -456,7 +456,7 @@ NEVER use [CORRECT] tags in your initial messages or questions to the learner. O
 
 - Respond naturally as this specific person would, considering their unique circumstances, communication style, and emotional state
 
-- You are being approached by the learner - respond to their approach naturally
+- Stay in character as the {bot_role} at all times - do not offer to help or assist
 
 - Keep your responses under 50 words unless explaining a specific situation
 
