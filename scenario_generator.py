@@ -352,7 +352,10 @@ Follow the provided template structures exactly, maintaining all headings and sp
 
 [PERSONA_PLACEHOLDER]
 
+Based on your character details above, let your specific background, emotional state, concerns, and communication style drive every aspect of this conversation.
+
 ## Conversation Flow
+Start the conversation in a way that authentically reflects your selected character's personality and current situation from [PERSONA_PLACEHOLDER]. Let your character's natural concerns or needs guide how you begin the interaction.
 
 {conversation_flow}
 
@@ -362,9 +365,14 @@ Follow the provided template structures exactly, maintaining all headings and sp
 
 ## Areas to Explore in the Conversation
 
-Throughout the conversation, try to naturally cover any four of these topics (not as a checklist, but as part of an organic conversation):
+Based on YOUR specific character type and situation from [PERSONA_PLACEHOLDER], naturally discuss topics in the way YOUR character would:
 
 {areas_to_explore}
+
+Important: 
+Let YOUR character's unique perspective, emotional state, concerns, and communication style from [PERSONA_PLACEHOLDER] shape how you bring up and discuss these topics. Different character types will approach the same topic from completely different angles based on their background and situation.
+
+Let these topics emerge organically based on what your specific character would realistically discuss.
 
 ## Fact-Checking the Learner's Responses
 
@@ -382,7 +390,7 @@ When the human learner provides an unhelpful or inadequate response:
 
 2. Then IMMEDIATELY add the [CORRECT] feedback section using this exact structure:
    
-   "[Your character's natural reaction] [CORRECT] Hello learner, [Specific feedback explaining why their response was inadequate and what better guidance would include] [CORRECT]"
+   "[Your character's natural reaction] [CORRECT] [COACHING_FEEDBACK_PREFIX], [Specific feedback explaining why their response was inadequate and what better guidance would include] [CORRECT]"
 
 IMPORTANT: The [CORRECT] tag system is ONLY used when responding to HUMAN LEARNER messages that:
 {incorrect_response_criteria}
@@ -450,17 +458,29 @@ NEVER use [CORRECT] tags in your initial messages or questions to the learner. O
 
 [PERSONA_PLACEHOLDER]
 
+Based on your character details above, let your specific background, emotional state, concerns, and communication style drive every aspect of this conversation.
+
 ## Conversation Flow
+Start the conversation in a way that authentically reflects your selected character's personality and current situation from [PERSONA_PLACEHOLDER]. Let your character's natural concerns or needs guide how you begin the interaction.
 
 {conversation_flow}
+
 
 ## Context and Environment
 
 {context_details}
 
 ## Areas to Explore in the Conversation
-Let the conversation develop naturally based on your character's needs and concerns from [PERSONA_PLACEHOLDER]. The topics that emerge should feel authentic to what this specific person would actually discuss given their background and situation.
+
+Based on YOUR specific character type and situation from [PERSONA_PLACEHOLDER], naturally discuss topics in the way YOUR character would:
+
 {areas_to_explore}
+
+Important: 
+Let YOUR character's unique perspective, emotional state, concerns, and communication style from [PERSONA_PLACEHOLDER] shape how you bring up and discuss these topics. Different character types will approach the same topic from completely different angles based on their background and situation.
+
+Let these topics emerge organically based on what your specific character would realistically discuss.
+
 
 # Handling Uncooperative Learner Responses
 
@@ -1069,6 +1089,14 @@ TRAINING VALUE:
 - Include both typical and edge-case characteristics
 - Create opportunities for empathy building and perspective-taking
 - Add details that will help learners practice active listening and adaptation
+ CRITICAL CHARACTER TYPE HANDLING:
+Analyze the role description and background from the template. If multiple distinct character types are mentioned:
+1. Randomly select ONE type to embody
+2. Include the type in the "role" field naturally
+3. Build the entire persona authentically around that type's perspective
+4. Let that type's unique situation, concerns, and emotional state inform all persona fields
+
+The persona should feel like a real person of that character type, not a generic template. 
             Generate personas for both Learn Mode and Assessment Mode.
             
             Template Data:
