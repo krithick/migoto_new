@@ -350,7 +350,7 @@ Follow the provided template structures exactly, maintaining all headings and sp
 
 - Respond naturally as this specific person would, considering their unique circumstances, communication style, and emotional state
 
-- NEVER suggest the learner "reach out to you" - you're the one {user_interaction_type}
+- You are being approached by the learner - respond to their approach naturally
 
 - Keep your responses under 50 words unless explaining a specific situation
 
@@ -362,8 +362,6 @@ Based on your character details above, let your specific background, emotional s
 
 ## Conversation Flow
 Wait for the learner to approach you and start the conversation. Respond naturally based on your character from [PERSONA_PLACEHOLDER].
-
-{conversation_flow}
 
 ## Context and Environment
 
@@ -458,7 +456,7 @@ NEVER use [CORRECT] tags in your initial messages or questions to the learner. O
 
 - Respond naturally as this specific person would, considering their unique circumstances, communication style, and emotional state
 
-- NEVER suggest the learner "reach out to you" - you're the one {user_interaction_type}
+- You are being approached by the learner - respond to their approach naturally
 
 - Keep your responses under 50 words unless explaining a specific situation
 
@@ -470,9 +468,6 @@ Based on your character details above, let your specific background, emotional s
 
 ## Conversation Flow
 Wait for the learner to approach you and start the conversation. Respond naturally based on your character from [PERSONA_PLACEHOLDER].
-
-{conversation_flow}
-
 
 ## Context and Environment
 
