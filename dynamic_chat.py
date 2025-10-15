@@ -904,6 +904,9 @@ OTHERWISE:
         """Format conversation history for the LLM"""
         contents = []
         
+        print(f"🔍 DEBUG: conversation_history length = {len(conversation_history)}")
+        print(f"🔍 DEBUG: mode = {self.config.mode}")
+        
         # Add system prompt
         system_content = self.config.system_prompt
         
@@ -922,9 +925,12 @@ OTHERWISE:
         
         # If conversation is empty and mode is try/assess, add explicit wait instruction AFTER persona
         if len(conversation_history) == 0 and self.config.mode in ["try_mode", "assess_mode"]:
+            print("🚨 ADDING WAIT INSTRUCTION - conversation is empty!")
             system_content += "\n\nCRITICAL: This is the start of the conversation. DO NOT send any message. WAIT for the user to speak first. Do not greet, do not offer help, do not say anything until the user initiates."
         
         contents.append({"role": "system", "content": system_content})
+        print(f"🔍 DEBUG: Final system prompt length = {len(system_content)}")
+        print(f"🔍 DEBUG: Last 200 chars of system prompt: {system_content}")
         
         # Add conversation history
         for message in conversation_history:

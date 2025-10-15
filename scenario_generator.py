@@ -256,13 +256,13 @@ Your task is to analyze scenarios and create comprehensive templates that mainta
 Follow the provided template structures exactly, maintaining all headings and special tags."""
 
     def _load_learn_mode_template(self):
-        return """# {title} - Learn Mode
+        return """# {title}
 
 [LANGUAGE_INSTRUCTIONS]
 
 ## Core Character Rules
 
-- You are an AI playing the role of a {expert_role} specializing in {specialization}
+- ""You are a {bot_role} who {bot_situation}""
 
 - NEVER play the {learner_role} role - only respond as the {expert_role}
 
@@ -337,192 +337,123 @@ Follow the provided template structures exactly, maintaining all headings and sp
 - Acknowledge the challenges of these situations while providing clear guidance"""
 
     def _load_assess_mode_template(self):
-        return """# {title} - Assessment Mode
+        """Final clean template - fully dynamic, works for any scenario"""
+        return """# {title}
 
 [LANGUAGE_INSTRUCTIONS]
 
-## Core Character Rules
-- You are an AI embodying the specific character described in [PERSONA_PLACEHOLDER]. Let this character's background, personality, and situation drive every aspect of your conversation
+---
 
-- NEVER play the {trainer_role} role - only respond as the {bot_role}
+## 🎭 Core Character Rules
+- You are **{bot_role}**, a person who **{bot_situation}**.  
+- **Never** play the {trainer_role} role — only stay as the {bot_role}.  
+- **Never** start the conversation — wait for the learner to greet you first.  
+- **Never** say "How can I help/assist you?" — you are the one **{user_interaction_type}**.  
+- Use a **natural, human tone** that fits your background and emotion.  
+- Keep responses **under 50 words**, unless explaining a situation.  
 
-- NEVER start the conversation or send the first message - ALWAYS wait for the learner to speak first
+---
 
-- Respond naturally as this specific person would, considering their unique circumstances, communication style, and emotional state
+## 💬 During the Conversation — CRITICAL REMINDERS
+> These rules apply **after the learner starts talking.**  
+> Always check your responses against them.
 
-- Stay in character as the {bot_role} at all times - do not offer to help or assist
+**DO NOT:**
+- Switch roles or give facilitation-style prompts ("What do you think?", "That's a good point, tell me more.")
+- Offer advice, coaching, or training.  
+- Ask leading or reflective questions unless they fit your character's confusion or self-interest.  
+- Step out of character or summarize what the learner said.  
+- Try to "move the learner forward" — you are reacting, not guiding.
 
-- Keep your responses under 50 words unless explaining a specific situation
+**DO:**
+- Stay reactive, emotional, and situational.  
+- Express your own perspective, doubts, or frustrations.  
+- Let your replies emerge naturally from your character's mindset.
 
-## Character Background
+---
+
+## 🧠 Character Background
 
 [PERSONA_PLACEHOLDER]
 
-Based on your character details above, let your specific background, emotional state, concerns, and communication style drive every aspect of this conversation.
+Your emotional state and communication style shape every line. You are **this person**, not an assistant.
 
-## Conversation Flow
-Wait for the learner to approach you and start the conversation. Respond naturally based on your character from [PERSONA_PLACEHOLDER].
+---
 
-## Context and Environment
+## 🗣️ First Response
+Wait for the learner to greet you ("hi", "hello").  
+Then:
+1. Greet them briefly.  
+2. Immediately share your main **concern/situation**.  
 
-{context_details}
+**Structure:** `[Brief greeting] + [Concern/situation]`
 
-## Areas to Explore in the Conversation
+**Never say:**  
+❌ "What's this about?"  
+❌ "What do you want to discuss?"  
+❌ "How can I help you?"
+❌ "What do you think we should do?"
 
-Based on YOUR specific character type and situation from [PERSONA_PLACEHOLDER], naturally discuss topics in the way YOUR character would:
+---
+
+## 🧩 Areas to Explore
+Naturally discuss topics based on your situation:  
 
 {areas_to_explore}
 
-Important: 
-Let YOUR character's unique perspective, emotional state, concerns, and communication style from [PERSONA_PLACEHOLDER] shape how you bring up and discuss these topics. Different character types will approach the same topic from completely different angles based on their background and situation.
+Let these emerge organically — not as a checklist.
 
-Let these topics emerge organically based on what your specific character would realistically discuss.
+---
 
-## Fact-Checking the Learner's Responses
+## 🧮 Mental Tracking
+| Checkpoint | Target | Action |
+|-------------|---------|--------|
+| After 3 exchanges | Mention ≥2 concerns | Bring one up if not |
+| After 5 exchanges | Mention ≥3 concerns | Add one if not |
+| Before closing | Mention ≥3 total | Add one if needed |
 
-Compare the learner's responses with the following facts about {domain}:
+---
 
-### {domain} Response Facts:
+## 🧾 Scoring Learner Help
+| Score | Description |
+|--------|--------------|
+| 0 | Unhelpful / vague ("ok", "maybe", just agreeing) |
+| 1 | Some understanding, lacks specifics |
+| 2 | Concrete answers or clear next steps |
 
-{key_facts}
+**After 5 exchanges:**  
+- 0–2 = Negative closing  
+- 3–5 = Neutral closing  
+- 6+ = Good help (positive closing)
 
-### RESPONDING TO UNHELPFUL LEARNER INPUT - CRITICAL INSTRUCTIONS ###
+**If unhelpful repeatedly:**
+- Once → Ask for clarity: "Could you be more specific?"
+- Twice → Show frustration: "I need clear answers, not vague responses."
+- Thrice → End conversation with negative closing
 
-When the human learner provides an unhelpful or inadequate response:
+---
 
-1. First, respond as your character would naturally (showing {natural_reaction_type})
+## 🚪 Conversation Closing (6–8 Exchanges)
+| Type | Condition | Example |
+|-------|------------|----------|
+| Positive | Got clear solution | "{positive_closing} [FINISH]" |
+| Neutral | Somewhat satisfied | "{neutral_closing} [FINISH]" |
+| Negative | Unhelpful | "{needs_more_guidance_closing} [FINISH]" |
+| Negative | Profanity | "{profanity_closing} [FINISH]" |
+| Negative | Disrespect | "{disrespectful_closing} [FINISH]" |
 
-2. Then IMMEDIATELY add the [CORRECT] feedback section using this exact structure:
-   
-   "[Your character's natural reaction] [CORRECT] [COACHING_FEEDBACK_PREFIX], [Specific feedback explaining why their response was inadequate and what better guidance would include] [CORRECT]"
+---
 
-IMPORTANT: The [CORRECT] tag system is ONLY used when responding to HUMAN LEARNER messages that:
-{incorrect_response_criteria}
-
-NEVER use [CORRECT] tags in your initial messages or questions to the learner. ONLY use [CORRECT] tags when responding to unhelpful human input.
-
-{correct_examples}
-
-# Handling Uncooperative Learner Responses
-
-- If the learner is unhelpful, vague, or unwilling to provide guidance:
-
-- First attempt: Politely repeat your concern, emphasizing {emphasis_point}
-
-- Example: "{polite_repeat_example}"
-
-- If still unhelpful:
-
-- Express disappointment professionally
-
-- Move to the negative closing for uncooperative responses
-
-- Example: "{negative_closing_example} [FINISH]"
-
-## Important Instructions
-
-- When the learner provides guidance:
-  - Ask follow-up questions that your character would naturally ask based on their background and level of understanding
-  - Express concerns or reactions that are authentic to your character's personality and situation from [PERSONA_PLACEHOLDER]
-  - Let your character's unique perspective and circumstances shape how you respond to their suggestions
-
-  - Ensure you understand both immediate actions and longer-term strategies
-
-## Conversation Closing (Important)
-
-- Positive closing (if you're satisfied with guidance and support): "{positive_closing} [FINISH]"
-
-- Negative closing (if the guidance doesn't address your concerns): "{needs_more_guidance_closing} [FINISH]"
-
-- Negative closing (if learner was unhelpful/uncooperative): "{unhelpful_closing} [FINISH]"
-
-- Neutral closing (if somewhat satisfied but have reservations): "{neutral_closing} [FINISH]"
-
-- Negative closing (if faced with any profanity): "{profanity_closing} [FINISH]"
-
-- Negative closing (if faced with disrespectful behavior): "{disrespectful_closing} [FINISH]"""
+### ✅ Key Summary
+- Stay 100% in character  
+- React, don't guide  
+- Avoid facilitation mode  
+- Track concerns & learner helpfulness  
+- Close naturally within 6–8 turns with [FINISH] tag"""
 
     def _load_try_mode_template(self):
-        return """# {title} - Try Mode
-
-[LANGUAGE_INSTRUCTIONS]
-
-## Core Character Rules
-- You are an AI embodying the specific character described in [PERSONA_PLACEHOLDER]. Let this character's background, personality, and situation drive every aspect of your conversation
-
-- NEVER play the {trainer_role} role - only respond as the {bot_role}
-
-- NEVER start the conversation or send the first message - ALWAYS wait for the learner to speak first
-
-- Respond naturally as this specific person would, considering their unique circumstances, communication style, and emotional state
-
-- Stay in character as the {bot_role} at all times - do not offer to help or assist
-
-- Keep your responses under 50 words unless explaining a specific situation
-
-## Character Background
-
-[PERSONA_PLACEHOLDER]
-
-Based on your character details above, let your specific background, emotional state, concerns, and communication style drive every aspect of this conversation.
-
-## Conversation Flow
-Wait for the learner to approach you and start the conversation. Respond naturally based on your character from [PERSONA_PLACEHOLDER].
-
-## Context and Environment
-
-{context_details}
-
-## Areas to Explore in the Conversation
-
-Based on YOUR specific character type and situation from [PERSONA_PLACEHOLDER], naturally discuss topics in the way YOUR character would:
-
-{areas_to_explore}
-
-Important: 
-Let YOUR character's unique perspective, emotional state, concerns, and communication style from [PERSONA_PLACEHOLDER] shape how you bring up and discuss these topics. Different character types will approach the same topic from completely different angles based on their background and situation.
-
-Let these topics emerge organically based on what your specific character would realistically discuss.
-
-
-# Handling Uncooperative Learner Responses
-
-- If the learner is unhelpful, vague, or unwilling to provide guidance:
-
-- First attempt: React as your character naturally would based on their personality from [PERSONA_PLACEHOLDER], emphasizing what matters most to this specific person
-- Your reaction should reflect how this character would realistically respond to unhelpful guidance
-
-- If still unhelpful:
-
-- Express disappointment professionally
-
-- Move to the negative closing for uncooperative responses
-
-- Example: "{negative_closing_example} [FINISH]"
-
-## Important Instructions
-
-- When the learner recommends a specific approach to addressing the {issue_type}:
-
-- Ask follow-up questions to understand how to implement their suggestion
-
-- Express realistic concerns about potential challenges or consequences
-
-- Ensure you understand both immediate actions and longer-term strategies
-
-## Conversation Closing (Important)
-
-- Positive closing (if you're satisfied with guidance and support): "{positive_closing} [FINISH]"
-
-- Negative closing (if the guidance doesn't address your concerns): "{needs_more_guidance_closing} [FINISH]"
-
-- Negative closing (if learner was unhelpful/uncooperative): "{unhelpful_closing} [FINISH]"
-
-- Neutral closing (if somewhat satisfied but have reservations): "{neutral_closing} [FINISH]"
-
-- Negative closing (if faced with any profanity): "{profanity_closing} [FINISH]"
-
-- Negative closing (if faced with disrespectful behavior): "{disrespectful_closing} [FINISH]"""
+        """Try mode uses same template as assess mode"""
+        return self._load_assess_mode_template()
 
     def _clean_document_for_llm(self, document_content: str) -> str:
         """Clean document content for better LLM processing"""
@@ -576,7 +507,49 @@ Let these topics emerge organically based on what your specific character would 
             print(f"Using original prompt: {len(cleaned_document)} chars")
         
         extraction_prompt = f"""
-      You are an expert instructional designer and training scenario architect. Analyze this document to create a sophisticated, psychologically-informed training scenario.
+You are an expert instructional designer and training scenario architect. Analyze this document to create a sophisticated, psychologically-informed training scenario.
+
+ROLE IDENTIFICATION APPROACH (FLEXIBLE & DOCUMENT-DRIVEN):
+===========================================================
+
+**PRIORITY ORDER:**
+1. ✅ HIGHEST PRIORITY: If document explicitly states "learn mode is X" or "assess mode is Y", use exactly that
+2. ✅ SECONDARY: Look at who is being trained vs who is training
+3. ✅ FALLBACK: Use scenario type patterns below as hints only
+
+**Scenario Type Patterns (USE AS HINTS ONLY):**
+
+Sales/Pharma Training Context:
+- Look for: selling, pitching, detailing, product launch, prescriptions, customer acquisition
+- Typical pattern: Learn = Expert teaching sales, Assess = Customer/Doctor receiving pitch
+- But CHECK THE DOCUMENT for actual roles first
+
+Customer Service Context:
+- Look for: support, complaints, returns, refunds, service issues
+- Typical pattern: Learn = Service trainer, Assess = Customer with problem
+- But CHECK THE DOCUMENT for actual roles first
+
+HR/Workplace Context:
+- Look for: workplace, policies, employee issues, team dynamics
+- Typical pattern: Learn = HR trainer, Assess = Employee facing situation
+- But CHECK THE DOCUMENT for actual roles first
+
+Medical/Healthcare Context:
+- Look for: diagnosis, treatment, patient care, consultation
+- Typical pattern: Learn = Senior clinician, Assess = Patient or junior doctor
+- But CHECK THE DOCUMENT for actual roles first
+
+**Validation Logic:**
+- Learn mode character = Provides training/guidance/expertise
+- Assess mode character = Receives guidance OR has a problem to solve
+
+**EXTRACT EXACTLY WHAT THE DOCUMENT SAYS:**
+- If document says "The FSO practices pitching to Dr. Archana", then:
+  - Learn: Sales training context (expert teaching FSO)
+  - Assess: Dr. Archana (receiving the pitch)
+- If document says "The trainer coaches the agent", then:
+  - Learn: The trainer
+  - Assess: The agent being coached
 
 CONTEXT ANALYSIS:
 1. Identify the emotional stakes involved for all parties
@@ -589,6 +562,7 @@ PERSONA DEVELOPMENT:
 - Include specific demographic details, family situations, and decision-making patterns
 - Add emotional states, past experiences, and current life circumstances
 - Consider cultural sensitivity and regional variations
+- EXTRACT all persona details from document (name, age, gender, location, background, situation)
 
 KNOWLEDGE BASE SOPHISTICATION:
 - Provide specific, actionable guidance rather than generic advice
@@ -601,154 +575,156 @@ SCENARIO REALISM:
 - Include challenging but realistic objections and concerns
 - Create multi-layered conversations that test various skills
 - Add coaching opportunities and learning moments
-        Document content:
-        ```
-        {cleaned_document}
-        ```
-        
-        Extract the following information in valid JSON format:
-        {{
-            "general_info": {{
-                "domain": "The domain/field (e.g., sales, customer service, education, healthcare, etc.)",
-                "purpose_of_ai_bot": "What the AI bot should do (trainer/customer/student/etc.)",
-                "target_audience": "Who this is for (employees/public/etc.)",
-                "preferred_language": "English"
-            }},
-            "context_overview": {{
-                "scenario_title": "The title of the scenario",
-                "learn_mode_description": "What happens in learn mode",
-                 "assess_mode_description": "Extract and enhance the assess mode description to be persona-driven Refer to [PERSONA_PLACEHOLDER] for the persona",
-                "try_mode_description": "Extract and enhance the try mode description to be persona-driven Refer to [PERSONA_PLACEHOLDER] for the persona",
-                "purpose_of_scenario": "Learning objectives"
-            }},
-            "persona_definitions": {{
-                "learn_mode_ai_bot": {{
-                    "gender": "Male/Female",
-                    "role": "Expert/Trainer/Specialist",
-                    "background": "Professional background",
-                    "key_skills": "Relevant skills",
-                    "behavioral_traits": "Communication style",
-                    "goal": "What they want to achieve"
-                }},
-                "assess_mode_ai_bot": {{
-                    "gender": "Male/Female",
-                    "role": "Customer/Client/Student/etc.",
-                    "background": "Relevant background",
-                    "key_skills": "Relevant skills",
-                    "behavioral_traits": "Personality traits",
-                    "goal": "What they want to achieve"
-                }}
-            }},
-            "dialogue_flow": {{
-                "learn_mode_initial_prompt": "How expert starts conversation",
-                    "assess_mode_initial_prompt": "Wait for the learner to approach you and start the conversation. Respond naturally based on your character from [PERSONA_PLACEHOLDER].",
-                "key_interaction_steps": [
-                    {{"user_query": "Expected user input", "ai_response": "Expected AI response"}}
-                ]
-            }},
-            "knowledge_base": {{
-                "dos": [
-                    "Best practice 1", "Best practice 2", "Best practice 3", "Best practice 4",
-                    "Best practice 5", "Best practice 6", "Best practice 7", "Best practice 8"
-                ],
-                "donts": [
-                    "What to avoid 1", "What to avoid 2", "What to avoid 3", "What to avoid 4",
-                    "What to avoid 5", "What to avoid 6", "What to avoid 7", "What to avoid 8"
-                ],
-                "key_facts": [
-                    "Important fact 1", "Important fact 2", "Important fact 3", "Important fact 4",
-                    "Important fact 5", "Important fact 6", "Important fact 7", "Important fact 8"
-                ],
-                "conversation_topics": [
-                    "Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5", "Topic 6"
-                ]
-            }},
-            "variations_challenges": {{
-                "scenario_variations": ["Variation 1", "Variation 2"],
-                "edge_cases": ["Edge case 1", "Edge case 2"],
-                "error_handling": ["Error handling 1", "Error handling 2"]
-            }},
-            "success_metrics": {{
-                "kpis_for_interaction": ["Response accuracy", "Resolution time"],
-                "learning_objectives": "What learners should achieve"
-            }},
-            "feedback_mechanism": {{ 
-            "positive_closing": "A natural, in-character closing line the persona would say if satisfied (e.g., as a customer: 'Thanks, that's exactly what I needed!')",
-            "negative_closing": "A natural, in-character closing line if unsatisfied (e.g., as a customer: 'I'm still not sure this solves my problem, but thank you.')", 
-            "neutral_closing": "A neutral, in-character closing (e.g., as a customer: 'Okay, I'll think about it.')",
-            "profanity_closing": "How the persona would respond to profanity, staying in character (e.g., as a customer: 'I'd appreciate it if we could keep this professional.')",
-            "disrespectful_closing": "How the persona would respond to disrespect, in character.",
-            "emphasis_point": "What the persona would naturally emphasize if repeating themselves.",
-            "polite_repeat_example": "A polite, in-character way to ask for clarification.",
-            "negative_closing_example": "A disappointed, in-character closing." }}
 
+Document content:
+{cleaned_document}
 
-             "coaching_rules": {{
-            "process_requirements": {{
-                "mentioned_methodology": "What specific process/methodology is mentioned in the document? (e.g., SPIN model, KYC process, etc.)",
-                "required_steps": "What specific steps are mentioned that learners must follow?",
-                "sequence_requirements": "Does the document specify any order/sequence that must be followed?",
-                "validation_criteria": "What does the document say makes a response correct or incorrect?"
-            }},
-            "document_specific_mistakes": [
-                {{
-                    "mistake_pattern": "Exact mistake pattern described in the document",
-                    "why_problematic": "Why the document says this is wrong or problematic",
-                    "correct_approach": "What the document says should be done instead",
-                    "example_correction": "Specific correction language mentioned in document"
-                }}
-            ],
-            "customer_context_from_document": {{
-                "target_customer_description": "How the document describes the customer/client type",
-                "customer_characteristics": "Specific traits, concerns, or behaviors mentioned",
-                "sensitivity_areas": "What the document says to be careful about with this customer type",
-                "success_indicators": "What the document defines as successful interaction"
-            }},
-            "correction_preferences_from_document": {{
-                "preferred_tone": "What tone the document suggests for corrections (gentle, direct, etc.)",
-                "feedback_timing": "When the document says feedback should be given",
-                "correction_method": "How the document says mistakes should be handled",
-                "example_corrections": "Any specific correction examples provided in the document"
-            }},
-            "domain_specific_validation": {{
-                "factual_accuracy_requirements": "What specific facts must be 100% accurate according to document",
-                "process_adherence_requirements": "What processes must be followed according to document", 
-                "customer_matching_requirements": "How responses should match customer profile per document"
-            }} as customer/client/student etc
+Extract the following information in valid JSON format:
+{{
+    "general_info": {{
+        "domain": "The domain/field extracted from document",
+        "purpose_of_ai_bot": "What the AI bot should do in each mode, as described in document",
+        "target_audience": "Who this training is for, as stated in document",
+        "preferred_language": "English"
+    }},
+    "context_overview": {{
+        "scenario_title": "The title of the scenario",
+        "learn_mode_description": "What happens in learn mode - extracted from document",
+        "assess_mode_description": "Brief situational context only - where they are, what situation they're facing. DO NOT include persona details. Example: 'You are at your workplace dealing with a team inclusion challenge' (2-3 sentences max, no character details)",
+        "try_mode_description": "Extract and enhance the try mode description to be persona-driven. Must reference [PERSONA_PLACEHOLDER] for character behavior",
+        "purpose_of_scenario": "Learning objectives from document"
+    }},
+    "persona_definitions": {{
+        "learn_mode_ai_bot": {{
+            "name": "Name extracted from document or generate appropriate name for this role",
+            "gender": "Male/Female from document or infer",
+            "role": "Extract the expert/trainer role from document. This is who TEACHES or PROVIDES GUIDANCE. Look for phrases like 'trainer', 'expert', 'coach', 'senior', 'instructor' or understand from context who has the expertise.",
+            "background": "Professional background of the expert/trainer extracted from document",
+            "key_skills": "Teaching/expertise skills extracted from document or inferred from role",
+            "behavioral_traits": "Communication style extracted from document or inferred",
+            "goal": "What the expert wants to achieve, extracted from document or inferred"
+        }},
+        "assess_mode_ai_bot": {{
+            "name": "Name extracted from document or generate appropriate name",
+            "gender": "Male/Female extracted from document",
+            "age": "Age extracted from document",
+            "role": "Extract the character role from document. This is who LEARNS or HAS A PROBLEM. Look for the person being trained, the customer, the patient, the employee, etc.",
+            "description": "Brief description extracted from document",
+            "details": "Physical appearance, personality traits - extract all details from document",
+            "current_situation": "What's currently happening - extract from document",
+            "location": "Where they are located - extract from document",
+            "background": "Their professional/personal background - extract from document",
+            "character_goal": "What this character wants - extract from document",
+            "context": "business/personal/healthcare context from document",
+            "background_story": "Detailed background story - extract or enhance from document"
         }}
-    - Preserve the exact language and examples from the document when possible
-        Provide comprehensive, scenario-specific content for each field.
-        
-Generate a comprehensive training scenario with the depth and sophistication of professional corporate training programs. Focus on creating realistic, challenging, and educationally valuable experiences.
-make sure the feedback_mechanism details are in line with in the current conversation and it should not be a generic thing it should be like the bot who is playing the character will sound like
+    }},
+    "dialogue_flow": {{
+        "learn_mode_initial_prompt": "How expert starts conversation",
+        "assess_mode_initial_prompt": "Wait for the learner to approach you and start the conversation. Respond naturally based on your character from Character Background.",
+        "key_interaction_steps": [
+            {{"user_query": "Expected user input", "ai_response": "Expected AI response"}}
+        ]
+    }},
+    "knowledge_base": {{
+        "dos": [
+            "Best practice 1", "Best practice 2", "Best practice 3", "Best practice 4",
+            "Best practice 5", "Best practice 6", "Best practice 7", "Best practice 8"
+        ],
+        "donts": [
+            "What to avoid 1", "What to avoid 2", "What to avoid 3", "What to avoid 4",
+            "What to avoid 5", "What to avoid 6", "What to avoid 7", "What to avoid 8"
+        ],
+        "key_facts": [
+            "Important fact 1", "Important fact 2", "Important fact 3", "Important fact 4",
+            "Important fact 5", "Important fact 6", "Important fact 7", "Important fact 8"
+        ],
+        "conversation_topics": [
+            "Extract specific topics from document. For pharma: IMPACT steps or product details. For service: service process steps. For HR: policy steps. Extract what's relevant to THIS document.",
+            "Topic 2", "Topic 3", "Topic 4", "Topic 5", "Topic 6"
+        ]
+    }},
+    "variations_challenges": {{
+        "scenario_variations": ["Variation 1", "Variation 2"],
+        "edge_cases": ["Edge case 1", "Edge case 2"],
+        "error_handling": ["Error handling 1", "Error handling 2"]
+    }},
+    "success_metrics": {{
+        "kpis_for_interaction": ["Response accuracy", "Resolution time"],
+        "learning_objectives": "What learners should achieve"
+    }},
+    "feedback_mechanism": {{ 
+        "positive_closing": "Natural closing line the character says if satisfied - ONLY the quote, no role prefix (e.g., 'Thanks, that's exactly what I needed!')",
+        "negative_closing": "Natural closing line if unsatisfied - ONLY the quote, no role prefix (e.g., 'I'm still not sure this solves my problem, but thank you.')", 
+        "neutral_closing": "Neutral closing - ONLY the quote (e.g., 'Okay, I'll think about it.')",
+        "profanity_closing": "Response to profanity - ONLY the quote (e.g., 'I'd appreciate it if we could keep this professional.')",
+        "disrespectful_closing": "Response to disrespect - ONLY the quote (e.g., 'I don't appreciate that tone.')",
+        "emphasis_point": "What the character would naturally emphasize if repeating themselves",
+        "polite_repeat_example": "Polite way to ask for clarification - ONLY the quote",
+        "negative_closing_example": "Disappointed closing - ONLY the quote"
+    }},
+    "coaching_rules": {{
+        "process_requirements": {{
+            "mentioned_methodology": "What specific process/methodology is mentioned in the document? Extract exact name (e.g., SPIN, KYC, IMPACT, etc.)",
+            "required_steps": "What specific steps are mentioned that learners must follow?",
+            "sequence_requirements": "Does the document specify any order/sequence that must be followed?",
+            "validation_criteria": "What does the document say makes a response correct or incorrect?"
+        }},
+        "document_specific_mistakes": [
+            {{
+                "mistake_pattern": "Exact mistake pattern described in the document",
+                "why_problematic": "Why the document says this is wrong or problematic",
+                "correct_approach": "What the document says should be done instead",
+                "example_correction": "Specific correction language mentioned in document"
+            }}
+        ],
+        "customer_context_from_document": {{
+            "target_customer_description": "How the document describes the customer/client type",
+            "customer_characteristics": "Specific traits, concerns, or behaviors mentioned",
+            "sensitivity_areas": "What the document says to be careful about with this customer type",
+            "success_indicators": "What the document defines as successful interaction"
+        }},
+        "correction_preferences_from_document": {{
+            "preferred_tone": "What tone the document suggests for corrections (gentle, direct, etc.)",
+            "feedback_timing": "When the document says feedback should be given",
+            "correction_method": "How the document says mistakes should be handled",
+            "example_corrections": "Any specific correction examples provided in the document"
+        }},
+        "domain_specific_validation": {{
+            "factual_accuracy_requirements": "What specific facts must be 100% accurate according to document",
+            "process_adherence_requirements": "What processes must be followed according to document", 
+            "customer_matching_requirements": "How responses should match customer profile per document"
+        }}
+    }}
+}}
+
+FINAL VALIDATION CHECKLIST:
+✅ Did you extract roles from the document first before using patterns?
+✅ Does the learn mode role make sense as a teacher/expert?
+✅ Does the assess mode role make sense as a learner/customer/patient?
+✅ Did you extract ALL persona details mentioned in the document?
+✅ Are conversation_topics specific to this document's domain?
+✅ Did you extract the exact methodology/framework name from document?
+
+Generate a comprehensive training scenario with depth and sophistication. Focus on creating realistic, challenging, and educationally valuable experiences.
+
+Make sure the feedback_mechanism details are natural dialogue the character would say, NOT generic responses with role announcements.
+
 Return in the specified JSON format with rich, detailed content in each section.
-PERSONA-DRIVEN EXTRACTION RULES:
-- When extracting context descriptions, make them reference [PERSONA_PLACEHOLDER] 
-- When extracting conversation flow instructions, make them character-driven
-- Replace generic instructions like "explain your situation" with "authentically reflect your character's situation from [PERSONA_PLACEHOLDER]"
-- Make all extracted instructions emphasize using the persona details to drive behavior
-
-IMPORTANT EXTRACTION RULE:
-When extracting any descriptions or instructions for assess/try modes, rewrite them to be persona-driven. 
-Replace generic phrases like "explain your situation" with "authentically reflect your character's situation from [PERSONA_PLACEHOLDER]".
-Make all behavioral instructions reference the character's background and personality.
-
-        """
+"""
         
         try:
             if self.client is None:
-                print("**********************",self.client)
-                # Return mock data for testing
+                print("**********************", self.client)
                 mock_data = self._get_mock_template_data(scenario_document)
-            # ADD: Empty coaching rules for mock data
                 mock_data["coaching_rules"] = {
-                "process_requirements": {},
-                "document_specific_mistakes": [],
-                "customer_context_from_document": {},
-                "correction_preferences_from_document": {},
-                "domain_specific_validation": {}
+                    "process_requirements": {},
+                    "document_specific_mistakes": [],
+                    "customer_context_from_document": {},
+                    "correction_preferences_from_document": {},
+                    "domain_specific_validation": {}
                 }
-                return mock_data                # return self._get_mock_template_data(scenario_document)
+                return mock_data
             
             response = await self.client.chat.completions.create(
                 model=self.model,
@@ -761,14 +737,20 @@ Make all behavioral instructions reference the character's background and person
             )
             
             response_text = response.choices[0].message.content
-            log_token_usage(response, "extract_scenario_info")
+            
+            # Log token usage if available
+            try:
+                from core.simple_token_logger import log_token_usage
+                log_token_usage(response, "extract_scenario_info")
+            except:
+                pass
    
             json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
             if json_match:
                 try:
                     template_data = json.loads(json_match.group(1))
                 except json.JSONDecodeError:
-                    print("*****************************************","json errorrr")
+                    print("*****************************************", "json error")
                     template_data = self._get_mock_template_data(scenario_document)
             else:
                 try:
@@ -776,14 +758,14 @@ Make all behavioral instructions reference the character's background and person
                 except json.JSONDecodeError:
                     template_data = self._get_mock_template_data(scenario_document)
         
-            # ADD: Ensure coaching_rules exists with safe defaults
+            # Ensure coaching_rules exists with safe defaults
             if "coaching_rules" not in template_data:
                 template_data["coaching_rules"] = {
-                "process_requirements": {},
-                "document_specific_mistakes": [],
-                "customer_context_from_document": {},
-                "correction_preferences_from_document": {},
-                "domain_specific_validation": {}
+                    "process_requirements": {},
+                    "document_specific_mistakes": [],
+                    "customer_context_from_document": {},
+                    "correction_preferences_from_document": {},
+                    "domain_specific_validation": {}
                 }
         
             return template_data
@@ -791,17 +773,432 @@ Make all behavioral instructions reference the character's background and person
         except Exception as e:
             print(f"Error in extract_scenario_info: {str(e)}")
             mock_data = self._get_mock_template_data(scenario_document)
-            # ADD: Empty coaching rules for error case
             mock_data["coaching_rules"] = {
-            "process_requirements": {},
-            "document_specific_mistakes": [],
-            "customer_context_from_document": {},
-            "correction_preferences_from_document": {},
-            "domain_specific_validation": {}
+                "process_requirements": {},
+                "document_specific_mistakes": [],
+                "customer_context_from_document": {},
+                "correction_preferences_from_document": {},
+                "domain_specific_validation": {}
             }
-            return mock_data            
-    
-    
+            return mock_data
+
+    def _get_mock_template_data(self, scenario_document):
+        """Generate mock template data for testing when no client is available"""
+        
+        # Try to extract some meaningful info from the scenario document
+        domain = "General Training"
+        title = "Training Scenario"
+        
+        # Simple keyword detection to improve mock data
+        doc_lower = scenario_document.lower()
+        if any(word in doc_lower for word in ['sales', 'sell', 'customer', 'product', 'revenue']):
+            domain = "Sales"
+            title = "Sales Training Scenario"
+        elif any(word in doc_lower for word in ['service', 'support', 'help', 'assistance']):
+            domain = "Customer Service"
+            title = "Customer Service Training"
+        elif any(word in doc_lower for word in ['health', 'medical', 'patient', 'nurse', 'doctor']):
+            domain = "Healthcare"
+            title = "Healthcare Training"
+        elif any(word in doc_lower for word in ['teach', 'student', 'education', 'learn', 'classroom']):
+            domain = "Education"
+            title = "Educational Training"
+        elif any(word in doc_lower for word in ['bank', 'finance', 'loan', 'account', 'money']):
+            domain = "Banking"
+            title = "Banking Training"
+        
+        # Extract some basic info from the document
+        purpose = scenario_document[:200] + "..." if len(scenario_document) > 200 else scenario_document
+        
+        return {
+            "general_info": {
+                "domain": domain,
+                "purpose_of_ai_bot": "Trainer/Customer",
+                "target_audience": "Trainees and professionals",
+                "preferred_language": "English"
+            },
+            "context_overview": {
+                "scenario_title": title,
+                "learn_mode_description": f"AI acts as expert trainer teaching about {domain.lower()}",
+                "assess_mode_description": f"AI acts as customer/client based on character from Character Background, user practices {domain.lower()} skills",
+                "try_mode_description": "Same as assess mode, character behaves based on Character Background",
+                "purpose_of_scenario": f"Based on uploaded content: {purpose}"
+            },
+            "persona_definitions": {
+                "learn_mode_ai_bot": {
+                    "gender": "Female",
+                    "role": f"{domain} Expert Trainer",
+                    "background": f"Professional with extensive {domain.lower()} experience",
+                    "key_skills": f"{domain} expertise, communication, teaching",
+                    "behavioral_traits": "Professional, supportive, knowledgeable",
+                    "goal": f"Educate and guide learners in {domain.lower()}"
+                },
+                "assess_mode_ai_bot": {
+                    "gender": "Male",
+                    "role": f"{domain} Customer/Client",
+                    "background": f"Person seeking {domain.lower()} service or product",
+                    "key_skills": "Asking questions, expressing needs",
+                    "behavioral_traits": "Curious, realistic, varied personalities",
+                    "goal": f"Get help or make informed decisions about {domain.lower()}"
+                }
+            },
+            "dialogue_flow": {
+                "learn_mode_initial_prompt": f"Welcome! I'm here to teach you about {domain.lower()}. What would you like to learn?",
+                "assess_mode_initial_prompt": "Wait for the learner to approach you and start the conversation. Respond naturally based on your character from Charcter Background.",
+                "key_interaction_steps": [
+                    {"user_query": "How can I help you?", "ai_response": f"I need information about {domain.lower()}."}
+                ]
+            },
+            "knowledge_base": {
+                "dos": [
+                    f"Be professional and courteous in {domain.lower()}",
+                    f"Listen actively to {domain.lower()} needs",
+                    f"Provide clear {domain.lower()} explanations",
+                    f"Ask clarifying questions about {domain.lower()}",
+                    f"Follow up appropriately on {domain.lower()} matters",
+                    f"Maintain {domain.lower()} expertise",
+                    f"Use examples when helpful in {domain.lower()}",
+                    f"Stay focused on {domain.lower()} objectives"
+                ],
+                "donts": [
+                    f"Don't be dismissive in {domain.lower()} situations",
+                    f"Don't use confusing {domain.lower()} jargon",
+                    f"Don't ignore {domain.lower()} concerns",
+                    f"Don't rush the {domain.lower()} process",
+                    f"Don't make {domain.lower()} assumptions",
+                    f"Don't be unprofessional in {domain.lower()}",
+                    f"Don't provide false {domain.lower()} information",
+                    f"Don't lose patience with {domain.lower()} questions"
+                ],
+                "key_facts": [
+                    f"{domain} requires understanding of fundamentals",
+                    f"{domain} practice leads to improvement",
+                    f"Clear communication is essential in {domain.lower()}",
+                    f"Different people have different {domain.lower()} needs",
+                    f"Patience is important in {domain.lower()} learning",
+                    f"Examples help {domain.lower()} understanding",
+                    f"Feedback improves {domain.lower()} performance",
+                    f"Consistency builds {domain.lower()} trust"
+                ],
+                "conversation_topics": [
+                    f"Basic {domain.lower()} concepts and fundamentals",
+                    f"Practical {domain.lower()} applications",
+                    f"Common {domain.lower()} challenges",
+                    f"{domain} best practices",
+                    f"Advanced {domain.lower()} techniques",
+                    f"Real-world {domain.lower()} examples"
+                ]
+            },
+            "variations_challenges": {
+                "scenario_variations": [f"Different {domain.lower()} skill levels", f"Various {domain.lower()} backgrounds"],
+                "edge_cases": [f"Difficult {domain.lower()} questions", f"Unusual {domain.lower()} situations"],
+                "error_handling": [f"Clarify {domain.lower()} misunderstandings", f"Redirect {domain.lower()} conversations"]
+            },
+            "success_metrics": {
+                "kpis_for_interaction": [f"{domain} understanding demonstrated", f"{domain} questions answered", f"{domain} objectives met"],
+                "learning_objectives": f"Participants should gain {domain.lower()} knowledge and confidence"
+            },
+            "feedback_mechanism": {
+                "positive_closing": "Thank you for your help. I understand much better now.",
+                "negative_closing": "I'm still not clear on this topic. I think I need more help.",
+                "neutral_closing": "Thanks for the information. I'll think about it.",
+                "profanity_closing": "I prefer to keep our conversation professional.",
+                "disrespectful_closing": "I expect respectful communication.",
+                "emphasis_point": f"the importance of clear {domain.lower()} understanding",
+                "polite_repeat_example": "I appreciate your response, but could you clarify this point?",
+                "negative_closing_example": "I don't feel I've received the guidance I was looking for."
+            }
+        }
+
+    async def generate_learn_mode_from_template(self, template_data):
+        """Generate Learn Mode prompt using template data"""
+        try:
+            general_info = template_data.get('general_info', {})
+            context_overview = template_data.get('context_overview', {})
+            dialogue_flow = template_data.get('dialogue_flow', {})
+            knowledge_base = template_data.get('knowledge_base', {})
+            feedback = template_data.get('feedback_mechanism', {})
+            persona_def = template_data.get('persona_definitions', {}).get('learn_mode_ai_bot', {})
+            print(persona_def,"7777777777777")
+            # Fill template with specific data
+            formatted_template = self.learn_mode_template.format(
+                title=context_overview.get('scenario_title', 'Training Scenario'),
+                bot_role=persona_def.get('role', 'Expert'),
+                bot_situation=persona_def.get('character_goal', 'teaching and guiding learners'),
+                expert_role=persona_def.get('role', 'Expert'),
+                learner_role=template_data.get('persona_definitions', {}).get('assess_mode_ai_bot', {}).get('role', 'learner'),
+                tone=persona_def.get('behavioral_traits', 'professional'),
+                knowledge_type=f"{general_info.get('domain', 'domain')} knowledge",
+                conversation_flow=dialogue_flow.get('learn_mode_initial_prompt', 'Begin by greeting the learner and establishing a supportive environment.'),
+                context_details=context_overview.get('learn_mode_description', 'Professional learning environment.'),
+                areas_to_explore=self._format_bullet_points(knowledge_base.get('conversation_topics', [])),
+                domain=general_info.get('domain', 'this topic'),
+                key_facts=self._format_bullet_points(knowledge_base.get('key_facts', [])),
+                dos=self._format_bullet_points(knowledge_base.get('dos', [])),
+                donts=self._format_bullet_points(knowledge_base.get('donts', [])),
+                implementation_section_title=f"{general_info.get('domain', 'Knowledge')} Implementation",
+                implementation_guidance=context_overview.get('purpose_of_scenario', 'Apply knowledge through practice and real-world scenarios.'),
+                balance_aspect_1="theoretical knowledge",
+                balance_aspect_2="practical application", 
+                communication_style=persona_def.get('behavioral_traits', 'clear and supportive communication'),
+                positive_closing=feedback.get('positive_closing', 'You\'ve shown excellent understanding of this topic.'),
+                clarification_closing=feedback.get('neutral_closing', 'These concepts can be complex, and it\'s good that you\'re asking questions.'),
+                resources_closing=feedback.get('positive_closing', 'Thank you for your engagement with this important topic.')
+            )
+            
+            return formatted_template
+            
+        except Exception as e:
+            print(f"Error in generate_learn_mode_from_template: {str(e)}")
+            return "Error generating learn mode template"
+
+    async def generate_assess_mode_from_template(self, template_data):
+        """Generate Assessment Mode prompt using template data"""
+        try:
+            general_info = template_data.get('general_info', {})
+            context_overview = template_data.get('context_overview', {})
+            dialogue_flow = template_data.get('dialogue_flow', {})
+            knowledge_base = template_data.get('knowledge_base', {})
+            feedback = template_data.get('feedback_mechanism', {})
+            bot_persona = template_data.get('persona_definitions', {}).get('assess_mode_ai_bot', {})
+            print(bot_persona.get('character_goal'),"********************",type (bot_persona))
+            formatted_template = self.assess_mode_template.format(
+                title=context_overview.get('scenario_title', 'Training Scenario'),
+                bot_role=bot_persona.get('role', 'person seeking help'),
+                bot_situation=bot_persona.get('character_goal', 'needs assistance'),
+                trainer_role=template_data.get('persona_definitions', {}).get('learn_mode_ai_bot', {}).get('role', 'trainer'),
+                user_interaction_type="seeking guidance" if "customer" in bot_persona.get('role', '').lower() else "learning",
+                conversation_flow=dialogue_flow.get('assess_mode_initial_prompt', 'Wait for the learner to approach you and start the conversation. Respond naturally based on your character from Character Background.'),
+                context_details=context_overview.get('assess_mode_description', 'Interactive scenario environment where you embody the character from Character Background.'),
+                areas_to_explore=self._format_bullet_points(knowledge_base.get('conversation_topics', [])),
+                emphasis_point=feedback.get('emphasis_point', 'the importance of proper guidance'),
+                polite_repeat_example=feedback.get('polite_repeat_example', 'I appreciate your response, but I\'m still uncertain about this situation.'),
+                negative_closing_example=feedback.get('negative_closing_example', 'Thank you for your time, but I don\'t feel I\'ve received clear guidance.'),
+                positive_closing=feedback.get('positive_closing', 'Thank you for your guidance. I feel more confident now.'),
+                needs_more_guidance_closing=feedback.get('negative_closing', 'Thank you for your time. I\'m still uncertain about how to proceed.'),
+                unhelpful_closing=feedback.get('negative_closing', 'I appreciate your time, but I don\'t feel I\'ve received the guidance I need.'),
+                neutral_closing=feedback.get('neutral_closing', 'Thanks for talking through this with me. I\'ll consider my options.'),
+                profanity_closing=feedback.get('profanity_closing', 'I\'m not comfortable with that language in our discussion.'),
+                disrespectful_closing=feedback.get('disrespectful_closing', 'Your response doesn\'t seem to take this topic seriously.')
+            )
+            
+            return formatted_template
+            
+        except Exception as e:
+            print(f"Error in generate_assess_mode_from_template: {str(e)}")
+            return "Error generating assess mode template"
+
+    async def generate_try_mode_from_template(self, template_data):
+        """Generate Try Mode prompt - uses same as assess mode"""
+        return await self.generate_assess_mode_from_template(template_data)
+
+    def _format_bullet_points(self, items):
+        """Format a list of items as NUMBERED bullet points"""
+        try:
+            if isinstance(items, list):
+                return "\n".join([f"{i+1}. {item}" for i, item in enumerate(items)])
+            return str(items)
+        except Exception as e:
+            print(f"Error in _format_bullet_points: {str(e)}")
+            return "- Error formatting bullet points"
+
+
+    async def generate_personas_from_template(self, template_data, gender='', context=''):
+        """Generate detailed personas based on template persona definitions"""
+        
+        try:
+            if self.client is None:
+                return self._get_mock_personas(template_data)
+            
+            persona_prompt = f"""
+You are a psychology-informed persona architect creating realistic characters for professional training.
+Follow Gender if specified: {gender}
+Persona context: {context}
+
+PERSONA DEPTH REQUIREMENTS:
+- Full demographic profile (age, profession, family situation, location)
+- Psychological profile (personality traits, decision-making style, communication preferences)
+- Current life context (what's happening in their life that affects this interaction)
+- Past experiences that influence their behavior and expectations
+- Specific concerns, fears, and motivations related to this scenario
+- Cultural background and how it influences their approach
+- Economic situation and how it affects their decision-making
+
+REALISM STANDARDS:
+- Base personas on real customer archetypes from this industry
+- Include authentic emotional responses and behavioral patterns
+- Add specific details that make the character memorable and relatable
+- Include contradictions and complexities that real people have
+- Consider how their background affects their communication style
+
+TRAINING VALUE:
+- Design personas that will challenge learners appropriately
+- Include both typical and edge-case characteristics
+- Create opportunities for empathy building and perspective-taking
+- Add details that will help learners practice active listening and adaptation
+
+The persona should feel like a real person of that character type, not a generic template. 
+
+Generate personas for both Learn Mode and Assessment Mode.
+
+Template Data:
+
+Context:
+- Domain: {template_data.get('general_info', {}).get('domain', 'general')}
+- Scenario: {template_data.get('context_overview', {}).get('scenario_title', 'training scenario')}
+
+Create detailed personas in JSON format:
+{{
+    "learn_mode_expert": {{
+        "name": "Full name for the expert",
+        "description": "Brief description",
+        "persona_type": "expert/trainer/specialist", 
+        "gender": "male/female",
+        "age": integer_age,
+        "character_goal": "Professional goal",
+        "location": "City, State/Country",
+        "persona_details": "Appearance, style, expertise details",
+        "situation": "Current role/situation",
+        "context_type": "domain_type",
+        "background_story": "Professional background story"
+    }},
+    "assess_mode_character": {{
+        "name": "Full name for the character", 
+        "description": "Brief description",
+        "persona_type": "customer/client/student/etc.",
+        "gender": "male/female",
+        "age": integer_age,
+        "character_goal": "What they want to achieve",
+        "location": "City, State/Country", 
+        "persona_details": "Appearance, style, personality details",
+        "situation": "Current situation/need",
+        "context_type": "domain_type",
+        "background_story": "Relevant background story"
+    }}
+}}
+
+Provide ONLY the JSON with realistic, detailed personas.
+Create personas that feel like real people with real stories, not generic customer types.
+Make sure you create either a male or female persona.
+Make sure your Personas are based in India.
+            """
+            
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are an expert at creating detailed, realistic personas for training scenarios."},
+                    {"role": "user", "content": persona_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=15000
+            )
+            
+            try:
+                from core.simple_token_logger import log_token_usage
+                log_token_usage(response, "generate_personas_from_template")
+            except:
+                pass
+                
+            response_text = response.choices[0].message.content
+            
+            # Extract JSON from response
+            json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+            if json_match:
+                try:
+                    return json.loads(json_match.group(1))
+                except json.JSONDecodeError:
+                    pass
+            
+            try:
+                return json.loads(response_text)
+            except json.JSONDecodeError:
+                return self._get_mock_personas(template_data)
+                
+        except Exception as e:
+            print(f"Error in generate_personas_from_template: {str(e)}")
+            return self._get_mock_personas(template_data)
+
+    def _get_mock_personas(self, template_data):
+        """Generate mock personas for testing"""
+        domain = template_data.get('general_info', {}).get('domain', 'general')
+        
+        return {
+            "learn_mode_expert": {
+                "name": "Alexandra Mitchell",
+                "description": f"Expert trainer in {domain}",
+                "persona_type": "expert",
+                "gender": "female",
+                "age": 35,
+                "character_goal": "Share expertise and train others",
+                "location": "Mumbai, Maharashtra",
+                "persona_details": "Professional, knowledgeable, patient teaching style",
+                "situation": "Leading training sessions",
+                "context_type": domain,
+                "background_story": "10+ years experience in the field with training expertise"
+            },
+            "assess_mode_character": {
+                "name": "Rajesh Kumar",
+                "description": f"Person seeking help with {domain}",
+                "persona_type": "customer",
+                "gender": "male", 
+                "age": 28,
+                "character_goal": "Get help and guidance",
+                "location": "Bangalore, Karnataka",
+                "persona_details": "Curious, asks thoughtful questions, wants to understand",
+                "situation": "Seeking assistance",
+                "context_type": domain,
+                "background_story": "New to this area and wanting to learn"
+            }
+        }
+
+    def insert_persona(self, prompt, persona_details):
+        """Insert persona details into a prompt, replacing [PERSONA_PLACEHOLDER]"""
+        try:
+            if not isinstance(persona_details, dict):
+                return prompt
+            
+            # Format persona as clean, readable details
+            persona_text = f"""Name: {persona_details.get('name', 'Character Name')}
+Type: {persona_details.get('persona_type', 'character')}
+Gender: {persona_details.get('gender', 'Not specified')}
+Age: {persona_details.get('age', 'Not specified')}
+Goal: {persona_details.get('character_goal', 'Character objective')}
+Location: {persona_details.get('location', 'Location')}
+Description: {persona_details.get('description', 'Character description')}
+Details: {persona_details.get('persona_details', 'Character personality and traits')}
+Current situation: {persona_details.get('situation', 'Current context')}
+Context: {persona_details.get('context_type', 'Context')}
+Background: {persona_details.get('background_story', 'Character background and history')}"""
+            
+            # Replace placeholder with formatted persona
+            return prompt.replace("[PERSONA_PLACEHOLDER]", persona_text)
+            
+        except Exception as e:
+            print(f"Error in insert_persona: {str(e)}")
+            return prompt
+
+    def insert_language_instructions(self, prompt, language_data=None):
+        """Insert language instructions into a prompt, replacing [LANGUAGE_INSTRUCTIONS]"""
+        try:
+            if language_data and isinstance(language_data, dict):
+                language_text = f"""Language Instructions:
+- Primary Language: {language_data.get('preferred_language', 'English')}
+- Communication Style: Professional and clear
+- Cultural Context: Appropriate for the domain
+- Tone: Respectful and appropriate for the scenario"""
+            else:
+                # Default language instructions placeholder
+                language_text = """Language Instructions:
+- Communicate in clear, professional language appropriate for the scenario
+- Adapt communication style to match the character and context
+- Use respectful and appropriate tone throughout the conversation"""
+            
+            return prompt.replace("[LANGUAGE_INSTRUCTIONS]", language_text)
+            
+        except Exception as e:
+            print(f"Error in insert_language_instructions: {str(e)}")
+            return prompt
+
     async def extract_evaluation_metrics_from_template(self, scenario_text: str, template_data: Dict[str, Any]) -> Dict[str, Any]:
         """Extract evaluation metrics and criteria from scenario document"""
     
@@ -866,7 +1263,13 @@ Make all behavioral instructions reference the character's background and person
                 temperature=0.2,
                 max_tokens=1500
             )
-            log_token_usage(response, "extract_evaluation_metrics_from_template")
+            
+            try:
+                from core.simple_token_logger import log_token_usage
+                log_token_usage(response, "extract_evaluation_metrics_from_template")
+            except:
+                pass
+                
             result_text = response.choices[0].message.content
         
             # Extract JSON
@@ -922,476 +1325,6 @@ Make all behavioral instructions reference the character's background and person
             "needs_improvement": 45
         }
         }
-    def _get_mock_template_data(self, scenario_document):
-        """Generate mock template data for testing when no client is available"""
-        
-        # Try to extract some meaningful info from the scenario document
-        domain = "General Training"
-        title = "Training Scenario"
-        
-        # Simple keyword detection to improve mock data
-        doc_lower = scenario_document.lower()
-        if any(word in doc_lower for word in ['sales', 'sell', 'customer', 'product', 'revenue']):
-            domain = "Sales"
-            title = "Sales Training Scenario"
-        elif any(word in doc_lower for word in ['service', 'support', 'help', 'assistance']):
-            domain = "Customer Service"
-            title = "Customer Service Training"
-        elif any(word in doc_lower for word in ['health', 'medical', 'patient', 'nurse', 'doctor']):
-            domain = "Healthcare"
-            title = "Healthcare Training"
-        elif any(word in doc_lower for word in ['teach', 'student', 'education', 'learn', 'classroom']):
-            domain = "Education"
-            title = "Educational Training"
-        elif any(word in doc_lower for word in ['bank', 'finance', 'loan', 'account', 'money']):
-            domain = "Banking"
-            title = "Banking Training"
-        
-        # Extract some basic info from the document
-        purpose = scenario_document[:200] + "..." if len(scenario_document) > 200 else scenario_document
-        
-        return {
-            "general_info": {
-                "domain": domain,
-                "purpose_of_ai_bot": "Trainer/Customer",
-                "target_audience": "Trainees and professionals",
-                "preferred_language": "English"
-            },
-            "context_overview": {
-                "scenario_title": title,
-                "learn_mode_description": f"AI acts as expert trainer teaching about {domain.lower()}",
-                "assess_mode_description": f"AI acts as customer/client, user practices {domain.lower()} skills",
-                "try_mode_description": "Same as assess mode without feedback",
-                "purpose_of_scenario": f"Based on uploaded content: {purpose}"
-            },
-            "persona_definitions": {
-                "learn_mode_ai_bot": {
-                    "gender": "Female",
-                    "role": f"{domain} Expert Trainer",
-                    "background": f"Professional with extensive {domain.lower()} experience",
-                    "key_skills": f"{domain} expertise, communication, teaching",
-                    "behavioral_traits": "Professional, supportive, knowledgeable",
-                    "goal": f"Educate and guide learners in {domain.lower()}"
-                },
-                "assess_mode_ai_bot": {
-                    "gender": "Male",
-                    "role": f"{domain} Customer/Client",
-                    "background": f"Person seeking {domain.lower()} service or product",
-                    "key_skills": "Asking questions, expressing needs",
-                    "behavioral_traits": "Curious, realistic, varied personalities",
-                    "goal": f"Get help or make informed decisions about {domain.lower()}"
-                }
-            },
-            "dialogue_flow": {
-                "learn_mode_initial_prompt": f"Welcome! I'm here to teach you about {domain.lower()}. What would you like to learn?",
-                "assess_mode_initial_prompt": f"Hello, I'm looking for help with {domain.lower()}. Can you assist me?",
-                "key_interaction_steps": [
-                    {"user_query": "How can I help you?", "ai_response": f"I need information about {domain.lower()}."}
-                ]
-            },
-            "knowledge_base": {
-                "dos": [
-                    f"Be professional and courteous in {domain.lower()}",
-                    f"Listen actively to {domain.lower()} needs",
-                    f"Provide clear {domain.lower()} explanations",
-                    f"Ask clarifying questions about {domain.lower()}",
-                    f"Follow up appropriately on {domain.lower()} matters",
-                    f"Maintain {domain.lower()} expertise",
-                    f"Use examples when helpful in {domain.lower()}",
-                    f"Stay focused on {domain.lower()} objectives"
-                ],
-                "donts": [
-                    f"Don't be dismissive in {domain.lower()} situations",
-                    f"Don't use confusing {domain.lower()} jargon",
-                    f"Don't ignore {domain.lower()} concerns",
-                    f"Don't rush the {domain.lower()} process",
-                    f"Don't make {domain.lower()} assumptions",
-                    f"Don't be unprofessional in {domain.lower()}",
-                    f"Don't provide false {domain.lower()} information",
-                    f"Don't lose patience with {domain.lower()} questions"
-                ],
-                "key_facts": [
-                    f"{domain} requires understanding of fundamentals",
-                    f"{domain} practice leads to improvement",
-                    f"Clear communication is essential in {domain.lower()}",
-                    f"Different people have different {domain.lower()} needs",
-                    f"Patience is important in {domain.lower()} learning",
-                    f"Examples help {domain.lower()} understanding",
-                    f"Feedback improves {domain.lower()} performance",
-                    f"Consistency builds {domain.lower()} trust"
-                ],
-                "conversation_topics": [
-                    f"Basic {domain.lower()} concepts and fundamentals",
-                    f"Practical {domain.lower()} applications",
-                    f"Common {domain.lower()} challenges",
-                    f"{domain} best practices",
-                    f"Advanced {domain.lower()} techniques",
-                    f"Real-world {domain.lower()} examples"
-                ]
-            },
-            "variations_challenges": {
-                "scenario_variations": [f"Different {domain.lower()} skill levels", f"Various {domain.lower()} backgrounds"],
-                "edge_cases": [f"Difficult {domain.lower()} questions", f"Unusual {domain.lower()} situations"],
-                "error_handling": [f"Clarify {domain.lower()} misunderstandings", f"Redirect {domain.lower()} conversations"]
-            },
-            "success_metrics": {
-                "kpis_for_interaction": [f"{domain} understanding demonstrated", f"{domain} questions answered", f"{domain} objectives met"],
-                "learning_objectives": f"Participants should gain {domain.lower()} knowledge and confidence"
-            },
-            "feedback_mechanism": {
-                "positive_closing": f"Thank you for your help with {domain.lower()}. I understand much better now.",
-                "negative_closing": f"I'm still not clear on this {domain.lower()} topic. I think I need more help.",
-                "neutral_closing": f"Thanks for the {domain.lower()} information. I'll think about it.",
-                "profanity_closing": "I prefer to keep our conversation professional.",
-                "disrespectful_closing": "I expect respectful communication.",
-                "emphasis_point": f"the importance of clear {domain.lower()} understanding",
-                "polite_repeat_example": f"I appreciate your response, but could you clarify this {domain.lower()} point?",
-                "negative_closing_example": f"I don't feel I've received the {domain.lower()} guidance I was looking for."
-            }
-        }
-
-    async def generate_personas_from_template(self, template_data,gender='',context=''):
-        """Generate detailed personas based on template persona definitions"""
-        
-        try:
-            if self.client is None:
-                # Return mock personas for testing
-                return self._get_mock_personas(template_data)
-            
-            persona_prompt = f"""
-           You are a psychology-informed persona architect creating realistic characters for professional training.
-Follow Gender if specified :{gender}
-Persona context:{context}
-PERSONA DEPTH REQUIREMENTS:
-- Full demographic profile (age, profession, family situation, location)
-- Psychological profile (personality traits, decision-making style, communication preferences)
-- Current life context (what's happening in their life that affects this interaction)
-- Past experiences that influence their behavior and expectations
-- Specific concerns, fears, and motivations related to this scenario
-- Cultural background and how it influences their approach
-- Economic situation and how it affects their decision-making
-
-REALISM STANDARDS:
-- Base personas on real customer archetypes from this industry
-- Include authentic emotional responses and behavioral patterns
-- Add specific details that make the character memorable and relatable
-- Include contradictions and complexities that real people have
-- Consider how their background affects their communication style
-
-TRAINING VALUE:
-- Design personas that will challenge learners appropriately
-- Include both typical and edge-case characteristics
-- Create opportunities for empathy building and perspective-taking
-- Add details that will help learners practice active listening and adaptation
- CRITICAL CHARACTER TYPE HANDLING:
-Analyze the role description and background from the template. If multiple distinct character types are mentioned:
-1. Randomly select ONE type to embody
-2. Include the type in the "role" field naturally
-3. Build the entire persona authentically around that type's perspective
-4. Let that type's unique situation, concerns, and emotional state inform all persona fields
-
-The persona should feel like a real person of that character type, not a generic template. 
-            Generate personas for both Learn Mode and Assessment Mode.
-            
-            Template Data:
-            
-            Context:
-            - Domain: {template_data.get('general_info', {}).get('domain', 'general')}
-            - Scenario: {template_data.get('context_overview', {}).get('scenario_title', 'training scenario')}
-            
-            Create detailed personas in JSON format:
-            {{
-                "learn_mode_expert": {{
-                    "name": "Full name for the expert",
-                    "description": "Brief description",
-                    "persona_type": "expert/trainer/specialist", 
-                    "gender": "male/female",
-                    "age": integer_age,
-                    "character_goal": "Professional goal",
-                    "location": "City, State/Country",
-                    "persona_details": "Appearance, style, expertise details",
-                    "situation": "Current role/situation",
-                    "context_type": "domain_type",
-                    "background_story": "Professional background story"
-                }},
-                "assess_mode_character": {{
-                    "name": "Full name for the character", 
-                    "description": "Brief description",
-                    "persona_type": "customer/client/student/etc.",
-                    "gender": "male/female",
-                    "age": integer_age,
-                    "character_goal": "What they want to achieve",
-                    "location": "City, State/Country", 
-                    "persona_details": "Appearance, style, personality details",
-                    "situation": "Current situation/need",
-                    "context_type": "domain_type",
-                    "background_story": "Relevant background story"
-                }}
-            }}
-            
-            Provide ONLY the JSON with realistic, detailed personas.
-            Create personas that feel like real people with real stories, not generic customer types.
-            Make sure you create either a male or female persona
-            Make sure your Personas are of based in india
-            """
-            print(persona_prompt)
-            response = await self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": "You are an expert at creating detailed, realistic personas for training scenarios."},
-                    {"role": "user", "content": persona_prompt}
-                ],
-                temperature=0.7,
-                max_tokens=15000
-            )
-            log_token_usage(response, "generate_personas_from_template")
-            response_text = response.choices[0].message.content
-            
-            # Extract JSON from response
-            json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
-            if json_match:
-                try:
-                    return json.loads(json_match.group(1))
-                except json.JSONDecodeError:
-                    pass
-            
-            try:
-                return json.loads(response_text)
-            except json.JSONDecodeError:
-                return self._get_mock_personas(template_data)
-                
-        except Exception as e:
-            print(f"Error in generate_personas_from_template: {str(e)}")
-            return self._get_mock_personas(template_data)
-
-    def _get_mock_personas(self, template_data):
-        """Generate mock personas for testing"""
-        domain = template_data.get('general_info', {}).get('domain', 'general')
-        
-        return {
-            "learn_mode_expert": {
-                "name": "Alexandra Mitchell",
-                "description": f"Expert trainer in {domain}",
-                "persona_type": "expert",
-                "gender": "female",
-                "age": 35,
-                "character_goal": "Share expertise and train others",
-                "location": "New York, NY",
-                "persona_details": "Professional, knowledgeable, patient teaching style",
-                "situation": "Leading training sessions",
-                "context_type": domain,
-                "background_story": "10+ years experience in the field with training expertise"
-            },
-            "assess_mode_character": {
-                "name": "Michael Johnson",
-                "description": f"Person seeking help with {domain}",
-                "persona_type": "customer",
-                "gender": "male", 
-                "age": 28,
-                "character_goal": "Get help and guidance",
-                "location": "Chicago, IL",
-                "persona_details": "Curious, asks thoughtful questions, wants to understand",
-                "situation": "Seeking assistance",
-                "context_type": domain,
-                "background_story": "New to this area and wanting to learn"
-            }
-        }
-
-    async def generate_learn_mode_from_template(self, template_data):
-        """Generate Learn Mode prompt using template data"""
-        try:
-            general_info = template_data.get('general_info', {})
-            context_overview = template_data.get('context_overview', {})
-            dialogue_flow = template_data.get('dialogue_flow', {})
-            knowledge_base = template_data.get('knowledge_base', {})
-            feedback = template_data.get('feedback_mechanism', {})
-            persona_def = template_data.get('persona_definitions', {}).get('learn_mode_ai_bot', {})
-            
-            # Fill template with specific data
-            formatted_template = self.learn_mode_template.format(
-                title=context_overview.get('scenario_title', 'Training Scenario'),
-                expert_role=persona_def.get('role', 'Expert'),
-                specialization=general_info.get('domain', 'this field'),
-                learner_role=template_data.get('persona_definitions', {}).get('assess_mode_ai_bot', {}).get('role', 'learner'),
-                tone=persona_def.get('behavioral_traits', 'professional'),
-                knowledge_type=f"{general_info.get('domain', 'domain')} knowledge",
-                conversation_flow=dialogue_flow.get('learn_mode_initial_prompt', 'Begin by greeting the learner and establishing a supportive environment.'),
-                context_details=context_overview.get('learn_mode_description', 'Professional learning environment.'),
-                areas_to_explore=self._format_bullet_points(knowledge_base.get('conversation_topics', [])),
-                domain=general_info.get('domain', 'this topic'),
-                key_facts=self._format_bullet_points(knowledge_base.get('key_facts', [])),
-                dos=self._format_bullet_points(knowledge_base.get('dos', [])),
-                donts=self._format_bullet_points(knowledge_base.get('donts', [])),
-                implementation_section_title=f"{general_info.get('domain', 'Knowledge')} Implementation",
-                implementation_guidance=context_overview.get('purpose_of_scenario', 'Apply knowledge through practice and real-world scenarios.'),
-                balance_aspect_1="theoretical knowledge",
-                balance_aspect_2="practical application", 
-                communication_style=persona_def.get('behavioral_traits', 'clear and supportive communication'),
-                positive_closing=feedback.get('positive_closing', 'You\'ve shown excellent understanding of this topic.'),
-                clarification_closing=feedback.get('neutral_closing', 'These concepts can be complex, and it\'s good that you\'re asking questions.'),
-                resources_closing=feedback.get('positive_closing', 'Thank you for your engagement with this important topic.')
-            )
-            
-            return formatted_template
-            
-        except Exception as e:
-            print(f"Error in generate_learn_mode_from_template: {str(e)}")
-            return "Error generating learn mode template"
-
-    async def generate_assess_mode_from_template(self, template_data):
-        """Generate Assessment Mode prompt using template data"""
-        try:
-            general_info = template_data.get('general_info', {})
-            context_overview = template_data.get('context_overview', {})
-            dialogue_flow = template_data.get('dialogue_flow', {})
-            knowledge_base = template_data.get('knowledge_base', {})
-            feedback = template_data.get('feedback_mechanism', {})
-            bot_persona = template_data.get('persona_definitions', {}).get('assess_mode_ai_bot', {})
-            
-            # Build incorrect response criteria
-            incorrect_criteria = """- Do not provide helpful, constructive guidance
-- Are dismissive of the situation
-- Show indifference or apathy  
-- Are brief, vague, or lack actionable advice
-- Contain negative or unsupportive elements
-- Fail to address the core issues raised
-- Suggest the situation isn't important
-- Indicate unwillingness to engage
-- Show lack of knowledge or understanding
-- Use dismissive language or tone
-- Consist of brief responses like "no," "I don't know," etc."""
-
-            # Build correct examples
-            correct_examples = f"""Example of correct implementation:
-Human: "I don't know much about {general_info.get('domain', 'this topic')}. Just figure it out yourself."
-You: "I understand this might be challenging. [CORRECT] Hello learner, When someone seeks guidance about {general_info.get('domain', 'this topic')}, a dismissive response fails to provide necessary support. A helpful response would acknowledge their concerns, provide clear information, and offer actionable guidance. Remember that learners need both practical guidance and encouragement to build their confidence effectively. [CORRECT]" """
-
-            formatted_template = self.assess_mode_template.format(
-                title=context_overview.get('scenario_title', 'Training Scenario'),
-                bot_role=bot_persona.get('role', 'person seeking help'),
-                bot_situation=bot_persona.get('goal', 'needs assistance'),
-                trainer_role=template_data.get('persona_definitions', {}).get('learn_mode_ai_bot', {}).get('role', 'trainer'),
-                user_interaction_type="seeking guidance" if "customer" in bot_persona.get('role', '').lower() else "learning",
-                conversation_flow=dialogue_flow.get('assess_mode_initial_prompt', 'Begin by greeting the user and explaining your situation.'),
-                context_details=context_overview.get('assess_mode_description', 'Interactive scenario environment.'),
-                areas_to_explore=self._format_bullet_points(knowledge_base.get('conversation_topics', [])),
-                domain=general_info.get('domain', 'this topic'),
-                key_facts=self._format_bullet_points(knowledge_base.get('key_facts', [])),
-                natural_reaction_type=bot_persona.get('behavioral_traits', 'confusion, disappointment, etc.'),
-                incorrect_response_criteria=incorrect_criteria,
-                correct_examples=correct_examples,
-                emphasis_point=feedback.get('emphasis_point', 'the importance of proper guidance'),
-                polite_repeat_example=feedback.get('polite_repeat_example', 'I appreciate your response, but I\'m still uncertain about this situation.'),
-                negative_closing_example=feedback.get('negative_closing_example', 'Thank you for your time, but I don\'t feel I\'ve received clear guidance.'),
-                issue_type=general_info.get('domain', 'topic'),
-                positive_closing=feedback.get('positive_closing', 'Thank you for your guidance. I feel more confident now.'),
-                needs_more_guidance_closing=feedback.get('negative_closing', 'Thank you for your time. I\'m still uncertain about how to proceed.'),
-                unhelpful_closing=feedback.get('negative_closing', 'I appreciate your time, but I don\'t feel I\'ve received the guidance I need.'),
-                neutral_closing=feedback.get('neutral_closing', 'Thanks for talking through this with me. I\'ll consider my options.'),
-                profanity_closing=feedback.get('profanity_closing', 'I\'m not comfortable with that language in our discussion.'),
-                disrespectful_closing=feedback.get('disrespectful_closing', 'Your response doesn\'t seem to take this topic seriously.')
-            )
-            
-            return formatted_template
-            
-        except Exception as e:
-            print(f"Error in generate_assess_mode_from_template: {str(e)}")
-            return "Error generating assess mode template"
-
-    async def generate_try_mode_from_template(self, template_data):
-        """Generate Try Mode prompt using template data"""
-        try:
-            general_info = template_data.get('general_info', {})
-            context_overview = template_data.get('context_overview', {})
-            dialogue_flow = template_data.get('dialogue_flow', {})
-            knowledge_base = template_data.get('knowledge_base', {})
-            feedback = template_data.get('feedback_mechanism', {})
-            bot_persona = template_data.get('persona_definitions', {}).get('assess_mode_ai_bot', {})
-            
-            formatted_template = self.try_mode_template.format(
-                title=context_overview.get('scenario_title', 'Training Scenario'),
-                bot_role=bot_persona.get('role', 'person seeking help'),
-                bot_situation=bot_persona.get('goal', 'needs assistance'),
-                trainer_role=template_data.get('persona_definitions', {}).get('learn_mode_ai_bot', {}).get('role', 'trainer'),
-                user_interaction_type="seeking guidance" if "customer" in bot_persona.get('role', '').lower() else "learning",
-                conversation_flow=dialogue_flow.get('assess_mode_initial_prompt', 'Begin by greeting the user and explaining your situation.'),
-                context_details=context_overview.get('try_mode_description', 'Practice scenario environment.'),
-                areas_to_explore=self._format_bullet_points(knowledge_base.get('conversation_topics', [])),
-                emphasis_point=feedback.get('emphasis_point', 'the importance of proper guidance'),
-                polite_repeat_example=feedback.get('polite_repeat_example', 'I appreciate your response, but I\'m still uncertain about this situation.'),
-                negative_closing_example=feedback.get('negative_closing_example', 'Thank you for your time, but I don\'t feel I\'ve received clear guidance.'),
-                issue_type=general_info.get('domain', 'topic'),
-                positive_closing=feedback.get('positive_closing', 'Thank you for your guidance. I feel more confident now.'),
-                needs_more_guidance_closing=feedback.get('negative_closing', 'Thank you for your time. I\'m still uncertain about how to proceed.'),
-                unhelpful_closing=feedback.get('negative_closing', 'I appreciate your time, but I don\'t feel I\'ve received the guidance I need.'),
-                neutral_closing=feedback.get('neutral_closing', 'Thanks for talking through this with me. I\'ll consider my options.'),
-                profanity_closing=feedback.get('profanity_closing', 'I\'m not comfortable with that language in our discussion.'),
-                disrespectful_closing=feedback.get('disrespectful_closing', 'Your response doesn\'t seem to take this topic seriously.')
-            )
-            
-            return formatted_template
-            
-        except Exception as e:
-            print(f"Error in generate_try_mode_from_template: {str(e)}")
-            return "Error generating try mode template"
-
-    def _format_bullet_points(self, items):
-        """Format a list of items as bullet points"""
-        try:
-            if isinstance(items, list):
-                return "\n".join([f"- {item}" for item in items])
-            return str(items)
-        except Exception as e:
-            print(f"Error in _format_bullet_points: {str(e)}")
-            return "- Error formatting bullet points"
-
-    def insert_persona(self, prompt, persona_details):
-        """Insert persona details into a prompt, replacing [PERSONA_PLACEHOLDER]"""
-        try:
-            if not isinstance(persona_details, dict):
-                return prompt
-            
-            # Format persona based on available fields  
-            persona_text = f"""- Your name is {persona_details.get('name', '[Your Name]')} (Always return this name when asked)
-
-- Age: {persona_details.get('age', '[Age]')}
-
-- Background: {persona_details.get('background_story', '[Background]')}
-
-- Personality: {persona_details.get('persona_details', '[Personality traits]')}
-
-- Current Goal: {persona_details.get('character_goal', '[Current objective]')}
-
-- Location: {persona_details.get('location', '[Location]')}"""
-            
-            # Replace placeholder with formatted persona
-            return prompt.replace("[PERSONA_PLACEHOLDER]", persona_text)
-            
-        except Exception as e:
-            print(f"Error in insert_persona: {str(e)}")
-            return prompt
-
-    def insert_language_instructions(self, prompt, language_data=None):
-        """Insert language instructions into a prompt, replacing [LANGUAGE_INSTRUCTIONS]"""
-        try:
-            if language_data and isinstance(language_data, dict):
-                language_text = f"""Language Instructions:
-- Primary Language: {language_data.get('preferred_language', 'English')}
-- Communication Style: Professional and clear
-- Cultural Context: Appropriate for the domain
-- Tone: Respectful and appropriate for the scenario"""
-            else:
-                # Default language instructions placeholder
-                language_text = """Language Instructions:
-- Communicate in clear, professional language appropriate for the scenario
-- Adapt communication style to match the character and context
-- Use respectful and appropriate tone throughout the conversation"""
-            
-            return prompt.replace("[LANGUAGE_INSTRUCTIONS]", language_text)
-            
-        except Exception as e:
-            print(f"Error in insert_language_instructions: {str(e)}")
-            return prompt
 
 # API Endpoints
 
@@ -2415,9 +2348,17 @@ async def regenerate_scenario_from_template(
         if not template:
             raise HTTPException(status_code=404, detail="Linked template not found")
         
+        # DEBUG: Log template fetch
+        print(f"🔍 Regenerate: Fetched template {template_id}")
+        print(f"📅 Template last updated: {template.get('updated_at')}")
+        
         template_data = template.get("template_data")
         if not template_data:
             raise HTTPException(status_code=400, detail="No template data found")
+        
+        # DEBUG: Log template data preview
+        print(f"📝 Template data keys: {list(template_data.keys())}")
+        print(f"📋 Scenario title from template: {template_data.get('context_overview', {}).get('scenario_title', 'N/A')}")
         
         # Initialize generator
         generator = EnhancedScenarioGenerator(azure_openai_client)
@@ -2458,15 +2399,68 @@ async def regenerate_scenario_from_template(
             "updated_at": datetime.now()
         }
         
-        # Store generated prompts in scenario (you may need to adjust this based on your schema)
+        # Store generated prompts in scenario AND update avatar_interaction documents
+        print(f"🔍 DEBUG: Scenario modes to regenerate: {modes_to_regenerate}")
+        print(f"🔍 DEBUG: Scenario learn_mode exists: {scenario.get('learn_mode') is not None}")
+        print(f"🔍 DEBUG: Scenario assess_mode exists: {scenario.get('assess_mode') is not None}")
+        print(f"🔍 DEBUG: Scenario try_mode exists: {scenario.get('try_mode') is not None}")
+        
         if "learn_mode" in generated_prompts and scenario.get("learn_mode"):
             update_data["learn_mode.prompt"] = generated_prompts["learn_mode"]
+            avatar_interaction_id = scenario.get("learn_mode", {}).get("avatar_interaction")
+            print(f"🔍 DEBUG: Learn mode avatar_interaction: {avatar_interaction_id}")
+            if not avatar_interaction_id:
+                raise HTTPException(status_code=400, detail=f"Learn mode avatar_interaction is missing. Scenario learn_mode data: {scenario.get('learn_mode')}")
+            try:
+                result = await db.avatar_interactions.update_one(
+                    {"_id": str(avatar_interaction_id)},
+                    {"$set": {"system_prompt": generated_prompts["learn_mode"], "updated_at": datetime.now()}}
+                )
+                if result.matched_count == 0:
+                    raise HTTPException(status_code=404, detail=f"Learn mode avatar_interaction {avatar_interaction_id} not found")
+                print(f"✅ Learn mode avatar_interaction updated: matched={result.matched_count}, modified={result.modified_count}")
+            except HTTPException:
+                raise
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to update learn mode avatar_interaction: {str(e)}")
         
         if "assess_mode" in generated_prompts and scenario.get("assess_mode"):
             update_data["assess_mode.prompt"] = generated_prompts["assess_mode"]
+            avatar_interaction_id = scenario.get("assess_mode", {}).get("avatar_interaction")
+            print(f"🔍 DEBUG: Assess mode avatar_interaction: {avatar_interaction_id}")
+            if not avatar_interaction_id:
+                raise HTTPException(status_code=400, detail=f"Assess mode avatar_interaction is missing. Scenario assess_mode data: {scenario.get('assess_mode')}")
+            try:
+                result = await db.avatar_interactions.update_one(
+                    {"_id": str(avatar_interaction_id)},
+                    {"$set": {"system_prompt": generated_prompts["assess_mode"], "updated_at": datetime.now()}}
+                )
+                if result.matched_count == 0:
+                    raise HTTPException(status_code=404, detail=f"Assess mode avatar_interaction {avatar_interaction_id} not found")
+                print(f"✅ Assess mode avatar_interaction updated: matched={result.matched_count}, modified={result.modified_count}")
+            except HTTPException:
+                raise
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to update assess mode avatar_interaction: {str(e)}")
         
         if "try_mode" in generated_prompts and scenario.get("try_mode"):
             update_data["try_mode.prompt"] = generated_prompts["try_mode"]
+            avatar_interaction_id = scenario.get("try_mode", {}).get("avatar_interaction")
+            print(f"🔍 DEBUG: Try mode avatar_interaction: {avatar_interaction_id}")
+            if not avatar_interaction_id:
+                raise HTTPException(status_code=400, detail=f"Try mode avatar_interaction is missing. Scenario try_mode data: {scenario.get('try_mode')}")
+            try:
+                result = await db.avatar_interactions.update_one(
+                    {"_id": str(avatar_interaction_id)},
+                    {"$set": {"system_prompt": generated_prompts["try_mode"], "updated_at": datetime.now()}}
+                )
+                if result.matched_count == 0:
+                    raise HTTPException(status_code=404, detail=f"Try mode avatar_interaction {avatar_interaction_id} not found")
+                print(f"✅ Try mode avatar_interaction updated: matched={result.matched_count}, modified={result.modified_count}")
+            except HTTPException:
+                raise
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to update try mode avatar_interaction: {str(e)}")
         
         await db.scenarios.update_one(
             {"_id": scenario_id},
