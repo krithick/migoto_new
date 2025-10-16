@@ -14,13 +14,13 @@ class FileStorageService:
     
     def __init__(
         self, 
-        base_upload_dir: str = "uploads",
-        local_url_prefix: str = "http://localhost:8000/uploads",
-        live_url_prefix: str = "https://meta.novactech.in:5885/uploads"
+        base_upload_dir: str = None,
+        local_url_prefix: str = None,
+        live_url_prefix: str = None
     ):
-        self.base_upload_dir = base_upload_dir
-        self.local_url_prefix = local_url_prefix
-        self.live_url_prefix = live_url_prefix
+        self.base_upload_dir = base_upload_dir or os.environ.get("UPLOAD_DIR", "uploads")
+        self.local_url_prefix = local_url_prefix or os.environ.get("LOCAL_URL_PREFIX", "http://localhost:8000/uploads")
+        self.live_url_prefix = live_url_prefix or os.environ.get("LIVE_URL_PREFIX", "https://meta.novactech.in:5885/uploads")
         
         # Create base directory if it doesn't exist
         os.makedirs(self.base_upload_dir, exist_ok=True)
@@ -162,8 +162,4 @@ class FileStorageService:
         return None
 
 # Create a singleton instance
-file_storage_service = FileStorageService(
-    base_upload_dir=os.environ.get("UPLOAD_DIR", "uploads"),
-    local_url_prefix=os.environ.get("LOCAL_URL_PREFIX", "http://localhost:8000/uploads"),
-    live_url_prefix=os.environ.get("LIVE_URL_PREFIX", "https://meta.novactech.in:6445/uploads")
-)
+file_storage_service = FileStorageService()
