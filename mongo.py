@@ -76,6 +76,10 @@ class MongoDB:
         # New collections for module and scenario assignments
         self.user_module_assignments = self.db.user_module_assignments
         self.user_scenario_assignments = self.db.user_scenario_assignments
+        self.scenario_cost_tracking= self.db.scenario_cost_tracking
+        self.conversation_cost_tracking=self.db.conversation_cost_tracking  
+        self.flexible_templates=self.db.flexible_templates 
+        self.flexible_scenarios=self.db.flexible_scenarios 
     def __getitem__(self, collection_name: str):
         """Enable dict-style access for enhanced system compatibility"""
         if hasattr(self, collection_name):
@@ -115,7 +119,12 @@ class MongoDB:
     async def get_session_analysis(self, session_id: str) -> Optional[ChatSession]:
         session_data = await self.analysis.find_one({"session_id": str(session_id)})
         if session_data:
-            return Evaluation(**session_data)
+            # Check if required fields exist, return raw data if not a valid Evaluation
+            required_fields = ['conversation_id', 'evaluation_meta', 'overall_evaluation', 'recommendations']
+            if all(field in session_data for field in required_fields):
+                return Evaluation(**session_data)
+            # Return raw data if it's not a proper evaluation format
+            return session_data
         return None
     
     # for sales
