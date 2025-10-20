@@ -15,7 +15,8 @@ from utils import convert_template_to_markdown
 from models.user_models import UserRole
 load_dotenv(".env")
 from core.simple_token_logger import log_token_usage
-
+from core.archetype_classifier import ArchetypeClassifier
+from database import db,get_db
 router = APIRouter(prefix="/scenario", tags=["Scenario Generation"])
 api_key = os.getenv("api_key")
 endpoint = os.getenv("endpoint")
@@ -43,7 +44,7 @@ import uuid
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, File, UploadFile, Body
 from database import db
-router = APIRouter()
+# router = APIRouter()
 
 # In-memory storage for demo (replace with your actual database)
 scenario_storage = {}
@@ -245,6 +246,7 @@ class EnhancedScenarioGenerator:
         self.learn_mode_template = self._load_learn_mode_template()
         self.assess_mode_template = self._load_assess_mode_template()
         self.try_mode_template = self._load_try_mode_template()
+        self.archetype_classifier = ArchetypeClassifier(client, model)
 
     def _load_system_prompt(self):
         return """You are an expert at creating detailed role-play scenario prompts with precise template structures.
@@ -767,6 +769,27 @@ Return in the specified JSON format with rich, detailed content in each section.
                     "correction_preferences_from_document": {},
                     "domain_specific_validation": {}
                 }
+            
+            # Classify archetype
+            try:
+                archetype_result = await self.archetype_classifier.classify_scenario(scenario_document, template_data)
+                template_data["archetype_classification"] = {
+                    "primary_archetype": archetype_result.primary_archetype,
+                    "confidence_score": archetype_result.confidence_score,
+                    "alternative_archetypes": archetype_result.alternative_archetypes,
+                    "reasoning": archetype_result.reasoning,
+                    "sub_type": archetype_result.sub_type
+                }
+                print(f"✅ Classified as: {archetype_result.primary_archetype} (confidence: {archetype_result.confidence_score})")
+            except Exception as e:
+                print(f"⚠️ Archetype classification failed: {e}")
+                template_data["archetype_classification"] = {
+                    "primary_archetype": "HELP_SEEKING",  # Default fallback
+                    "confidence_score": 0.5,
+                    "alternative_archetypes": [],
+                    "reasoning": "Classification failed, using default",
+                    "sub_type": None
+                }
         
             return template_data
         
@@ -961,7 +984,11 @@ Return in the specified JSON format with rich, detailed content in each section.
             knowledge_base = template_data.get('knowledge_base', {})
             feedback = template_data.get('feedback_mechanism', {})
             bot_persona = template_data.get('persona_definitions', {}).get('assess_mode_ai_bot', {})
-            print(bot_persona.get('character_goal'),"********************",type (bot_persona))
+            
+            # Ensure bot_persona is a dictionary
+            if not isinstance(bot_persona, dict):
+                bot_persona = {}
+            
             formatted_template = self.assess_mode_template.format(
                 title=context_overview.get('scenario_title', 'Training Scenario'),
                 bot_role=bot_persona.get('role', 'person seeking help'),
@@ -1003,17 +1030,58 @@ Return in the specified JSON format with rich, detailed content in each section.
             return "- Error formatting bullet points"
 
 
-    async def generate_personas_from_template(self, template_data, gender='', context=''):
-        """Generate detailed personas based on template persona definitions"""
+    async def generate_personas_from_template(self, template_data, gender='', context='', archetype_classification=None):
+        """Generate detailed personas based on template persona definitions and archetype"""
         
         try:
             if self.client is None:
                 return self._get_mock_personas(template_data)
             
+            # Get archetype info
+            archetype = None
+            sub_type = None
+            if archetype_classification:
+                archetype = str(archetype_classification.get("primary_archetype", "")).split(".")[-1]
+                sub_type = archetype_classification.get("sub_type")
+            
+            # Build archetype-specific requirements
+            archetype_requirements = ""
+            if archetype == "PERSUASION":
+                archetype_requirements = """
+PERSUASION ARCHETYPE REQUIREMENTS:
+- objection_library: Array of 3-5 objections with structure:
+  {{"objection": "specific objection", "underlying_concern": "real concern", "counter_strategy": "how to address"}}
+- decision_criteria: List of 3-5 factors that influence their decisions
+- personality_type: "Analytical" / "Relationship-driven" / "Results-focused"
+- current_position: What they currently believe/use/prefer
+- satisfaction_level: "Very satisfied" / "Neutral" / "Dissatisfied"
+"""
+            elif archetype == "CONFRONTATION":
+                archetype_requirements = f"""
+CONFRONTATION ARCHETYPE REQUIREMENTS:
+- sub_type: "{sub_type or 'PERPETRATOR/VICTIM/BYSTANDER'}"
+- power_dynamics: "Senior" / "Peer" / "Junior"
+
+{"PERPETRATOR-SPECIFIC:" if sub_type and "PERPETRATOR" in sub_type.upper() else ""}
+{"- awareness_level: 'Unaware' / 'Minimizing' / 'Defensive' / 'Hostile'" if sub_type and "PERPETRATOR" in sub_type.upper() else ""}
+{"- defensive_mechanisms: ['Denial', 'Deflection', 'Justification']" if sub_type and "PERPETRATOR" in sub_type.upper() else ""}
+{"- escalation_triggers: List of what makes them more defensive" if sub_type and "PERPETRATOR" in sub_type.upper() else ""}
+{"- de_escalation_opportunities: List of what helps them open up" if sub_type and "PERPETRATOR" in sub_type.upper() else ""}
+
+{"VICTIM-SPECIFIC:" if sub_type and "VICTIM" in sub_type.upper() else ""}
+{"- emotional_state: 'Hurt' / 'Angry' / 'Fearful' / 'Numb'" if sub_type and "VICTIM" in sub_type.upper() else ""}
+{"- trust_level: 'Low' / 'Guarded' / 'Cautiously open'" if sub_type and "VICTIM" in sub_type.upper() else ""}
+{"- needs: ['Validation', 'Safety', 'Action plan']" if sub_type and "VICTIM" in sub_type.upper() else ""}
+{"- barriers_to_reporting: List of what prevents them from speaking up" if sub_type and "VICTIM" in sub_type.upper() else ""}
+"""
+            
             persona_prompt = f"""
 You are a psychology-informed persona architect creating realistic characters for professional training.
 Follow Gender if specified: {gender}
 Persona context: {context}
+
+ARCHETYPE: {archetype or 'General'}
+{archetype_requirements}
 
 PERSONA DEPTH REQUIREMENTS:
 - Full demographic profile (age, profession, family situation, location)
@@ -1047,7 +1115,7 @@ Context:
 - Domain: {template_data.get('general_info', {}).get('domain', 'general')}
 - Scenario: {template_data.get('context_overview', {}).get('scenario_title', 'training scenario')}
 
-Create detailed personas in JSON format:
+Create detailed personas in JSON format with ARCHETYPE-SPECIFIC FIELDS:
 {{
     "learn_mode_expert": {{
         "name": "Full name for the expert",
@@ -1073,7 +1141,11 @@ Create detailed personas in JSON format:
         "persona_details": "Appearance, style, personality details",
         "situation": "Current situation/need",
         "context_type": "domain_type",
-        "background_story": "Relevant background story"
+        "background_story": "Relevant background story",
+        
+        // ADD ARCHETYPE-SPECIFIC FIELDS BASED ON REQUIREMENTS ABOVE
+        // For PERSUASION: objection_library, decision_criteria, personality_type, current_position, satisfaction_level
+        // For CONFRONTATION: sub_type, power_dynamics, awareness_level, defensive_mechanisms, etc.
     }}
 }}
 
@@ -1327,6 +1399,33 @@ Background: {persona_details.get('background_story', 'Character background and h
         }
 
 # API Endpoints
+
+@router.post("/test-archetype-classification")
+async def test_archetype_classification(
+    scenario_document: str = Body(..., embed=True),
+    db: Any = Depends(get_db)
+):
+    """
+    Test endpoint: Classify scenario archetype without full template generation
+    """
+    try:
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        
+        # Quick extraction for classification
+        template_data = await generator.extract_scenario_info(scenario_document)
+        
+        archetype_info = template_data.get("archetype_classification", {})
+        
+        return {
+            "scenario_preview": scenario_document[:200] + "...",
+            "archetype_classification": archetype_info,
+            "scenario_title": template_data.get("context_overview", {}).get("scenario_title", "Unknown"),
+            "domain": template_data.get("general_info", {}).get("domain", "Unknown"),
+            "message": "Archetype classification completed"
+        }
+    except Exception as e:
+        print(f"Error in test_archetype_classification: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/analyze-scenario", response_model=TemplateAnalysisResponse)
 async def analyze_scenario_endpoint(scenario_document: str = Body(..., embed=True)):
@@ -3953,3 +4052,481 @@ docx2txt==0.8
 Installation:
 pip install python-docx==0.8.11
 """
+# Add these imports at the top
+from core.template_validator import TemplateValidator, PromptsValidator
+
+# Add these validation endpoints
+
+@router.post("/validate-template")
+async def validate_template_endpoint(
+    template_data: Dict[str, Any] = Body(...),
+    db: Any = Depends(get_db)
+):
+    """
+    Validate template data quality before prompt generation
+    Returns validation score, issues, and completeness metrics
+    """
+    try:
+        validation_result = TemplateValidator.validate_template(template_data)
+        
+        return {
+            "valid": validation_result.valid,
+            "score": validation_result.score,
+            "issues": [
+                {
+                    "field": issue.field,
+                    "severity": issue.severity,
+                    "message": issue.message,
+                    "suggestion": issue.suggestion
+                }
+                for issue in validation_result.issues
+            ],
+            "completeness": validation_result.completeness,
+            "quality_metrics": validation_result.quality_metrics,
+            "recommendation": "Ready for prompt generation" if validation_result.valid else "Fix errors before generating prompts"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/validate-prompts")
+async def validate_prompts_endpoint(
+    prompts_data: Dict[str, Any] = Body(...),
+    db: Any = Depends(get_db)
+):
+    """
+    Validate generated prompts quality before scenario creation
+    Returns validation score, issues, and quality metrics
+    """
+    try:
+        validation_result = PromptsValidator.validate_prompts(prompts_data)
+        
+        return {
+            "valid": validation_result.valid,
+            "score": validation_result.score,
+            "issues": [
+                {
+                    "field": issue.field,
+                    "severity": issue.severity,
+                    "message": issue.message,
+                    "suggestion": issue.suggestion
+                }
+                for issue in validation_result.issues
+            ],
+            "completeness": validation_result.completeness,
+            "quality_metrics": validation_result.quality_metrics,
+            "recommendation": "Ready for scenario creation" if validation_result.valid else "Review issues before creating scenario"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generate-prompts-from-template")
+async def generate_prompts_from_template_with_validation(
+    template_id: str = Body(...),
+    modes: List[str] = Body(default=["learn", "try", "assess"]),
+    validate_before_generation: bool = Body(default=True),
+    current_user: UserDB = Depends(get_current_user),
+    db: Any = Depends(get_db)
+):
+    """
+    Generate prompts from template with optional validation
+    """
+    try:
+        print(f"🔍 DEBUG: Starting generate_prompts_from_template with template_id: {template_id}")
+        
+        # Get template
+        template = await db.templates.find_one({"id": template_id})
+        if not template:
+            print(f"❌ DEBUG: Template not found for id: {template_id}")
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        print(f"✅ DEBUG: Template found, keys: {list(template.keys())}")
+        
+        # Get template_data and handle both string and dict formats
+        template_data_raw = template.get("template_data", {})
+        print(f"🔍 DEBUG: template_data_raw type: {type(template_data_raw)}")
+        print(f"🔍 DEBUG: template_data_raw preview: {str(template_data_raw)[:200]}...")
+        
+        # Handle case where template_data is stored as JSON string
+        if isinstance(template_data_raw, str):
+            print(f"🔄 DEBUG: Converting string to dict")
+            try:
+                import json
+                template_data = json.loads(template_data_raw)
+                print(f"✅ DEBUG: Successfully parsed JSON, type: {type(template_data)}")
+            except json.JSONDecodeError as e:
+                print(f"❌ DEBUG: JSON decode error: {e}")
+                raise HTTPException(status_code=400, detail="Invalid template data format - not valid JSON")
+        elif isinstance(template_data_raw, dict):
+            print(f"✅ DEBUG: template_data_raw is already a dict")
+            template_data = template_data_raw
+        else:
+            print(f"❌ DEBUG: Unexpected template_data type: {type(template_data_raw)}")
+            raise HTTPException(status_code=400, detail=f"Template data must be a dictionary or JSON string, got {type(template_data_raw)}")
+        
+        # Final validation that we have a dictionary
+        if not isinstance(template_data, dict):
+            print(f"❌ DEBUG: Final template_data is not a dict: {type(template_data)}")
+            raise HTTPException(status_code=400, detail="Template data must be a dictionary after parsing")
+        
+        print(f"✅ DEBUG: Final template_data is dict with keys: {list(template_data.keys())}")
+        
+        # Validate template if requested
+        validation_result = None
+        if validate_before_generation:
+            print(f"🔍 DEBUG: Starting template validation")
+            try:
+                validation_result = TemplateValidator.validate_template(template_data)
+                print(f"✅ DEBUG: Template validation completed, valid: {validation_result.valid}")
+            except Exception as e:
+                print(f"❌ DEBUG: Template validation error: {e}")
+                print(f"❌ DEBUG: Error type: {type(e)}")
+                import traceback
+                print(f"❌ DEBUG: Traceback: {traceback.format_exc()}")
+                raise HTTPException(status_code=500, detail=f"Template validation failed: {str(e)}")
+            
+            if not validation_result.valid:
+                print(f"⚠️ DEBUG: Template validation failed")
+                return {
+                    "error": "Template validation failed",
+                    "validation": {
+                        "valid": False,
+                        "score": validation_result.score,
+                        "issues": [
+                            {
+                                "field": issue.field,
+                                "severity": issue.severity,
+                                "message": issue.message,
+                                "suggestion": issue.suggestion
+                            }
+                            for issue in validation_result.issues
+                        ]
+                    },
+                    "message": "Fix template errors before generating prompts"
+                }
+        
+        # Generate prompts
+        print(f"🔍 DEBUG: Creating EnhancedScenarioGenerator")
+        generator = EnhancedScenarioGenerator(azure_openai_client)
+        
+        # Get archetype classification - safely handle if template_data.get fails
+        archetype_classification = None
+        try:
+            print(f"🔍 DEBUG: Accessing archetype_classification")
+            if isinstance(template_data, dict):
+                archetype_classification = template_data.get("archetype_classification")
+                print(f"✅ DEBUG: archetype_classification: {archetype_classification}")
+            else:
+                print(f"❌ DEBUG: template_data is not a dict when accessing archetype_classification: {type(template_data)}")
+                archetype_classification = None
+        except (AttributeError, TypeError) as e:
+            print(f"❌ DEBUG: Error accessing archetype_classification: {e}")
+            archetype_classification = None
+        
+        # Generate personas
+        print(f"🔍 DEBUG: Generating personas")
+        try:
+            personas = await generator.generate_personas_from_template(
+                template_data,
+                archetype_classification=archetype_classification
+            )
+            print(f"✅ DEBUG: Personas generated successfully")
+        except Exception as e:
+            print(f"❌ DEBUG: Error generating personas: {e}")
+            print(f"❌ DEBUG: Error type: {type(e)}")
+            import traceback
+            print(f"❌ DEBUG: Traceback: {traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=f"Persona generation failed: {str(e)}")
+        
+        # Generate prompts
+        print(f"🔍 DEBUG: Generating prompts for modes: {modes}")
+        prompts = {}
+        try:
+            if "learn" in modes:
+                print(f"🔍 DEBUG: Generating learn mode prompt")
+                prompts["learn_mode_prompt"] = await generator.generate_learn_mode_from_template(template_data)
+                print(f"✅ DEBUG: Learn mode prompt generated")
+            if "try" in modes:
+                print(f"🔍 DEBUG: Generating try mode prompt")
+                prompts["try_mode_prompt"] = await generator.generate_try_mode_from_template(template_data)
+                print(f"✅ DEBUG: Try mode prompt generated")
+            if "assess" in modes:
+                print(f"🔍 DEBUG: Generating assess mode prompt")
+                prompts["assess_mode_prompt"] = await generator.generate_assess_mode_from_template(template_data)
+                print(f"✅ DEBUG: Assess mode prompt generated")
+        except Exception as e:
+            print(f"❌ DEBUG: Error generating prompts: {e}")
+            print(f"❌ DEBUG: Error type: {type(e)}")
+            import traceback
+            print(f"❌ DEBUG: Traceback: {traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=f"Prompt generation failed: {str(e)}")
+        
+        prompts["personas"] = personas
+        
+        # Validate generated prompts
+        print(f"🔍 DEBUG: Validating generated prompts")
+        try:
+            prompts_validation = PromptsValidator.validate_prompts(prompts)
+            print(f"✅ DEBUG: Prompts validation completed")
+        except Exception as e:
+            print(f"❌ DEBUG: Error validating prompts: {e}")
+            print(f"❌ DEBUG: Error type: {type(e)}")
+            import traceback
+            print(f"❌ DEBUG: Traceback: {traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=f"Prompts validation failed: {str(e)}")
+        
+        print(f"✅ DEBUG: All operations completed successfully")
+        return {
+            "template_id": template_id,
+            "prompts": prompts,
+            "template_validation": {
+                "score": validation_result.score if validation_result else None,
+                "completeness": validation_result.completeness if validation_result else None
+            } if validation_result else None,
+            "prompts_validation": {
+                "valid": prompts_validation.valid,
+                "score": prompts_validation.score,
+                "issues": [
+                    {
+                        "field": issue.field,
+                        "severity": issue.severity,
+                        "message": issue.message
+                    }
+                    for issue in prompts_validation.issues
+                ],
+                "quality_metrics": prompts_validation.quality_metrics
+            },
+            "message": "Prompts generated and validated successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+from core.prompt_quality_validator import PromptQualityValidator, InteractivePromptTester
+
+@router.post("/test-prompt-quality")
+async def test_prompt_quality(
+    system_prompt: str = Body(...),
+    persona: Dict[str, Any] = Body(...),
+    template_data: Dict[str, Any] = Body(...),
+    mode: str = Body(default="assess"),
+    db: Any = Depends(get_db)
+):
+    """
+    Test prompt quality by running actual test conversations
+    Returns conversation examples and quality analysis
+    """
+    try:
+        validator = PromptQualityValidator(azure_openai_client)
+        
+        result = await validator.validate_prompt_with_conversations(
+            system_prompt=system_prompt,
+            persona=persona,
+            template_data=template_data,
+            mode=mode
+        )
+        
+        return {
+            "overall_score": result["overall_score"],
+            "test_summary": {
+                "passed_tests": result.get("passed_tests", 0),
+                "total_tests": result.get("total_tests", 0),
+                "pass_rate": result.get("passed_tests", 0) / result.get("total_tests", 1) * 100
+            },
+            "conversation_examples": result["conversation_examples"],
+            "strengths": result["strengths"],
+            "weaknesses": result["weaknesses"],
+            "recommendations": result["recommendations"],
+            "message": "Prompt tested with actual conversations"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/start-interactive-test")
+async def start_interactive_test(
+    system_prompt: str = Body(...),
+    persona: Dict[str, Any] = Body(...),
+    initial_message: Optional[str] = Body(default=None),
+    db: Any = Depends(get_db)
+):
+    """
+    Start an interactive test conversation with a persona
+    Returns conversation_id for continuing the test
+    """
+    try:
+        tester = InteractivePromptTester(azure_openai_client)
+        
+        result = await tester.start_test_conversation(
+            system_prompt=system_prompt,
+            persona=persona,
+            initial_message=initial_message
+        )
+        
+        # Store tester in session (in production, use Redis or similar)
+        # For now, return conversation_id for client to track
+        
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/continue-interactive-test")
+async def continue_interactive_test(
+    system_prompt: str = Body(...),
+    user_message: str = Body(...),
+    conversation_history: List[Dict[str, str]] = Body(default=[]),
+    db: Any = Depends(get_db)
+):
+    """
+    Continue an interactive test conversation
+    """
+    try:
+        tester = InteractivePromptTester(azure_openai_client)
+        tester.conversation_history = conversation_history
+        
+        result = await tester.continue_test_conversation(
+            system_prompt=system_prompt,
+            user_message=user_message
+        )
+        
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/evaluate-test-conversation")
+async def evaluate_test_conversation(
+    conversation_history: List[Dict[str, str]] = Body(...),
+    template_data: Dict[str, Any] = Body(...),
+    persona: Dict[str, Any] = Body(...),
+    db: Any = Depends(get_db)
+):
+    """
+    Evaluate a completed test conversation
+    """
+    try:
+        tester = InteractivePromptTester(azure_openai_client)
+        tester.conversation_history = conversation_history
+        
+        evaluation = await tester.evaluate_conversation(
+            template_data=template_data,
+            persona=persona
+        )
+        
+        return {
+            "evaluation": evaluation,
+            "conversation_length": len(conversation_history) // 2,
+            "message": "Conversation evaluated successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/start-interactive-test")
+async def start_interactive_test(
+    system_prompt: str = Body(...),
+    persona: Dict[str, Any] = Body(...),
+    initial_message: Optional[str] = Body(default=None),
+    db: Any = Depends(get_db)
+):
+    """Start interactive testing session"""
+    try:
+        tester = InteractivePromptTester(azure_openai_client)
+        
+        result = await tester.start_test_conversation(
+            system_prompt=system_prompt,
+            persona=persona,
+            initial_message=initial_message or "Hi, I need some help"
+        )
+        
+        return {
+            "test_id": result["test_id"],
+            "persona": persona.get("name", "AI Character"),
+            "conversation_history": result["conversation_history"],
+            "message": "Interactive test started"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/continue-interactive-test")
+async def continue_interactive_test(
+    system_prompt: str = Body(...),
+    user_message: str = Body(...),
+    conversation_history: List[Dict[str, str]] = Body(...),
+    db: Any = Depends(get_db)
+):
+    """Continue interactive testing conversation"""
+    try:
+        tester = InteractivePromptTester(azure_openai_client)
+        
+        result = await tester.continue_test_conversation(
+            system_prompt=system_prompt,
+            user_message=user_message,
+            conversation_history=conversation_history
+        )
+        
+        return {
+            "conversation_history": result["conversation_history"],
+            "ai_response": result["ai_response"],
+            "message": "Conversation continued"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/evaluate-test-conversation")
+async def evaluate_test_conversation(
+    conversation_history: List[Dict[str, str]] = Body(...),
+    persona: Dict[str, Any] = Body(...),
+    template_data: Dict[str, Any] = Body(...),
+    db: Any = Depends(get_db)
+):
+    """Evaluate interactive test conversation"""
+    try:
+        tester = InteractivePromptTester(azure_openai_client)
+        
+        result = await tester.evaluate_conversation(
+            conversation_history=conversation_history,
+            persona=persona,
+            template_data=template_data
+        )
+        
+        return {
+            "evaluation_score": result["score"],
+            "strengths": result["strengths"],
+            "weaknesses": result["weaknesses"],
+            "recommendations": result["recommendations"],
+            "conversation_quality": result["quality_assessment"],
+            "message": "Conversation evaluated successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/templates/{template_id}")
+async def update_template(
+    template_id: str,
+    template_data: Dict[str, Any] = Body(...),
+    db: Any = Depends(get_db)
+):
+    """Update template - matches frontend expectation"""
+    try:
+        result = await db.templates.update_one(
+            {"id": template_id},
+            {"$set": {
+                "template_data": template_data,
+                "updated_at": datetime.now().isoformat()
+            }}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        return {
+            "message": "Template updated successfully",
+            "template_id": template_id
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

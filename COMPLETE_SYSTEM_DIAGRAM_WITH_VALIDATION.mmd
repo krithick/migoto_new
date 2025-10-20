@@ -1,0 +1,178 @@
+graph TB
+    subgraph "USER FLOW WITH VALIDATION"
+        U1[User: Describe Scenario] --> U2[Step 1: Analyze & Extract]
+        U2 --> U3[Step 2: Edit Template + Real-time Validation]
+        U3 --> U4[Step 3: Generate Prompts]
+        U4 --> U5[Step 4: TEST PROMPT QUALITY]
+        U5 --> U6{Quality OK?}
+        U6 -->|Yes| U7[Step 5: Create Scenario]
+        U6 -->|No| U3
+        U7 --> U8[Deploy to Production]
+    end
+    
+    subgraph "STEP 1: ANALYZE (Backend)"
+        A1[POST /analyze-scenario-enhanced]
+        A1 --> A2[EnhancedScenarioGenerator.extract_scenario_info]
+        A2 --> A3[ArchetypeClassifier.classify_scenario]
+        A3 --> A4[Save to templates collection]
+        A4 --> A5[Return template_id + template_data]
+    end
+    
+    subgraph "STEP 2: EDIT + VALIDATE (Frontend + Backend)"
+        E1[User Edits Template Fields]
+        E1 --> E2[Real-time Frontend Validation]
+        E2 --> E3[Check: title, description, topics]
+        E3 --> E4[Calculate Score 0-100]
+        E4 --> E5{Score >= 60?}
+        E5 -->|Yes| E6[Enable Generate Prompts]
+        E5 -->|No| E7[Show Errors, Block Generation]
+        E6 --> E8[PUT /templates/:id]
+    end
+    
+    subgraph "STEP 3: GENERATE PROMPTS (Backend)"
+        G1[POST /generate-prompts-from-template]
+        G1 --> G2[Validate Template Structure]
+        G2 --> G3{Valid?}
+        G3 -->|No| G4[Return Validation Errors]
+        G3 -->|Yes| G5[Generate Personas with Archetype Fields]
+        G5 --> G6[Generate Learn/Try/Assess Prompts]
+        G6 --> G7[Return Prompts + Personas]
+    end
+    
+    subgraph "STEP 4: TEST QUALITY (NEW - Backend)"
+        T1{Test Type?}
+        T1 -->|Automated| T2[POST /test-prompt-quality]
+        T1 -->|Interactive| T3[POST /start-interactive-test]
+        
+        T2 --> T4[PromptQualityValidator]
+        T4 --> T5[Generate 5 Test Scenarios]
+        T5 --> T6[Run Conversations with LLM]
+        T6 --> T7[Evaluate Each Response]
+        T7 --> T8[Return Score + Examples]
+        
+        T3 --> T9[InteractivePromptTester]
+        T9 --> T10[User Chats with AI]
+        T10 --> T11[POST /continue-interactive-test]
+        T11 --> T12[POST /evaluate-test-conversation]
+        T12 --> T13[Return Evaluation]
+    end
+    
+    subgraph "STEP 5: CREATE SCENARIO (Backend)"
+        C1[Create 3 Avatar Interactions]
+        C1 --> C2[Assign Personas to Avatars]
+        C2 --> C3[POST /scenarios]
+        C3 --> C4[Save with Archetype Data]
+        C4 --> C5[Link to Template + Knowledge Base]
+    end
+    
+    subgraph "DATABASE MODELS (MongoDB)"
+        DB1[templates collection]
+        DB1 --> DB1A["id: UUID<br/>name: string<br/>template_data: {<br/>  context_overview<br/>  knowledge_base<br/>  learning_objectives<br/>  archetype_classification: {<br/>    archetype: PERSUASION/CONFRONTATION/etc<br/>    sub_type: string<br/>    confidence_score: float<br/>  }<br/>}<br/>knowledge_base_id: UUID<br/>status: ready_for_editing"]
+        
+        DB2[scenarios collection]
+        DB2 --> DB2A["_id: UUID<br/>template_id: UUID<br/>title: string<br/>learn_mode_prompt: string<br/>try_mode_prompt: string<br/>assess_mode_prompt: string<br/>archetype: string<br/>archetype_sub_type: string<br/>archetype_confidence: float<br/>avatar_interaction_ids: [UUID]"]
+        
+        DB3[avatar_interactions collection]
+        DB3 --> DB3A["_id: UUID<br/>module_id: UUID<br/>name: string<br/>system_prompt: string<br/>persona: {<br/>  name, role, background<br/>  objection_library: [...]  // PERSUASION<br/>  defensive_mechanisms: [...] // CONFRONTATION<br/>  decision_criteria: [...]<br/>}<br/>archetype: string<br/>archetype_sub_type: string"]
+        
+        DB4[archetype_definitions collection]
+        DB4 --> DB4A["_id: archetype_name<br/>required_persona_fields: []<br/>system_prompt_template: string<br/>coaching_rules: []"]
+        
+        DB5[knowledge_bases collection]
+        DB5 --> DB5A["_id: kb_UUID<br/>template_id: UUID<br/>supporting_documents: []<br/>fact_checking_enabled: bool"]
+    end
+    
+    subgraph "VALIDATION MODULES (Python)"
+        V1[TemplateValidator]
+        V1 --> V1A["validate_template()<br/>- Check structure<br/>- Calculate score<br/>- Return issues"]
+        
+        V2[PromptsValidator]
+        V2 --> V2A["validate_prompts()<br/>- Check prompts exist<br/>- Check personas<br/>- Calculate quality"]
+        
+        V3[PromptQualityValidator]
+        V3 --> V3A["validate_prompt_with_conversations()<br/>- Run test conversations<br/>- Evaluate responses<br/>- Check archetype behavior"]
+        
+        V4[InteractivePromptTester]
+        V4 --> V4A["start_test_conversation()<br/>continue_test_conversation()<br/>evaluate_conversation()"]
+    end
+    
+    subgraph "ARCHETYPE SYSTEM (Python)"
+        AR1[ArchetypeClassifier]
+        AR1 --> AR1A["classify_scenario()<br/>Returns: archetype, sub_type, confidence"]
+        
+        AR2[EnhancedScenarioGenerator]
+        AR2 --> AR2A["generate_personas_from_template()<br/>Adds archetype-specific fields"]
+        
+        AR3[DynamicChatBot]
+        AR3 --> AR3A["_build_archetype_instructions()<br/>Injects objection_library, defensive_mechanisms"]
+    end
+    
+    subgraph "FRONTEND COMPONENTS (React)"
+        F1[ScenarioCreator.jsx]
+        F1 --> F1A["Step 1: Input<br/>Step 2: Edit + Validate<br/>Step 3: Test Quality<br/>Step 4: Create"]
+        
+        F2[Validation Display]
+        F2 --> F2A["Score: 0-100<br/>Issues: errors/warnings<br/>Completeness: checkboxes"]
+        
+        F3[Quality Testing UI]
+        F3 --> F3A["Automated Tests Button<br/>Interactive Chat Interface<br/>Conversation Examples<br/>Recommendations"]
+    end
+    
+    subgraph "API ENDPOINTS"
+        API1[Template APIs]
+        API1 --> API1A["/analyze-scenario-enhanced<br/>/validate-template<br/>/templates/:id PUT"]
+        
+        API2[Prompt APIs]
+        API2 --> API2A["/generate-prompts-from-template<br/>/validate-prompts"]
+        
+        API3[Quality Testing APIs NEW]
+        API3 --> API3A["/test-prompt-quality<br/>/start-interactive-test<br/>/continue-interactive-test<br/>/evaluate-test-conversation"]
+        
+        API4[Scenario APIs]
+        API4 --> API4A["/scenarios POST<br/>/avatar-interactions POST"]
+    end
+    
+    subgraph "WHAT GETS VALIDATED"
+        VAL1[Structure Validation]
+        VAL1 --> VAL1A["✓ Fields exist<br/>✓ Minimum length<br/>✓ Required data present"]
+        
+        VAL2[Quality Validation NEW]
+        VAL2 --> VAL2A["✓ AI stays in character<br/>✓ Uses archetype behaviors<br/>✓ Provides accurate info<br/>✓ Handles errors gracefully"]
+        
+        VAL3[Conversation Testing NEW]
+        VAL3 --> VAL3A["✓ Knowledge accuracy test<br/>✓ Persona consistency test<br/>✓ Archetype behavior test<br/>✓ Error handling test"]
+    end
+    
+    subgraph "KEY CHANGES FROM OLD SYSTEM"
+        CH1[OLD: No Validation]
+        CH1 --> CH1A["Just check if fields exist"]
+        
+        CH2[NEW: Real Validation]
+        CH2 --> CH2A["Run actual conversations<br/>Test AI behavior<br/>Verify archetype features<br/>Interactive testing"]
+        
+        CH3[OLD: Generic Personas]
+        CH3 --> CH3A["name, role, background"]
+        
+        CH4[NEW: Archetype Personas]
+        CH4 --> CH4A["+ objection_library<br/>+ defensive_mechanisms<br/>+ decision_criteria<br/>+ emotional_state"]
+        
+        CH5[OLD: No Testing]
+        CH5 --> CH5A["Deploy and hope it works"]
+        
+        CH6[NEW: Test Before Deploy]
+        CH6 --> CH6A["Automated tests<br/>Interactive testing<br/>Quality scores<br/>Conversation examples"]
+    end
+    
+    style T2 fill:#FFD700
+    style T3 fill:#FFD700
+    style V3 fill:#90EE90
+    style V4 fill:#90EE90
+    style API3 fill:#87CEEB
+    style VAL2 fill:#FFD700
+    style VAL3 fill:#FFD700
+    style CH2 fill:#90EE90
+    style CH4 fill:#90EE90
+    style CH6 fill:#90EE90
+    style DB1A fill:#f0f8ff
+    style DB2A fill:#f0f8ff
+    style DB3A fill:#f0f8ff

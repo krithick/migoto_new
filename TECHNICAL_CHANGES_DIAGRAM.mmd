@@ -1,0 +1,125 @@
+graph TB
+    subgraph "FILE: scenario_generator.py"
+        SG1[extract_scenario_info method]
+        SG1 --> SG1A[OLD: Only extract template fields]
+        SG1 --> SG1B[NEW: Extract + Classify Archetype]
+        
+        SG1B -.->|Code Added| SG1C["archetype_classification = await self.classifier.classify_scenario(scenario_text)<br/>template_data['archetype_classification'] = archetype_classification"]
+        
+        SG2[generate_personas_from_template method]
+        SG2 --> SG2A[OLD: archetype_classification param NOT used]
+        SG2 --> SG2B[NEW: archetype_classification param USED]
+        
+        SG2B -.->|Code Added| SG2C["if archetype_classification:<br/>  archetype = archetype_classification.get('archetype')<br/>  if archetype == 'PERSUASION':<br/>    prompt += objection_library fields<br/>  elif archetype == 'CONFRONTATION':<br/>    prompt += defensive_mechanisms fields"]
+        
+        SG3[Template Structure]
+        SG3 --> SG3A[UNCHANGED: conversation_topics in knowledge_base]
+        SG3 --> SG3B[ADDED: archetype_classification object]
+    end
+    
+    subgraph "FILE: dynamic_chat.py"
+        DC1[format_persona_context method]
+        DC1 --> DC1A[OLD: Only format persona details]
+        DC1 --> DC1B[NEW: Format persona + Archetype instructions]
+        
+        DC1B -.->|Code Added| DC1C["archetype_instructions = self._build_archetype_instructions(persona)<br/>system_prompt += archetype_instructions"]
+        
+        DC2[_build_archetype_instructions method]
+        DC2 --> DC2A[NEW METHOD - Extracts archetype fields]
+        
+        DC2A -.->|Logic| DC2B["if 'objection_library' in persona:<br/>  instructions += objection handling<br/>if 'defensive_mechanisms' in persona:<br/>  instructions += defensive behavior<br/>if 'decision_criteria' in persona:<br/>  instructions += decision factors"]
+    end
+    
+    subgraph "FILE: avatarInteraction_models.py"
+        AIM1[AvatarInteractionBase model]
+        AIM1 --> AIM1A[OLD: No archetype fields]
+        AIM1 --> AIM1B[NEW: 3 optional archetype fields]
+        
+        AIM1B -.->|Code Added| AIM1C["archetype: Optional[str] = None<br/>archetype_sub_type: Optional[str] = None<br/>archetype_confidence: Optional[float] = None"]
+    end
+    
+    subgraph "FILE: main.py"
+        M1[Startup Event Handler]
+        M1 --> M1A[OLD: Initialize DB + Azure clients]
+        M1 --> M1B[NEW: Initialize + Seed Archetypes]
+        
+        M1B -.->|Code Added| M1C["from core.archetype_definitions import seed_archetype_definitions<br/>await seed_archetype_definitions(db)"]
+    end
+    
+    subgraph "NEW FILES CREATED"
+        NF1[archetype_models.py]
+        NF1 -.->|Contains| NF1A["ScenarioArchetype enum<br/>ArchetypeDefinition model<br/>ArchetypeClassificationResult model"]
+        
+        NF2[archetype_definitions.py]
+        NF2 -.->|Contains| NF2A["5 archetype definitions<br/>seed_archetype_definitions function<br/>required_persona_fields per archetype"]
+        
+        NF3[archetype_classifier.py]
+        NF3 -.->|Contains| NF3A["ArchetypeClassifier class<br/>classify_scenario method<br/>LLM-based classification logic"]
+    end
+    
+    subgraph "DATABASE CHANGES"
+        DB1[templates collection]
+        DB1 --> DB1A[OLD: template_data without archetype]
+        DB1 --> DB1B[NEW: template_data.archetype_classification]
+        
+        DB2[scenarios collection]
+        DB2 --> DB2A[OLD: No archetype fields]
+        DB2 --> DB2B[NEW: archetype, archetype_sub_type, archetype_confidence]
+        
+        DB3[archetype_definitions collection]
+        DB3 --> DB3A[NEW COLLECTION: Stores 5 archetype definitions]
+    end
+    
+    subgraph "API FLOW - UNCHANGED ENDPOINTS"
+        API1[/analyze-template-with-optional-docs]
+        API1 --> API1A[Still works exactly the same]
+        API1A -.->|Now Also| API1B[Automatically classifies archetype]
+        
+        API2[/analyze-scenario-enhanced]
+        API2 --> API2A[Still works exactly the same]
+        API2A -.->|Now Also| API2B[Automatically classifies archetype]
+        
+        API3[/generate-prompts-from-template]
+        API3 --> API3A[Still generates all old fields]
+        API3A -.->|Now Also| API3B[Generates archetype-specific fields]
+        
+        API4[Template Editing]
+        API4 --> API4A[UNCHANGED - All fields still editable]
+        API4A -.->|Including| API4B[conversation_topics works for ALL archetypes]
+    end
+    
+    subgraph "COMPATIBILITY MATRIX"
+        CM1[Old Templates]
+        CM1 --> CM1A[Can be migrated with migrate_existing_scenarios.py]
+        CM1 --> CM1B[Work without archetype data]
+        
+        CM2[New Templates]
+        CM2 --> CM2A[Automatically get archetype classification]
+        CM2 --> CM2B[Get archetype-specific persona fields]
+        
+        CM3[All Archetypes]
+        CM3 --> CM3A[Use conversation_topics from knowledge_base]
+        CM3 --> CM3B[Maps to areas_to_explore in prompts]
+        
+        CM4[Archetype-Specific Fields]
+        CM4 --> CM4A[PERSUASION: objection_library, decision_criteria]
+        CM4 --> CM4B[CONFRONTATION: defensive_mechanisms, emotional_state]
+        CM4 --> CM4C[Others: Use generic fields only]
+    end
+    
+    style SG1B fill:#FFD700
+    style SG2B fill:#FFD700
+    style SG3B fill:#90EE90
+    style DC1B fill:#FFD700
+    style DC2A fill:#90EE90
+    style AIM1B fill:#90EE90
+    style M1B fill:#FFD700
+    style NF1 fill:#87CEEB
+    style NF2 fill:#87CEEB
+    style NF3 fill:#87CEEB
+    style DB3 fill:#87CEEB
+    style API1B fill:#98FB98
+    style API2B fill:#98FB98
+    style API3B fill:#98FB98
+    style API4A fill:#98FB98
+    style CM3A fill:#98FB98

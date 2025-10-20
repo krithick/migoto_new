@@ -28,6 +28,11 @@ class AvatarInteractionBase(BaseModel):
     mode: AvatarInteractionType
     assigned_documents: List[UUID] = Field(default_factory=list)
     assigned_videos: List[UUID] = Field(default_factory=list)
+    
+    # Archetype fields
+    archetype: Optional[str] = None  # HELP_SEEKING, PERSUASION, CONFRONTATION, INVESTIGATION, NEGOTIATION
+    archetype_sub_type: Optional[str] = None  # For CONFRONTATION: PERPETRATOR, VICTIM, BYSTANDER
+    archetype_confidence: Optional[float] = None  # Classification confidence score
     @field_validator('mode', mode='before')
     @classmethod
     def validate_mode(cls, v):

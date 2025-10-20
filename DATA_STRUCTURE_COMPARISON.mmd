@@ -1,0 +1,119 @@
+graph TB
+    subgraph "OLD TEMPLATE DATA STRUCTURE"
+        OLD1[template_data]
+        OLD1 --> OLD2[context_overview]
+        OLD1 --> OLD3[knowledge_base]
+        OLD1 --> OLD4[learning_objectives]
+        OLD1 --> OLD5[evaluation_metrics]
+        
+        OLD2 -.->|Fields| OLD2A["scenario_title<br/>scenario_description<br/>target_audience<br/>difficulty_level"]
+        OLD3 -.->|Fields| OLD3A["conversation_topics ✓<br/>key_facts<br/>common_misconceptions"]
+        OLD4 -.->|Fields| OLD4A["primary_objectives<br/>secondary_objectives"]
+        OLD5 -.->|Fields| OLD5A["evaluation_criteria<br/>scoring_rubric"]
+    end
+    
+    subgraph "NEW TEMPLATE DATA STRUCTURE"
+        NEW1[template_data]
+        NEW1 --> NEW2[context_overview - UNCHANGED]
+        NEW1 --> NEW3[knowledge_base - UNCHANGED]
+        NEW1 --> NEW4[learning_objectives - UNCHANGED]
+        NEW1 --> NEW5[evaluation_metrics - UNCHANGED]
+        NEW1 --> NEW6[archetype_classification - NEW]
+        
+        NEW2 -.->|Same Fields| NEW2A["scenario_title<br/>scenario_description<br/>target_audience<br/>difficulty_level"]
+        NEW3 -.->|Same Fields| NEW3A["conversation_topics ✓<br/>key_facts<br/>common_misconceptions"]
+        NEW6 -.->|New Fields| NEW6A["archetype: PERSUASION/CONFRONTATION/etc<br/>sub_type: specific variant<br/>confidence_score: 0.0-1.0<br/>reasoning: why this archetype"]
+    end
+    
+    subgraph "OLD PERSONA STRUCTURE"
+        OLDP1[Persona Object]
+        OLDP1 --> OLDP2[Generic Fields Only]
+        
+        OLDP2 -.->|Fields| OLDP2A["name<br/>role<br/>background<br/>personality<br/>communication_style<br/>goals<br/>challenges"]
+    end
+    
+    subgraph "NEW PERSONA STRUCTURE"
+        NEWP1[Persona Object]
+        NEWP1 --> NEWP2[Generic Fields - UNCHANGED]
+        NEWP1 --> NEWP3[Archetype Fields - CONDITIONAL]
+        
+        NEWP2 -.->|Same Fields| NEWP2A["name<br/>role<br/>background<br/>personality<br/>communication_style<br/>goals<br/>challenges"]
+        
+        NEWP3 --> NEWP3A[IF PERSUASION]
+        NEWP3A -.->|Added Fields| NEWP3A1["objection_library: [<br/>  {objection, underlying_concern, counter_strategy}<br/>]<br/>decision_criteria: [factors]<br/>personality_type: analytical/emotional<br/>current_position: stance<br/>satisfaction_level: 1-10"]
+        
+        NEWP3 --> NEWP3B[IF CONFRONTATION]
+        NEWP3B -.->|Added Fields| NEWP3B1["sub_type: perpetrator/victim<br/>power_dynamics: description<br/>defensive_mechanisms: [tactics]<br/>emotional_state: current state<br/>trust_level: 1-10"]
+        
+        NEWP3 --> NEWP3C[IF OTHER ARCHETYPES]
+        NEWP3C -.->|No Extra Fields| NEWP3C1["Uses generic fields only"]
+    end
+    
+    subgraph "OLD BOT SYSTEM PROMPT"
+        OLDBOT1[System Prompt]
+        OLDBOT1 --> OLDBOT2[Persona Details]
+        OLDBOT1 --> OLDBOT3[Scenario Context]
+        OLDBOT1 --> OLDBOT4[General Instructions]
+        
+        OLDBOT2 -.->|Contains| OLDBOT2A["You are {name}<br/>Your role is {role}<br/>Your background: {background}<br/>Your personality: {personality}"]
+    end
+    
+    subgraph "NEW BOT SYSTEM PROMPT"
+        NEWBOT1[System Prompt]
+        NEWBOT1 --> NEWBOT2[Persona Details - UNCHANGED]
+        NEWBOT1 --> NEWBOT3[Scenario Context - UNCHANGED]
+        NEWBOT1 --> NEWBOT4[General Instructions - UNCHANGED]
+        NEWBOT1 --> NEWBOT5[Archetype Instructions - NEW]
+        
+        NEWBOT2 -.->|Same Content| NEWBOT2A["You are {name}<br/>Your role is {role}<br/>Your background: {background}<br/>Your personality: {personality}"]
+        
+        NEWBOT5 --> NEWBOT5A[IF objection_library exists]
+        NEWBOT5A -.->|Injected| NEWBOT5A1["OBJECTION HANDLING:<br/>- Objection: {objection}<br/>- Underlying Concern: {concern}<br/>- Counter Strategy: {strategy}"]
+        
+        NEWBOT5 --> NEWBOT5B[IF defensive_mechanisms exists]
+        NEWBOT5B -.->|Injected| NEWBOT5B1["DEFENSIVE BEHAVIORS:<br/>- Use these tactics: {mechanisms}<br/>- Maintain power dynamics: {dynamics}"]
+        
+        NEWBOT5 --> NEWBOT5C[IF decision_criteria exists]
+        NEWBOT5C -.->|Injected| NEWBOT5C1["DECISION FACTORS:<br/>- Consider: {criteria}<br/>- Current position: {position}"]
+    end
+    
+    subgraph "DATABASE SCHEMA CHANGES"
+        DBS1[templates collection]
+        DBS1 --> DBS1A["OLD: template_data object"]
+        DBS1 --> DBS1B["NEW: template_data.archetype_classification object"]
+        
+        DBS2[scenarios collection]
+        DBS2 --> DBS2A["OLD: No archetype fields"]
+        DBS2 --> DBS2B["NEW: archetype, archetype_sub_type, archetype_confidence"]
+        
+        DBS3[archetype_definitions collection]
+        DBS3 --> DBS3A["NEW COLLECTION"]
+        DBS3A -.->|Schema| DBS3A1["_id: archetype name<br/>required_persona_fields: []<br/>system_prompt_template: string<br/>coaching_rules: []"]
+    end
+    
+    subgraph "KEY COMPATIBILITY POINTS"
+        KCP1[conversation_topics field]
+        KCP1 --> KCP1A[Present in ALL templates]
+        KCP1 --> KCP1B[Works for ALL archetypes]
+        KCP1 --> KCP1C[Maps to areas_to_explore in prompts]
+        
+        KCP2[Archetype-specific fields]
+        KCP2 --> KCP2A[OPTIONAL - Only added when needed]
+        KCP2 --> KCP2B[Don't break existing functionality]
+        KCP2 --> KCP2C[Enhance bot behavior when present]
+        
+        KCP3[Template editing]
+        KCP3 --> KCP3A[All fields remain editable]
+        KCP3 --> KCP3B[No breaking changes to UI]
+        KCP3 --> KCP3C[Archetype data preserved during edits]
+    end
+    
+    style NEW6 fill:#FFD700
+    style NEWP3 fill:#FFD700
+    style NEWBOT5 fill:#FFD700
+    style DBS1B fill:#90EE90
+    style DBS2B fill:#90EE90
+    style DBS3 fill:#87CEEB
+    style KCP1B fill:#98FB98
+    style KCP2A fill:#98FB98
+    style KCP3A fill:#98FB98

@@ -946,6 +946,7 @@ OTHERWISE:
     def format_persona_context(self,scenario_prompt: str, persona: PersonaDB,language:LanguageDB) -> str:
         """
         Replace the persona placeholder with details from a persona document
+        Enhanced with archetype-specific behaviors
         """
         # Format persona details as markdown
         persona_markdown = f"""
@@ -964,6 +965,9 @@ OTHERWISE:
         if persona.background_story:
             persona_markdown += f"- Background: {persona.background_story}\n"
         
+        # Add archetype-specific behaviors
+        archetype_instructions = self._build_archetype_instructions(persona)
+        
         # Check if language prompt has [PERSONA_PLACEHOLDER] and inject persona details
         language_prompt = language.prompt
         if "[PERSONA_PLACEHOLDER]" in language_prompt:
@@ -977,7 +981,60 @@ OTHERWISE:
         # Replace placeholders
         scenario_prompt = scenario_prompt.replace("[LANGUAGE_INSTRUCTIONS]", language_markdown)
         scenario_prompt = scenario_prompt.replace("[PERSONA_PLACEHOLDER]", persona_markdown)
+        
+        # Inject archetype instructions after persona
+        if archetype_instructions:
+            scenario_prompt += f"\n\n{archetype_instructions}"
+        
         return scenario_prompt
+    
+    def _build_archetype_instructions(self, persona: PersonaDB) -> str:
+        """Build archetype-specific behavioral instructions"""
+        instructions = []
+        
+        # PERSUASION archetype
+        objection_library = getattr(persona, 'objection_library', None)
+        if objection_library and len(objection_library) > 0:
+            instructions.append("\n## PERSUASION BEHAVIOR:")
+            instructions.append("You have specific objections and concerns. Use them naturally in conversation:")
+            for i, obj in enumerate(objection_library[:5], 1):
+                objection = obj.get('objection', '')
+                concern = obj.get('underlying_concern', '')
+                if objection:
+                    instructions.append(f"{i}. Objection: {objection}")
+                    if concern:
+                        instructions.append(f"   Underlying concern: {concern}")
+            
+            decision_criteria = getattr(persona, 'decision_criteria', [])
+            if decision_criteria:
+                instructions.append(f"\nYour decision criteria: {', '.join(decision_criteria)}")
+            
+            personality = getattr(persona, 'personality_type', '')
+            if personality:
+                instructions.append(f"Your personality type: {personality}")
+        
+        # CONFRONTATION archetype
+        sub_type = getattr(persona, 'sub_type', '')
+        if sub_type:
+            instructions.append(f"\n## CONFRONTATION BEHAVIOR ({sub_type}):")
+            
+            if 'PERPETRATOR' in sub_type.upper():
+                defensive = getattr(persona, 'defensive_mechanisms', [])
+                if defensive:
+                    instructions.append(f"Defensive mechanisms: {', '.join(defensive)}")
+                awareness = getattr(persona, 'awareness_level', '')
+                if awareness:
+                    instructions.append(f"Awareness level: {awareness}")
+            
+            elif 'VICTIM' in sub_type.upper():
+                emotional = getattr(persona, 'emotional_state', '')
+                if emotional:
+                    instructions.append(f"Emotional state: {emotional}")
+                barriers = getattr(persona, 'barriers_to_reporting', [])
+                if barriers:
+                    instructions.append(f"Barriers to reporting: {', '.join(barriers)}")
+        
+        return '\n'.join(instructions) if instructions else ''
     
     def replace_name(self, original_text: str, name: str) -> str:
         """Replace [Your Name] with the provided name"""

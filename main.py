@@ -664,6 +664,8 @@ async def startup_event():
     try:
         from database import get_db
         from core.tier_management import tier_manager
+        from core.archetype_definitions import seed_archetype_definitions
+        
         db = await get_db()
         await tier_manager.initialize_tier_system(db)
 
@@ -673,8 +675,11 @@ async def startup_event():
         # Step 2: Create Boss Admin for Mother Company
         await create_boss_admin_for_mother_company(db)
         
-        # Step 3: Create basic system data
-        # await create_basic_system_data(db)
+        # Step 3: Seed archetype definitions
+        print("🎭 Seeding archetype definitions...")
+        await seed_archetype_definitions(db)
+        
+        # Step 4: Initialize bots
         await bot_factory.initialize_bots()
         await bot_factory_analyser.initialize_bots_analyser()
         print("✅ FastAPI startup completed successfully!")
