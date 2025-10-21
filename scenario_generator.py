@@ -4207,221 +4207,39 @@ async def generate_prompts_from_template_with_validation(
                 }
         
         # Generate prompts
-        print(f"🔍 DEBUG: Creating EnhancedScenarioGenerator")
         generator = EnhancedScenarioGenerator(azure_openai_client)
         
-        # Get archetype classification - safely handle if template_data.get fails
-        archetype_classification = None
-        try:
-            print(f"🔍 DEBUG: Accessing archetype_classification")
-            if isinstance(template_data, dict):
-                archetype_classification = template_data.get("archetype_classification")
-                print(f"✅ DEBUG: archetype_classification: {archetype_classification}")
-            else:
-                print(f"❌ DEBUG: template_data is not a dict when accessing archetype_classification: {type(template_data)}")
-                archetype_classification = None
-        except (AttributeError, TypeError) as e:
-            print(f"❌ DEBUG: Error accessing archetype_classification: {e}")
-            archetype_classification = None
+        # Get archetype classification
+        archetype_classification = template_data.get("archetype_classification")
         
         # Generate personas
-        print(f"🔍 DEBUG: Generating personas")
-        try:
-            personas = await generator.generate_personas_from_template(
-                template_data,
-                archetype_classification=archetype_classification
-            )
-            print(f"✅ DEBUG: Personas generated successfully")
-        except Exception as e:
-            print(f"❌ DEBUG: Error generating personas: {e}")
-            print(f"❌ DEBUG: Error type: {type(e)}")
-            import traceback
-            print(f"❌ DEBUG: Traceback: {traceback.format_exc()}")
-            raise HTTPException(status_code=500, detail=f"Persona generation failed: {str(e)}")
+        personas = await generator.generate_personas_from_template(
+            template_data, "", "", archetype_classification
+        )
         
-        # Generate prompts
-        print(f"🔍 DEBUG: Generating prompts for modes: {modes}")
+        # Generate prompts for requested modes
         prompts = {}
-        try:
-            if "learn" in modes:
-                print(f"🔍 DEBUG: Generating learn mode prompt")
-                prompts["learn_mode_prompt"] = await generator.generate_learn_mode_from_template(template_data)
-                print(f"✅ DEBUG: Learn mode prompt generated")
-            if "try" in modes:
-                print(f"🔍 DEBUG: Generating try mode prompt")
-                prompts["try_mode_prompt"] = await generator.generate_try_mode_from_template(template_data)
-                print(f"✅ DEBUG: Try mode prompt generated")
-            if "assess" in modes:
-                print(f"🔍 DEBUG: Generating assess mode prompt")
-                prompts["assess_mode_prompt"] = await generator.generate_assess_mode_from_template(template_data)
-                print(f"✅ DEBUG: Assess mode prompt generated")
-        except Exception as e:
-            print(f"❌ DEBUG: Error generating prompts: {e}")
-            print(f"❌ DEBUG: Error type: {type(e)}")
-            import traceback
-            print(f"❌ DEBUG: Traceback: {traceback.format_exc()}")
-            raise HTTPException(status_code=500, detail=f"Prompt generation failed: {str(e)}")
+        if "learn" in modes:
+            prompts["learn_mode_prompt"] = await generator.generate_learn_mode_from_template(template_data)
+        if "try" in modes:
+            prompts["try_mode_prompt"] = await generator.generate_try_mode_from_template(template_data)
+        if "assess" in modes:
+            prompts["assess_mode_prompt"] = await generator.generate_assess_mode_from_template(template_data)
         
         prompts["personas"] = personas
         
-        # Validate generated prompts
-        print(f"🔍 DEBUG: Validating generated prompts")
-        try:
-            prompts_validation = PromptsValidator.validate_prompts(prompts)
-            print(f"✅ DEBUG: Prompts validation completed")
-        except Exception as e:
-            print(f"❌ DEBUG: Error validating prompts: {e}")
-            print(f"❌ DEBUG: Error type: {type(e)}")
-            import traceback
-            print(f"❌ DEBUG: Traceback: {traceback.format_exc()}")
-            raise HTTPException(status_code=500, detail=f"Prompts validation failed: {str(e)}")
-        
-        print(f"✅ DEBUG: All operations completed successfully")
         return {
             "template_id": template_id,
             "prompts": prompts,
-            "template_validation": {
-                "score": validation_result.score if validation_result else None,
-                "completeness": validation_result.completeness if validation_result else None
-            } if validation_result else None,
-            "prompts_validation": {
-                "valid": prompts_validation.valid,
-                "score": prompts_validation.score,
-                "issues": [
-                    {
-                        "field": issue.field,
-                        "severity": issue.severity,
-                        "message": issue.message
-                    }
-                    for issue in prompts_validation.issues
-                ],
-                "quality_metrics": prompts_validation.quality_metrics
-            },
-            "message": "Prompts generated and validated successfully"
+            "message": "Prompts generated successfully"
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-from core.prompt_quality_validator import PromptQualityValidator, InteractivePromptTester
-
-@router.post("/test-prompt-quality")
-async def test_prompt_quality(
-    system_prompt: str = Body(...),
-    persona: Dict[str, Any] = Body(...),
-    template_data: Dict[str, Any] = Body(...),
-    mode: str = Body(default="assess"),
-    db: Any = Depends(get_db)
-):
-    """
-    Test prompt quality by running actual test conversations
-    Returns conversation examples and quality analysis
-    """
-    try:
-        validator = PromptQualityValidator(azure_openai_client)
-        
-        result = await validator.validate_prompt_with_conversations(
-            system_prompt=system_prompt,
-            persona=persona,
-            template_data=template_data,
-            mode=mode
-        )
-        
-        return {
-            "overall_score": result["overall_score"],
-            "test_summary": {
-                "passed_tests": result.get("passed_tests", 0),
-                "total_tests": result.get("total_tests", 0),
-                "pass_rate": result.get("passed_tests", 0) / result.get("total_tests", 1) * 100
-            },
-            "conversation_examples": result["conversation_examples"],
-            "strengths": result["strengths"],
-            "weaknesses": result["weaknesses"],
-            "recommendations": result["recommendations"],
-            "message": "Prompt tested with actual conversations"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 
-@router.post("/start-interactive-test")
-async def start_interactive_test(
-    system_prompt: str = Body(...),
-    persona: Dict[str, Any] = Body(...),
-    initial_message: Optional[str] = Body(default=None),
-    db: Any = Depends(get_db)
-):
-    """
-    Start an interactive test conversation with a persona
-    Returns conversation_id for continuing the test
-    """
-    try:
-        tester = InteractivePromptTester(azure_openai_client)
-        
-        result = await tester.start_test_conversation(
-            system_prompt=system_prompt,
-            persona=persona,
-            initial_message=initial_message
-        )
-        
-        # Store tester in session (in production, use Redis or similar)
-        # For now, return conversation_id for client to track
-        
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/continue-interactive-test")
-async def continue_interactive_test(
-    system_prompt: str = Body(...),
-    user_message: str = Body(...),
-    conversation_history: List[Dict[str, str]] = Body(default=[]),
-    db: Any = Depends(get_db)
-):
-    """
-    Continue an interactive test conversation
-    """
-    try:
-        tester = InteractivePromptTester(azure_openai_client)
-        tester.conversation_history = conversation_history
-        
-        result = await tester.continue_test_conversation(
-            system_prompt=system_prompt,
-            user_message=user_message
-        )
-        
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/evaluate-test-conversation")
-async def evaluate_test_conversation(
-    conversation_history: List[Dict[str, str]] = Body(...),
-    template_data: Dict[str, Any] = Body(...),
-    persona: Dict[str, Any] = Body(...),
-    db: Any = Depends(get_db)
-):
-    """
-    Evaluate a completed test conversation
-    """
-    try:
-        tester = InteractivePromptTester(azure_openai_client)
-        tester.conversation_history = conversation_history
-        
-        evaluation = await tester.evaluate_conversation(
-            template_data=template_data,
-            persona=persona
-        )
-        
-        return {
-            "evaluation": evaluation,
-            "conversation_length": len(conversation_history) // 2,
-            "message": "Conversation evaluated successfully"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/start-interactive-test")
 async def start_interactive_test(
