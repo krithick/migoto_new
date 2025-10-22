@@ -65,7 +65,8 @@ Keep all responses 1-2 sentences."""
         learner_type: str,
         turn_number: int,
         conversation_history: List[Dict],
-        character_role: str
+        character_role: str,
+        learn_mode_facts: str = ""
     ) -> str:
         """Generate learner response based on type and turn"""
         
@@ -81,6 +82,10 @@ Keep all responses 1-2 sentences."""
                 system_prompt += "\n\nCURRENT MODE: Be confused, ask them for help."
             else:
                 system_prompt += "\n\nCURRENT MODE: Be brief and slightly dismissive."
+        
+        # Add learn mode facts for HELPFUL learner to use
+        if learner_type == "HELPFUL" and learn_mode_facts:
+            system_prompt += f"\n\nKNOWLEDGE BASE (use these facts when giving advice):\n{learn_mode_facts[:1000]}"
         
         messages = [
             {"role": "system", "content": system_prompt},
@@ -111,15 +116,25 @@ Keep all responses 1-2 sentences."""
         character_response: str,
         turn_number: int,
         character_role: str,
-        expected_topics: List[str]
+        expected_topics: List[str],
+        conversation_history: List[Dict] = None
     ) -> Dict[str, Any]:
         """Verify character response for a single turn"""
+        
+        # Build conversation context for naturalness check
+        context = ""
+        if conversation_history and len(conversation_history) > 2:
+            recent = conversation_history[-4:] if len(conversation_history) > 4 else conversation_history
+            context = "\n".join([f"{m['role']}: {m['content']}" for m in recent])
         
         verification_prompt = f"""Evaluate this character's response in a training conversation.
 
 CHARACTER ROLE: {character_role}
 LEARNER TYPE: {learner_type}
-TURN: {turn_number}/8
+TURN: {turn_number}/12
+
+RECENT CONVERSATION:
+{context}
 
 LEARNER SAID: {learner_message}
 CHARACTER REPLIED: {character_response}
@@ -132,7 +147,7 @@ Score each category:
 2. PUSH BACK (0-25): If learner was unhelpful/dismissive/confused, did they push back appropriately?
 3. TOPIC COVERAGE (0-20): Are they discussing expected topics naturally?
 4. EMOTIONAL APPROPRIATENESS (0-15): Do emotions match their situation?
-5. LANGUAGE/STRUCTURE (0-10): Under 50 words? Natural tone?
+5. LANGUAGE/STRUCTURE (0-10): Under 50 words? Natural tone? Does it flow naturally from previous conversation?
 
 Return JSON:
 {{
@@ -146,7 +161,9 @@ Return JSON:
     "drift_detected": true/false,
     "facilitator_mode": true/false,
     "topics_mentioned": ["topics discussed"],
-    "pushed_back": true/false
+    "pushed_back": true/false,
+    "natural_flow": true/false,
+    "flow_comment": "brief comment on conversation naturalness"
 }}"""
         
         try:
@@ -237,7 +254,8 @@ Return JSON:
         learner_type: str,
         expected_topics: List[str],
         max_turns: int = 12,
-        language_prompt: str = ""
+        language_prompt: str = "",
+        learn_mode_facts: str = ""
     ) -> Dict[str, Any]:
         """Run a full conversation with a specific learner type"""
         
@@ -297,14 +315,14 @@ Return JSON:
                 
                 # Generate learner response
                 learner_message = await self.generate_learner_response(
-                    learner_type, turn, conversation_history, character_role
+                    learner_type, turn, conversation_history, character_role, learn_mode_facts
                 )
                 conversation_history.append({"role": "user", "content": learner_message})
                 
                 # Verify this turn
                 turn_verification = await self.verify_turn(
                     learner_type, learner_message, character_message,
-                    turn, character_role, expected_topics
+                    turn, character_role, expected_topics, conversation_history
                 )
                 
                 turn_results.append(turn_verification)
@@ -461,7 +479,8 @@ Return JSON:
         character_system_prompt: str,
         character_role: str,
         expected_topics: List[str],
-        language_prompt: str = ""
+        language_prompt: str = "",
+        learn_mode_facts: str = ""
     ) -> Dict[str, Any]:
         """Run full prompt strength test across all learner types"""
         
@@ -479,7 +498,8 @@ Return JSON:
                 character_role,
                 learner_type,
                 expected_topics,
-                language_prompt=language_prompt
+                language_prompt=language_prompt,
+                learn_mode_facts=learn_mode_facts
             )
             conversation_results[learner_type] = result
             
@@ -722,19 +742,37 @@ async def test_scenario_prompt_strength(scenario_id: str, mode: str = "assess_mo
     system_prompt = avatar_interaction.get("system_prompt", "")
     character_role = avatar_interaction.get("bot_role", "Character")
     
-    # Get persona details and inject
+    # Get persona details - same approach as drift tester
     persona_ids = avatar_interaction.get("personas", [])
+    if not persona_ids:
+        # Fallback to avatars -> persona_id
+        avatar_ids = avatar_interaction.get("avatars", [])
+        if avatar_ids:
+            avatar = await db.avatars.find_one({"_id": avatar_ids[0]})
+            if avatar:
+                persona_ids = avatar.get("persona_id", [])
+    
     persona_details = ""
+    persona_name = "Character"
+    
     if persona_ids:
         persona = await db.personas.find_one({"_id": persona_ids[0]})
         if persona:
+            persona_name = persona.get('name', 'Character')
             persona_details = f"""Name: {persona.get('name', '')}
+Description: {persona.get('description', '')}
 Age: {persona.get('age', '')}
 Gender: {persona.get('gender', '')}
-Situation: {persona.get('situation', '')}
-Goal: {persona.get('character_goal', '')}
+Character Goal: {persona.get('character_goal', '')}
 Location: {persona.get('location', '')}
-Background: {persona.get('background_story', '')}"""
+Situation: {persona.get('situation', '')}
+Background: {persona.get('background_story', '')}
+Business/Personal: {persona.get('business_or_personal', '')}"""
+            if persona.get('persona_details'):
+                persona_details += f"\nAdditional Details: {persona.get('persona_details', '')}"
+            print(f"\n✅ Using persona: {persona_name}")
+    else:
+        print(f"\n⚠️  No persona found, using generic character")
     
     # Replace persona placeholder
     if "[PERSONA_PLACEHOLDER]" in system_prompt:
@@ -747,6 +785,22 @@ Background: {persona.get('background_story', '')}"""
         language = await db.languages.find_one({"_id": language_ids[0]})
         if language:
             language_prompt = language.get("prompt", "")
+    
+    # Get learn_mode facts for learner bot to use
+    learn_mode_facts = ""
+    learn_mode_data = scenario.get("learn_mode", {})
+    if learn_mode_data:
+        learn_avatar_id = learn_mode_data.get("avatar_interaction")
+        if learn_avatar_id:
+            learn_avatar = await db.avatar_interactions.find_one({"_id": learn_avatar_id})
+            if learn_avatar:
+                learn_prompt = learn_avatar.get("system_prompt", "")
+                # Extract knowledge base section
+                if "Knowledge Base" in learn_prompt:
+                    kb_start = learn_prompt.find("Knowledge Base")
+                    kb_section = learn_prompt[kb_start:kb_start+2000]
+                    learn_mode_facts = kb_section
+                    print(f"✅ Extracted {len(learn_mode_facts)} chars of knowledge from learn_mode")
     
     # Extract expected topics from prompt
     expected_topics = []
@@ -764,7 +818,8 @@ Background: {persona.get('background_story', '')}"""
         system_prompt,
         character_role,
         expected_topics,
-        language_prompt=language_prompt
+        language_prompt=language_prompt,
+        learn_mode_facts=learn_mode_facts
     )
     
     # Save results

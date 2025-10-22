@@ -238,7 +238,8 @@ Interactions: ${createdAssets.length}`);
       persona_details: personaData.persona_details,
       situation: personaData.situation,
       business_or_personal: personaData.context_type || 'business',
-      background_story: personaData.background_story
+      background_story: personaData.background_story,
+      full_persona: personaData
     });
     
     // Step 2: Create avatar with persona and visual preset
@@ -246,7 +247,6 @@ Interactions: ${createdAssets.length}`);
       name: `${personaData.name} Avatar`,
       persona_id: [persona.id],
       gender: personaData.gender,
-      thumbnail_url: null,
       fbx: AVATAR_PRESET.fbx,
       animation: AVATAR_PRESET.animation,
       glb: AVATAR_PRESET.glb,

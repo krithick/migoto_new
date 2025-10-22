@@ -557,11 +557,16 @@ class DynamicChatHandler:
         """Hybrid coaching: Enhanced template coaching + existing verification"""
     
         try:
-            # Wait longer before coaching and only flag major issues
-            if len(conversation_history) <= 5:
+            # Check professionalism from message 2 onwards
+            if len(conversation_history) <= 1:
                 return None
             
-            # Only check for major factual errors if we have a knowledge base
+            # Check professionalism even without knowledge base
+            professionalism_check = await self._check_professionalism(user_message, conversation_history)
+            if professionalism_check:
+                return professionalism_check
+            
+            # Only check factual accuracy if we have a knowledge base
             if not knowledge_base_id:
                 return None
             
@@ -839,6 +844,25 @@ OTHERWISE:
     
         return coaching_message
 
+    async def _check_professionalism(self, user_message: str, conversation_history: List[Message]) -> Optional[str]:
+        """Check for unprofessional behavior in pharma sales context"""
+        message_lower = user_message.lower().strip()
+        
+        # Unprofessional patterns
+        if any([
+            len(message_lower) < 5 and message_lower in ["idk", "nothing", "nah"],
+            "beauty" in message_lower or "beautiful" in message_lower,
+            message_lower in ["nothing much", "are you not busy", "can you help me out"],
+            "i wnat to sell" in message_lower or "i want to sell" in message_lower,
+        ]):
+            return "Dear Learner, maintain professional communication. Introduce yourself properly, state your purpose clearly, and respect the doctor's time. Avoid casual language or personal comments."
+        
+        # Vague opening after 3+ messages
+        if len(conversation_history) >= 3 and len(message_lower) < 15:
+            return "Dear Learner, be specific and purposeful. The doctor is busy - clearly state what product you're discussing and why it's relevant to their practice."
+        
+        return None
+    
     async def _is_response_unhelpful(self, user_message: str) -> bool:
         """Check if user response is unhelpful based on patterns - MORE RESTRICTIVE"""
     

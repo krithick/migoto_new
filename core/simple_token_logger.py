@@ -40,7 +40,7 @@ def log_token_usage(response: Any, operation: str, user_id: Optional[str] = None
                 token_logger.info(f"TOKEN_USAGE: {json.dumps(log_data)}")
                 
                 # Console output for embeddings
-                print(f"🔤 {operation}: {usage.total_tokens} tokens (embedding)")
+                print(f"[EMBEDDING] {operation}: {usage.total_tokens} tokens")
                 
             else:
                 # Chat completion has prompt + completion tokens
@@ -59,7 +59,7 @@ def log_token_usage(response: Any, operation: str, user_id: Optional[str] = None
                 token_logger.info(f"TOKEN_USAGE: {json.dumps(log_data)}")
                 
                 # Console output for chat
-                print(f"🔢 {operation}: {usage.total_tokens} tokens (prompt: {usage.prompt_tokens}, completion: {usage.completion_tokens})")
+                print(f"[TOKENS] {operation}: {usage.total_tokens} tokens (prompt: {usage.prompt_tokens}, completion: {usage.completion_tokens})")
             
     except Exception as e:
         print(f"Failed to log tokens: {e}")
@@ -72,7 +72,7 @@ def log_embedding_usage(response: Any, operation: str, texts_count: int, user_id
         log_token_usage(response, operation, user_id)
         
         # Additional embedding-specific info
-        print(f"📝 Processed {texts_count} text chunks for embeddings")
+        print(f"[INFO] Processed {texts_count} text chunks for embeddings")
         
     except Exception as e:
         print(f"Failed to log embedding usage: {e}")

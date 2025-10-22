@@ -29,9 +29,9 @@ azure_openai_client = AsyncAzureOpenAI(
             azure_endpoint=endpoint
         )
 
-print(f"🔍 Azure OpenAI Client initialized: {azure_openai_client is not None}")
-print(f"🔑 API Key present: {bool(api_key)}")
-print(f"🌐 Endpoint: {endpoint}")
+print(f"Azure OpenAI Client initialized: {azure_openai_client is not None}")
+print(f"API Key present: {bool(api_key)}")
+print(f"Endpoint: {endpoint}")
 
 import io
 import docx
@@ -339,7 +339,7 @@ Follow the provided template structures exactly, maintaining all headings and sp
 - Acknowledge the challenges of these situations while providing clear guidance"""
 
     def _load_assess_mode_template(self):
-        """Final clean template - fully dynamic, works for any scenario"""
+        """Base template - will be overridden by archetype-specific templates"""
         return """# {title}
 
 [LANGUAGE_INSTRUCTIONS]
@@ -380,13 +380,12 @@ Follow the provided template structures exactly, maintaining all headings and sp
 
 Your emotional state and communication style shape every line. You are **this person**, not an assistant.
 
+{archetype_specific_behavior}
+
 ---
 
 ## 🗣️ First Response
-Wait for the learner to greet you ("hi", "hello").  
-Then:
-1. Greet them briefly.  
-2. Immediately share your main **concern/situation**.  
+{first_response_instruction}  
 
 **Structure:** `[Brief greeting] + [Concern/situation]`
 
@@ -456,6 +455,417 @@ Let these emerge organically — not as a checklist.
     def _load_try_mode_template(self):
         """Try mode uses same template as assess mode"""
         return self._load_assess_mode_template()
+    
+    def _get_archetype_specific_template(self, archetype):
+        """Return archetype-specific template"""
+        if archetype == "PERSUASION":
+            return self._load_persuasion_template()
+        elif archetype == "HELP_SEEKING":
+            return self._load_help_seeking_template()
+        elif archetype == "CONFRONTATION":
+            return self._load_confrontation_template()
+        elif archetype == "INVESTIGATION":
+            return self._load_investigation_template()
+        elif archetype == "NEGOTIATION":
+            return self._load_negotiation_template()
+        else:
+            return self._load_assess_mode_template()
+    
+    def _load_persuasion_template(self):
+        """PERSUASION archetype: Customer being sold to, skeptical, needs convincing"""
+        return """# {title}
+
+[LANGUAGE_INSTRUCTIONS]
+
+---
+
+## Core Character Rules
+- You are **{bot_role}**
+- **Never** play the {trainer_role} role
+- **Never** start the conversation — wait for the learner to greet you first
+- **Never** say "How can I help you?" — you are being sold to, not helping
+- Use a **natural, human tone**
+- Keep responses **under 50 words**
+
+---
+
+## Character Background
+
+[PERSONA_PLACEHOLDER]
+
+{archetype_specific_behavior}
+
+---
+
+## First Response
+Wait for learner to greet you.
+Then: Brief greeting + "What brings you here today?"
+
+Let THEM explain their product/service.
+
+---
+
+## Mental Tracking
+| Checkpoint | Action |
+|-------------|--------|
+| After 3 exchanges | If they're vague, ask for specifics |
+| After 5 exchanges | If no data provided, raise objections |
+| Before closing | Decide: satisfied, neutral, or unconvinced |
+
+---
+
+## Scoring Learner
+| Score | Description |
+|--------|--------------|
+| 0 | Vague claims, no evidence |
+| 1 | Some info, lacks specifics |
+| 2 | Clear data, addresses concerns |
+
+**After 5 exchanges:**
+- 0–2 = Negative closing
+- 3–5 = Neutral closing
+- 6+ = Positive closing
+
+---
+
+## Conversation Closing (6–8 Exchanges)
+| Type | Example |
+|-------|----------|
+| Positive | "{positive_closing} [FINISH]" |
+| Neutral | "{neutral_closing} [FINISH]" |
+| Negative | "{needs_more_guidance_closing} [FINISH]" |
+
+---
+
+### Key Summary
+- Stay 100% in character
+- React, don't guide
+- Be skeptical if they're vague
+- Be receptive if they provide data
+- Close within 6–8 turns with [FINISH]
+"""
+    
+    def _load_help_seeking_template(self):
+        """HELP_SEEKING archetype: Has a problem, needs solution"""
+        return """# {title}
+
+[LANGUAGE_INSTRUCTIONS]
+
+---
+
+## Core Character Rules
+- You are **{bot_role}** with a problem
+- **Never** play the {trainer_role} role
+- **Start by sharing your problem** after greeting
+- Use a **natural, human tone**
+- Keep responses **under 50 words**
+
+---
+
+## Character Background
+
+[PERSONA_PLACEHOLDER]
+
+{archetype_specific_behavior}
+
+---
+
+## First Response
+Wait for learner to greet you.
+Then: Brief greeting + Share your main problem/concern
+
+Example: "Hello. I'm dealing with [problem]. I need help with [specific issue]."
+
+---
+
+## Areas to Discuss
+{areas_to_explore}
+
+Bring these up naturally as the conversation flows.
+
+---
+
+## Mental Tracking
+| Checkpoint | Action |
+|-------------|--------|
+| After 3 exchanges | Mention ≥2 concerns |
+| After 5 exchanges | Mention ≥3 concerns |
+| Before closing | All concerns addressed? |
+
+---
+
+## Scoring Learner Help
+| Score | Description |
+|--------|--------------|
+| 0 | Unhelpful / vague |
+| 1 | Some help, lacks specifics |
+| 2 | Clear solution, actionable |
+
+**After 5 exchanges:**
+- 0–2 = Negative closing
+- 3–5 = Neutral closing
+- 6+ = Positive closing
+
+---
+
+## Conversation Closing (6–8 Exchanges)
+| Type | Example |
+|-------|----------|
+| Positive | "{positive_closing} [FINISH]" |
+| Neutral | "{neutral_closing} [FINISH]" |
+| Negative | "{needs_more_guidance_closing} [FINISH]" |
+
+---
+
+### Key Summary
+- Share your problem proactively
+- React to their guidance
+- Be satisfied if they solve your problem
+- Be frustrated if they're unhelpful
+- Close within 6–8 turns with [FINISH]
+"""
+    
+    def _load_confrontation_template(self):
+        """CONFRONTATION archetype: Defensive, emotional, needs accountability"""
+        return """# {title}
+
+[LANGUAGE_INSTRUCTIONS]
+
+---
+
+## Core Character Rules
+- You are **{bot_role}**
+- **Never** play the {trainer_role} role
+- **Never** start the conversation — wait for the learner
+- Use a **natural, emotional tone**
+- Keep responses **under 50 words**
+
+---
+
+## Character Background
+
+[PERSONA_PLACEHOLDER]
+
+{archetype_specific_behavior}
+
+---
+
+## First Response
+Wait for learner to greet you.
+Then: Brief greeting + Show your emotional state
+
+Example: "Hello. [Express confusion/defensiveness/hurt based on your role]"
+
+---
+
+## Areas to Discuss
+{areas_to_explore}
+
+Let these emerge based on how the learner approaches you.
+
+---
+
+## Mental Tracking
+| Checkpoint | Action |
+|-------------|--------|
+| After 3 exchanges | Show emotional response |
+| After 5 exchanges | Escalate or de-escalate based on their approach |
+| Before closing | Decide outcome based on their handling |
+
+---
+
+## Scoring Learner Approach
+| Score | Description |
+|--------|--------------|
+| 0 | Accusatory / dismissive |
+| 1 | Some empathy, lacks skill |
+| 2 | Empathetic, constructive |
+
+**After 5 exchanges:**
+- 0–2 = Negative/defensive closing
+- 3–5 = Neutral closing
+- 6+ = Positive/resolved closing
+
+---
+
+## Conversation Closing (6–8 Exchanges)
+| Type | Example |
+|-------|----------|
+| Positive | "{positive_closing} [FINISH]" |
+| Neutral | "{neutral_closing} [FINISH]" |
+| Negative | "{needs_more_guidance_closing} [FINISH]" |
+
+---
+
+### Key Summary
+- Stay emotionally authentic
+- React to their tone and approach
+- Escalate if they're accusatory
+- Open up if they're empathetic
+- Close within 6–8 turns with [FINISH]
+"""
+    
+    def _load_investigation_template(self):
+        """INVESTIGATION archetype: Has information, learner must extract it"""
+        return """# {title}
+
+[LANGUAGE_INSTRUCTIONS]
+
+---
+
+## Core Character Rules
+- You are **{bot_role}**
+- **Never** play the {trainer_role} role
+- **Never** start the conversation — wait for the learner
+- Use a **natural tone**
+- Keep responses **under 50 words**
+
+---
+
+## Character Background
+
+[PERSONA_PLACEHOLDER]
+
+{archetype_specific_behavior}
+
+---
+
+## First Response
+Wait for learner to greet you.
+Then: Brief greeting + Wait for their questions
+
+Example: "Hello. How can I help you?"
+
+---
+
+## Information You Have
+{areas_to_explore}
+
+Only share information when asked directly.
+Don't volunteer details unless prompted.
+
+---
+
+## Mental Tracking
+| Checkpoint | Action |
+|-------------|--------|
+| After 3 exchanges | Have they asked open-ended questions? |
+| After 5 exchanges | Have they gathered key information? |
+| Before closing | Did they get what they needed? |
+
+---
+
+## Scoring Learner Questions
+| Score | Description |
+|--------|--------------|
+| 0 | Closed questions, no follow-up |
+| 1 | Some good questions, misses details |
+| 2 | Open-ended, thorough questioning |
+
+**After 5 exchanges:**
+- 0–2 = Incomplete information gathered
+- 3–5 = Some information gathered
+- 6+ = Thorough information gathered
+
+---
+
+## Conversation Closing (6–8 Exchanges)
+| Type | Example |
+|-------|----------|
+| Positive | "{positive_closing} [FINISH]" |
+| Neutral | "{neutral_closing} [FINISH]" |
+| Negative | "{needs_more_guidance_closing} [FINISH]" |
+
+---
+
+### Key Summary
+- Answer questions honestly
+- Don't volunteer information
+- Show communication barriers naturally
+- Reward good questioning
+- Close within 6–8 turns with [FINISH]
+"""
+    
+    def _load_negotiation_template(self):
+        """NEGOTIATION archetype: Competing interests, need middle ground"""
+        return """# {title}
+
+[LANGUAGE_INSTRUCTIONS]
+
+---
+
+## Core Character Rules
+- You are **{bot_role}**
+- **Never** play the {trainer_role} role
+- **Never** start the conversation — wait for the learner
+- Use a **firm but professional tone**
+- Keep responses **under 50 words**
+
+---
+
+## Character Background
+
+[PERSONA_PLACEHOLDER]
+
+{archetype_specific_behavior}
+
+---
+
+## First Response
+Wait for learner to greet you.
+Then: Brief greeting + State your position
+
+Example: "Hello. I'm here to discuss [topic]. I have some specific needs."
+
+---
+
+## Your Position
+{areas_to_explore}
+
+Protect your non-negotiables.
+Be flexible on other points.
+
+---
+
+## Mental Tracking
+| Checkpoint | Action |
+|-------------|--------|
+| After 3 exchanges | Are they exploring interests? |
+| After 5 exchanges | Are they finding common ground? |
+| Before closing | Did we reach agreement? |
+
+---
+
+## Scoring Learner Negotiation
+| Score | Description |
+|--------|--------------|
+| 0 | Positional, win-lose thinking |
+| 1 | Some flexibility, misses interests |
+| 2 | Interest-based, win-win solutions |
+
+**After 5 exchanges:**
+- 0–2 = No agreement
+- 3–5 = Partial agreement
+- 6+ = Win-win agreement
+
+---
+
+## Conversation Closing (6–8 Exchanges)
+| Type | Example |
+|-------|----------|
+| Positive | "{positive_closing} [FINISH]" |
+| Neutral | "{neutral_closing} [FINISH]" |
+| Negative | "{needs_more_guidance_closing} [FINISH]" |
+
+---
+
+### Key Summary
+- Protect non-negotiables
+- Be flexible on other points
+- Look for win-win solutions
+- Reward creative problem-solving
+- Close within 6–8 turns with [FINISH]
+"""
 
     def _clean_document_for_llm(self, document_content: str) -> str:
         """Clean document content for better LLM processing"""
@@ -496,6 +906,78 @@ Let these emerge organically — not as a checklist.
                 cleaned_lines.append(line)
         
         return '\n'.join(cleaned_lines)
+
+    def _inject_archetype_fields(self, template_data):
+        """Inject archetype-specific fields into persona based on archetype - ONLY if not already present from extraction"""
+        archetype_classification = template_data.get("archetype_classification", {})
+        archetype = archetype_classification.get("primary_archetype", "")
+        
+        print(f"[DEBUG] _inject_archetype_fields: archetype={archetype}")
+        
+        if not archetype:
+            print("[WARN] No archetype found, skipping field injection")
+            return
+        
+        bot_persona = template_data.get("persona_definitions", {}).get("assess_mode_ai_bot", {})
+        print(f"[DEBUG] Bot persona before injection: {list(bot_persona.keys())}")
+        
+        if archetype == "PERSUASION":
+            print("[OK] Checking PERSUASION fields...")
+            # Only add defaults if LLM didn't extract them
+            if "objection_library" not in bot_persona:
+                bot_persona["objection_library"] = []
+                print("[WARN] objection_library not extracted, added empty array")
+            else:
+                print(f"[OK] objection_library already present: {len(bot_persona['objection_library'])} items")
+            
+            if "decision_criteria" not in bot_persona:
+                bot_persona["decision_criteria"] = []
+                print("[WARN] decision_criteria not extracted, added empty array")
+            else:
+                print(f"[OK] decision_criteria already present: {len(bot_persona['decision_criteria'])} items")
+            
+            if "personality_type" not in bot_persona:
+                bot_persona["personality_type"] = "Balanced"
+            if "current_position" not in bot_persona:
+                bot_persona["current_position"] = "Satisfied with current solution"
+            if "satisfaction_level" not in bot_persona:
+                bot_persona["satisfaction_level"] = "Neutral"
+            print(f"[OK] PERSUASION fields ready: {list(bot_persona.keys())}")
+                
+        elif archetype == "CONFRONTATION":
+            print("[OK] Checking CONFRONTATION fields...")
+            sub_type = archetype_classification.get("sub_type", "")
+            if "sub_type" not in bot_persona:
+                bot_persona["sub_type"] = sub_type
+            
+            if "PERPETRATOR" in str(sub_type).upper():
+                if "awareness_level" not in bot_persona:
+                    bot_persona["awareness_level"] = "Unaware"
+                if "defensive_mechanisms" not in bot_persona:
+                    bot_persona["defensive_mechanisms"] = []
+                if "escalation_triggers" not in bot_persona:
+                    bot_persona["escalation_triggers"] = []
+                    
+            elif "VICTIM" in str(sub_type).upper():
+                if "emotional_state" not in bot_persona:
+                    bot_persona["emotional_state"] = "Hurt and cautious"
+                if "trust_level" not in bot_persona:
+                    bot_persona["trust_level"] = "Low"
+                if "needs" not in bot_persona:
+                    bot_persona["needs"] = []
+            print(f"[OK] CONFRONTATION fields ready: {list(bot_persona.keys())}")
+                    
+        elif archetype == "HELP_SEEKING":
+            print("[OK] Checking HELP_SEEKING fields...")
+            if "problem_description" not in bot_persona:
+                bot_persona["problem_description"] = bot_persona.get("situation", "Needs assistance")
+            if "emotional_state" not in bot_persona:
+                bot_persona["emotional_state"] = "Seeking help"
+            if "patience_level" not in bot_persona:
+                bot_persona["patience_level"] = "Moderate"
+            print(f"[OK] HELP_SEEKING fields ready: {list(bot_persona.keys())}")
+        
+        print(f"[DEBUG] Bot persona after injection: {list(bot_persona.keys())}")
 
     async def extract_scenario_info(self, scenario_document):
         """Extract structured information from any type of scenario document using LLM"""
@@ -566,6 +1048,37 @@ PERSONA DEVELOPMENT:
 - Consider cultural sensitivity and regional variations
 - EXTRACT all persona details from document (name, age, gender, location, background, situation)
 
+ARCHETYPE-SPECIFIC EXTRACTION (CRITICAL):
+For PERSUASION/SALES scenarios:
+- Generate 5-7 REALISTIC objections a skeptical person in this role would naturally raise
+- IMPORTANT: Objections should be GENERIC and NATURAL, NOT mention specific product/service/brand names
+- Objection patterns (adapt to domain):
+  * Status quo bias: "I'm satisfied with my current approach/solution/provider"
+  * Evidence demand: "What proof do you have that this works?"
+  * Differentiation: "How is this different from what's already available?"
+  * Risk concern: "What are the downsides/risks/drawbacks?"
+  * Cost objection: "This seems expensive/not worth the investment"
+  * Time barrier: "I don't have time to change/learn something new"
+  * Trust issue: "I've heard similar claims before that didn't deliver"
+- Bad objections: "How is X better than Y?" (too meta, uses names)
+- Cover concern types relevant to domain: performance doubts, risk concerns, cost objections, convenience barriers, trust issues, comparison to current solution, evidence requirements
+- Look for: "Current [solution/treatment/provider/approach]", "Currently uses", "Satisfied with" to determine current_position
+- Infer decision_criteria from: what matters to them, their concerns, evaluation factors (should have 4-6 criteria)
+- Determine personality_type from: profile, background, decision style (Analytical if data-driven, Relationship if trust-focused, Results-focused if outcome-oriented)
+
+For CONFRONTATION scenarios:
+- Look for: "Victim", "Bystander", "Perpetrator" labels to determine sub_type
+- Extract emotional states, defensive mechanisms, barriers to reporting
+
+For HELP_SEEKING scenarios:
+- Extract: problem description, urgency level, emotional state, desired outcome
+
+For INVESTIGATION scenarios:
+- Extract: what information they have, communication barriers, motivation to share
+
+For NEGOTIATION scenarios:
+- Extract: BATNA, non-negotiables, flexible points, hidden interests
+
 KNOWLEDGE BASE SOPHISTICATION:
 - Provide specific, actionable guidance rather than generic advice
 - Include industry-specific best practices and methodologies
@@ -618,7 +1131,26 @@ Extract the following information in valid JSON format:
             "background": "Their professional/personal background - extract from document",
             "character_goal": "What this character wants - extract from document",
             "context": "business/personal/healthcare context from document",
-            "background_story": "Detailed background story - extract or enhance from document"
+            "background_story": "Detailed background story - extract or enhance from document",
+            
+            // CRITICAL: Extract archetype-specific fields if present in document
+            // For PERSUASION scenarios (sales, pitching):
+            // Generate 5-7 REALISTIC objections a skeptical person would naturally raise
+            // IMPORTANT: Objections must be GENERIC - NO product/service/brand names
+            "objection_library": [
+                {{
+                    "objection": "Generic concern adapted to domain (e.g., 'I'm satisfied with my current approach', 'What proof do you have?', 'How is this different?', 'What are the risks?', 'This seems costly', 'I don't have time', 'I've been disappointed before')",
+                    "underlying_concern": "Psychological driver (e.g., 'Status quo bias', 'Need for evidence', 'Differentiation unclear', 'Risk aversion', 'Budget constraints', 'Time pressure', 'Trust deficit')"
+                }}
+                // Generate 5-7 objections covering domain-appropriate concerns
+            ],
+            "decision_criteria": [
+                "Extract 4-6 factors that influence their decision",
+                "Make them specific to this domain and persona's priorities"
+            ],
+            "personality_type": "Analytical/Relationship-driven/Results-focused - infer from doctor profile or background",
+            "current_position": "What they currently use/believe from document (e.g., 'Currently uses Dienogest for endometriosis')",
+            "satisfaction_level": "Very satisfied/Neutral/Dissatisfied - infer from context (e.g., if they have concerns = Neutral)"
         }}
     }},
     "dialogue_flow": {{
@@ -773,23 +1305,33 @@ Return in the specified JSON format with rich, detailed content in each section.
             # Classify archetype
             try:
                 archetype_result = await self.archetype_classifier.classify_scenario(scenario_document, template_data)
+                
+                # Convert enum to string for storage
+                primary_archetype_str = str(archetype_result.primary_archetype).split(".")[-1] if archetype_result.primary_archetype else "HELP_SEEKING"
+                
                 template_data["archetype_classification"] = {
-                    "primary_archetype": archetype_result.primary_archetype,
+                    "primary_archetype": primary_archetype_str,
                     "confidence_score": archetype_result.confidence_score,
                     "alternative_archetypes": archetype_result.alternative_archetypes,
                     "reasoning": archetype_result.reasoning,
                     "sub_type": archetype_result.sub_type
                 }
-                print(f"✅ Classified as: {archetype_result.primary_archetype} (confidence: {archetype_result.confidence_score})")
+                print(f"[OK] Classified as: {primary_archetype_str} (confidence: {archetype_result.confidence_score})")
+                print(f"[DEBUG] Archetype classification stored: {template_data['archetype_classification']}")
             except Exception as e:
-                print(f"⚠️ Archetype classification failed: {e}")
+                print(f"[ERROR] Archetype classification failed: {e}")
+                import traceback
+                traceback.print_exc()
                 template_data["archetype_classification"] = {
-                    "primary_archetype": "HELP_SEEKING",  # Default fallback
+                    "primary_archetype": "HELP_SEEKING",
                     "confidence_score": 0.5,
                     "alternative_archetypes": [],
-                    "reasoning": "Classification failed, using default",
+                    "reasoning": f"Classification failed: {str(e)}",
                     "sub_type": None
                 }
+            
+            # ✅ Inject archetype-specific fields into persona
+            self._inject_archetype_fields(template_data)
         
             return template_data
         
@@ -976,7 +1518,7 @@ Return in the specified JSON format with rich, detailed content in each section.
             return "Error generating learn mode template"
 
     async def generate_assess_mode_from_template(self, template_data):
-        """Generate Assessment Mode prompt using template data"""
+        """Generate Assessment Mode prompt using archetype-specific template"""
         try:
             general_info = template_data.get('general_info', {})
             context_overview = template_data.get('context_overview', {})
@@ -985,16 +1527,37 @@ Return in the specified JSON format with rich, detailed content in each section.
             feedback = template_data.get('feedback_mechanism', {})
             bot_persona = template_data.get('persona_definitions', {}).get('assess_mode_ai_bot', {})
             
+            archetype_classification = template_data.get('archetype_classification', {})
+            archetype = str(archetype_classification.get('primary_archetype', '')).split('.')[-1]
+            
+            # Get archetype-specific template
+            assess_template = self._get_archetype_specific_template(archetype)
             # Ensure bot_persona is a dictionary
             if not isinstance(bot_persona, dict):
                 bot_persona = {}
             
-            formatted_template = self.assess_mode_template.format(
+            # Format archetype-specific section
+            archetype_section = self._format_archetype_section(bot_persona, archetype)
+            
+            # Determine first response instruction based on archetype
+            if archetype == "HELP_SEEKING":
+                first_response_instruction = "Wait for learner to greet you. Then: Brief greeting + Share your main problem/concern"
+            elif archetype == "CONFRONTATION":
+                first_response_instruction = "Wait for learner to greet you. Then: Brief greeting + Show your emotional state"
+            elif archetype == "INVESTIGATION":
+                first_response_instruction = "Wait for learner to greet you. Then: Brief greeting + Wait for their questions"
+            elif archetype == "NEGOTIATION":
+                first_response_instruction = "Wait for learner to greet you. Then: Brief greeting + State your position"
+            else:  # PERSUASION or default
+                first_response_instruction = "Wait for learner to greet you. Then: Brief greeting + 'What brings you here today?'"
+            
+            formatted_template = assess_template.format(
                 title=context_overview.get('scenario_title', 'Training Scenario'),
                 bot_role=bot_persona.get('role', 'person seeking help'),
                 bot_situation=bot_persona.get('character_goal', 'needs assistance'),
                 trainer_role=template_data.get('persona_definitions', {}).get('learn_mode_ai_bot', {}).get('role', 'trainer'),
                 user_interaction_type="seeking guidance" if "customer" in bot_persona.get('role', '').lower() else "learning",
+                first_response_instruction=first_response_instruction,
                 conversation_flow=dialogue_flow.get('assess_mode_initial_prompt', 'Wait for the learner to approach you and start the conversation. Respond naturally based on your character from Character Background.'),
                 context_details=context_overview.get('assess_mode_description', 'Interactive scenario environment where you embody the character from Character Background.'),
                 areas_to_explore=self._format_bullet_points(knowledge_base.get('conversation_topics', [])),
@@ -1006,7 +1569,8 @@ Return in the specified JSON format with rich, detailed content in each section.
                 unhelpful_closing=feedback.get('negative_closing', 'I appreciate your time, but I don\'t feel I\'ve received the guidance I need.'),
                 neutral_closing=feedback.get('neutral_closing', 'Thanks for talking through this with me. I\'ll consider my options.'),
                 profanity_closing=feedback.get('profanity_closing', 'I\'m not comfortable with that language in our discussion.'),
-                disrespectful_closing=feedback.get('disrespectful_closing', 'Your response doesn\'t seem to take this topic seriously.')
+                disrespectful_closing=feedback.get('disrespectful_closing', 'Your response doesn\'t seem to take this topic seriously.'),
+                archetype_specific_behavior=archetype_section
             )
             
             return formatted_template
@@ -1028,6 +1592,67 @@ Return in the specified JSON format with rich, detailed content in each section.
         except Exception as e:
             print(f"Error in _format_bullet_points: {str(e)}")
             return "- Error formatting bullet points"
+
+    def _format_archetype_section(self, bot_persona, archetype):
+        """Format archetype-specific behavior section"""
+        if archetype == "PERSUASION":
+            objections = bot_persona.get('objection_library', [])
+            if objections:
+                objection_text = "\n".join([f"   - {obj.get('objection', 'N/A')} (if they don't address: {obj.get('underlying_concern', 'N/A')})" for obj in objections[:5]])
+            else:
+                objection_text = "   - Be skeptical if they don't provide evidence"
+            criteria_text = ", ".join(bot_persona.get('decision_criteria', [])) if bot_persona.get('decision_criteria') else "evidence, practicality"
+            return f"""\n## Your Mindset (PERSUASION Archetype)
+Current situation: {bot_persona.get('current_position', 'Satisfied with current solution')}
+Personality: {bot_persona.get('personality_type', 'Balanced')}
+You care about: {criteria_text}
+
+**How to behave:**
+- Start neutral/polite when they greet you
+- Let THEM explain what they want
+- Only raise concerns if they:
+  * Make vague claims without evidence
+  * Don't address your decision criteria
+  * Push too hard without understanding your needs
+
+**Potential concerns (use ONLY if provoked):**
+{objection_text}
+
+**If they do it right:** Be receptive, ask clarifying questions, show interest when they provide data
+**If they do it wrong:** Be skeptical, demand specifics, raise objections
+"""
+        elif archetype == "CONFRONTATION":
+            sub_type = bot_persona.get('sub_type', '')
+            if "PERPETRATOR" in str(sub_type).upper():
+                return f"\n## Your Defensive Behavior\nAwareness: {bot_persona.get('awareness_level', 'Unaware')}\nDefenses: {', '.join(bot_persona.get('defensive_mechanisms', ['denial']))}\n"
+            elif "VICTIM" in str(sub_type).upper():
+                return f"\n## Your Emotional State\nFeeling: {bot_persona.get('emotional_state', 'Hurt')}\nTrust: {bot_persona.get('trust_level', 'Low')}\nNeeds: {', '.join(bot_persona.get('needs', ['validation']))}\n"
+        elif archetype == "INVESTIGATION":
+            return f"""\n## Your Information Sharing Style (INVESTIGATION Archetype)
+Communication barriers: {bot_persona.get('communication_barriers', 'None specified')}
+Motivation to share: {bot_persona.get('motivation_to_share', 'Moderate')}
+
+**How to behave:**
+- Answer questions honestly but briefly
+- Don't volunteer information unless asked
+- Show your communication barriers naturally
+- Reward good questioning with more details
+"""
+        elif archetype == "NEGOTIATION":
+            non_negotiables = bot_persona.get('non_negotiables', [])
+            flexible_points = bot_persona.get('flexible_points', [])
+            return f"""\n## Your Negotiation Position (NEGOTIATION Archetype)
+BATNA: {bot_persona.get('BATNA', 'Walk away if needs not met')}
+Non-negotiables: {', '.join(non_negotiables) if non_negotiables else 'Core requirements'}
+Flexible on: {', '.join(flexible_points) if flexible_points else 'Secondary details'}
+
+**How to behave:**
+- Protect your non-negotiables firmly
+- Be flexible on other points
+- Look for win-win solutions
+- Reward creative problem-solving
+"""
+        return ""
 
 
     async def generate_personas_from_template(self, template_data, gender='', context='', archetype_classification=None):
