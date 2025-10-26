@@ -633,6 +633,69 @@ async def delete_chat_session(
         "id": id
     }
 
+# Simple chat endpoint for frontend
+@router.post("/chat/{avatar_interaction_id}")
+async def simple_chat(
+    avatar_interaction_id: str,
+    message: str = Body(..., embed=True),
+    conversation_history: List[Dict[str, Any]] = Body(default=[]),
+    db: Any = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user)
+):
+    """
+    Simple chat endpoint for frontend testing
+    """
+    try:
+        # Get avatar interaction
+        avatar_interaction = await db.avatar_interactions.find_one({"_id": avatar_interaction_id})
+        if not avatar_interaction:
+            raise HTTPException(status_code=404, detail="Avatar interaction not found")
+        
+        # Get system prompt
+        system_prompt = avatar_interaction.get("system_prompt", "You are a helpful assistant.")
+        
+        # Build messages for OpenAI
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        # Add conversation history
+        for msg in conversation_history:
+            messages.append({
+                "role": "user" if msg.get("role") == "user" else "assistant",
+                "content": msg.get("content", "")
+            })
+        
+        # Add current message
+        messages.append({"role": "user", "content": message})
+        
+        # Call OpenAI
+        from openai import AsyncAzureOpenAI
+        import os
+        
+        openai_client = AsyncAzureOpenAI(
+            api_key=os.getenv("api_key"),
+            azure_endpoint=os.getenv("endpoint"),
+            api_version=os.getenv("api_version")
+        )
+        
+        response = await openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        ai_message = response.choices[0].message.content
+        
+        return {
+            "message": ai_message,
+            "role": "assistant",
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        print(f"Error in simple chat: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 from uuid import uuid4
 import json
 

@@ -33,6 +33,8 @@ class AvatarInteractionBase(BaseModel):
     archetype: Optional[str] = None  # HELP_SEEKING, PERSUASION, CONFRONTATION, INVESTIGATION, NEGOTIATION
     archetype_sub_type: Optional[str] = None  # For CONFRONTATION: PERPETRATOR, VICTIM, BYSTANDER
     archetype_confidence: Optional[float] = None  # Classification confidence score
+    
+
     @field_validator('mode', mode='before')
     @classmethod
     def validate_mode(cls, v):
