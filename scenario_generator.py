@@ -106,81 +106,6 @@ async def extract_text_from_docx(file_content):
         print(f"Full traceback: {traceback.format_exc()}")
         return None
 
-# async def extract_text_from_docx_structured(file_content):
-#     """Enhanced DOCX extraction that preserves template structure and key-value pairs"""
-#     try:
-#         with io.BytesIO(file_content) as f:
-#             doc = docx.Document(f)
-#             structured_data = {
-#                 "sections": {},
-#                 "tables": [],
-#                 "key_value_pairs": {},
-#                 "conversation_examples": []
-#             }
-            
-#             current_section = "header"
-            
-#             # Extract paragraphs with section awareness
-#             for para in doc.paragraphs:
-#                 text = para.text.strip()
-#                 if not text:
-#                     continue
-                
-#                 # Detect section headers
-#                 if text.startswith("SECTION"):
-#                     current_section = text
-#                     structured_data["sections"][current_section] = []
-#                 elif current_section:
-#                     structured_data["sections"].setdefault(current_section, []).append(text)
-            
-#             # Extract tables with structure preservation
-#             for table_idx, table in enumerate(doc.tables):
-#                 table_data = {
-#                     "table_index": table_idx,
-#                     "rows": [],
-#                     "key_value_pairs": {}
-#                 }
-                
-#                 for row_idx, row in enumerate(table.rows):
-#                     row_data = []
-#                     for cell in row.cells:
-#                         cell_text = cell.text.strip()
-#                         row_data.append(cell_text)
-                    
-#                     if len(row_data) >= 2 and row_data[0] and row_data[1]:
-#                         # Extract key-value pairs from tables
-#                         key = row_data[0].replace("**", "").strip()
-#                         value = row_data[1].replace("**", "").strip()
-#                         if key and value and len(value) > 2:
-#                             table_data["key_value_pairs"][key] = value
-#                             structured_data["key_value_pairs"][key] = value
-                    
-#                     table_data["rows"].append(row_data)
-                
-#                 structured_data["tables"].append(table_data)
-            
-#             # Extract conversation examples
-#             full_text = "\n".join([para.text for para in doc.paragraphs])
-            
-#             # Look for conversation patterns
-#             conversation_patterns = [
-#                 r"Conversation Topic:\s*([^\n]+)",
-#                 r"AI Colleague:\s*[\"']([^\"']+)[\"']",
-#                 r"Correct Learner Response:\s*[\"']([^\"']+)[\"']",
-#                 r"Incorrect Learner Response:\s*[\"']([^\"']+)[\"']",
-#                 r"AI Trainer:\s*[\"']([^\"']+)[\"']"
-#             ]
-            
-#             for pattern in conversation_patterns:
-#                 matches = re.findall(pattern, full_text, re.IGNORECASE | re.DOTALL)
-#                 if matches:
-#                     structured_data["conversation_examples"].extend(matches)
-            
-#             return structured_data
-            
-#     except Exception as e:
-#         print(f"Enhanced DOCX extraction error: {str(e)}")
-#         return None
 
 async def extract_text_from_pdf(file_content):
     """Extract text from PDF file content using pypdf"""
@@ -2022,7 +1947,149 @@ Background: {persona_details.get('background_story', 'Character background and h
             "needs_improvement": 45
         }
         }
+    async def generate_personas_from_template_v2(
+        self,
+        template_data: dict,
+        gender: str = '',
+        context: str = '',
+        archetype_classification: dict = None
+    ) -> dict:
+        """
+        V2 IMPLEMENTATION: Uses PersonaGeneratorV2 with dynamic categories.
+        Safe to call - has fallback to v1 if fails.
+        """
+        try:
+            from core.persona_generator_v2 import PersonaGeneratorV2
+        
+            persona_gen = PersonaGeneratorV2(self.client, self.model)
+        
+            # Generate assess mode persona
+            assess_persona = await persona_gen.generate_persona(
+            template_data=template_data,
+            mode="assess_mode",
+            gender=gender,
+            custom_prompt=context
+            )
+        
+            # Generate learn mode persona
+            learn_persona = await persona_gen.generate_persona(
+            template_data=template_data,
+            mode="learn_mode",
+            gender=gender or "Female",
+            custom_prompt=None
+            )
+        
+            print(f"[V2] Generated personas with dynamic categories")
+        
+            return {
+            "learn_mode_expert": learn_persona.dict(),
+            "assess_mode_character": assess_persona.dict(),
+            "version": "v2"
+            }
+        
+        except Exception as e:
+            print(f"[WARN] V2 persona generation failed: {e}")
+            print("[INFO] Falling back to V1 generation")
+        
+            # Fallback to existing v1 method
+            return await self.generate_personas_from_template(
+                template_data, gender, context, archetype_classification
+            )
 
+
+    async def generate_assess_mode_from_template_v2(
+        self,
+        template_data: dict
+    ) -> str:
+        """
+        V2 IMPLEMENTATION: Uses PromptGeneratorV2 with PersonaInstanceV2.
+        Safe to call - has fallback to v1 if fails.
+        """
+        try:
+            from core.persona_generator_v2 import PersonaGeneratorV2
+            from core.prompt_generator_v2 import PromptGeneratorV2
+        
+            # Generate persona
+            persona_gen = PersonaGeneratorV2(self.client, self.model)
+            persona = await persona_gen.generate_persona(
+                template_data=template_data,
+                mode="assess_mode"
+            )
+        
+            # Generate prompt from persona
+            prompt_gen = PromptGeneratorV2(self.client, self.model)
+            system_prompt = await prompt_gen.generate_system_prompt(
+                persona=persona,
+                template_data=template_data
+            )
+        
+            print(f"[V2] Generated assess mode prompt with {len(persona.detail_categories)} detail categories")
+        
+            return system_prompt
+        
+        except Exception as e:
+            print(f"[WARN] V2 prompt generation failed: {e}")
+            print("[INFO] Falling back to V1 generation")
+        
+            # Fallback to existing v1 method
+            return await self.generate_assess_mode_from_template(template_data)
+
+    """
+    ADD THIS METHOD TO EnhancedScenarioGenerator CLASS in scenario_generator.py
+    Add after _get_mock_template_data() method (around line 1400)
+    """
+
+    async def extract_scenario_info_v2(self, scenario_document: str) -> Dict[str, Any]:
+        """
+        V2 EXTRACTION: Enhanced multi-pass extraction system.
+        Safe to call - has fallback to v1 if fails.
+        """
+        try:
+            from core.scenario_extractor_v2 import ScenarioExtractorV2
+        
+            print("[V2 EXTRACTION] Starting enhanced extraction...")
+        
+            # Try V2 extraction
+            extractor_v2 = ScenarioExtractorV2(self.client, self.model)
+            template_data = await extractor_v2.extract_scenario_info(scenario_document)
+        
+            # Still run archetype classification (keep existing system)
+            try:
+                archetype_result = await self.archetype_classifier.classify_scenario(scenario_document, template_data)
+            
+                primary_archetype_str = str(archetype_result.primary_archetype).split(".")[-1] if archetype_result.primary_archetype else "HELP_SEEKING"
+            
+                template_data["archetype_classification"] = {
+                "primary_archetype": primary_archetype_str,
+                "confidence_score": archetype_result.confidence_score,
+                "alternative_archetypes": archetype_result.alternative_archetypes,
+                "reasoning": archetype_result.reasoning,
+                "sub_type": archetype_result.sub_type
+                }
+                print(f"[V2] Classified as: {primary_archetype_str}")
+            except Exception as e:
+                print(f"[WARN] Archetype classification failed: {e}")
+                template_data["archetype_classification"] = {
+                "primary_archetype": "HELP_SEEKING",
+                "confidence_score": 0.5,
+                "alternative_archetypes": [],
+                "reasoning": f"Classification failed: {str(e)}",
+                "sub_type": None
+                }
+        
+            # Inject archetype fields (keep existing system)
+            self._inject_archetype_fields(template_data)
+        
+            print("[V2 EXTRACTION] Completed successfully")
+            return template_data
+        
+        except Exception as e:
+            print(f"[WARN] V2 extraction failed: {e}")
+            print("[INFO] Falling back to V1 extraction")
+        
+            # Fallback to existing v1 method
+            return await self.extract_scenario_info(scenario_document)
+    
 # API Endpoints
 
 @router.post("/test-archetype-classification")

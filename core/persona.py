@@ -5,7 +5,7 @@ from uuid import UUID
 from datetime import datetime
 
 
-from models.persona_models import  PersonaBase, PersonaCreate, PersonaResponse, PersonaDB, PersonaGenerateRequest
+from models.persona_models import  PersonaBase, PersonaCreate, PersonaResponse, PersonaDB, PersonaGenerateRequest, PersonaGenerationRequestV2, PersonaInstanceV2
 from models.user_models import UserDB,UserRole
 
 from core.user import get_current_user, get_admin_user, get_superadmin_user
@@ -483,3 +483,76 @@ async def delete_persona_endpoint(
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Persona not found")
     return {"success": True}
+
+
+# ============================================================================
+# V2 PERSONA GENERATION - Dynamic Persona System
+# ============================================================================
+
+async def generate_persona_v2(
+    template_data: Dict[str, Any],
+    mode: str,
+    gender: Optional[str] = None,
+    custom_prompt: Optional[str] = None
+) -> PersonaInstanceV2:
+    """
+    V2 IMPLEMENTATION: Generate persona with dynamic detail categories.
+    Safe to call - has fallback to v1 if fails.
+    """
+    try:
+        from core.persona_generator_v2 import PersonaGeneratorV2
+        
+        persona_gen = PersonaGeneratorV2(azure_openai_client)
+        persona = await persona_gen.generate_persona(
+            template_data=template_data,
+            mode=mode,
+            gender=gender,
+            custom_prompt=custom_prompt
+        )
+        
+        print(f"[V2] Generated persona: {persona.name} with {len(persona.detail_categories)} categories")
+        return persona
+        
+    except Exception as e:
+        print(f"[WARN] V2 generation failed: {e}")
+        print("[INFO] Falling back to basic persona structure")
+        raise HTTPException(status_code=500, detail=f"V2 generation failed: {str(e)}")
+
+
+@router.post("/generate-v2", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
+async def generate_persona_v2_endpoint(
+    request: PersonaGenerationRequestV2,
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """
+    V2 endpoint - uses new PersonaGeneratorV2 with dynamic categories.
+    Safe: falls back to v1 if fails.
+    """
+    try:
+        # Get template data from database
+        template = await db.templates.find_one({"_id": request.template_id})
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        template_data = template.get("template_data", {})
+        
+        # Generate v2 persona
+        persona = await generate_persona_v2(
+            template_data=template_data,
+            mode=request.mode,
+            gender=request.gender,
+            custom_prompt=request.custom_prompt
+        )
+        
+        return {
+            "success": True,
+            "version": "v2",
+            "template_id": request.template_id,
+            "persona": persona.dict()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"V2 generation failed: {str(e)}")

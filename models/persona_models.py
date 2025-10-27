@@ -69,3 +69,63 @@ class PersonaGenerateRequest(BaseModel):
         example="Mumbai")
     gender: BotGender
 
+
+# ============================================================================
+# V2 PERSONA MODELS - Dynamic Persona Generation System
+# ============================================================================
+
+class PersonaLocation(BaseModel):
+    """Universal location model for v2 personas"""
+    country: str = "India"
+    state: Optional[str] = None
+    city: str
+    region: Optional[str] = None
+    current_physical_location: str
+    location_type: str
+    languages_spoken: List[str] = ["English", "Hindi"]
+
+
+class PersonaInstanceV2(BaseModel):
+    """
+    Flexible persona model with base fields + dynamic detail categories.
+    Different scenarios will have different detail categories.
+    """
+    # Meta
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    template_id: str
+    persona_type: str
+    mode: str
+    scenario_type: str
+    
+    # Base fields (always present)
+    name: str
+    age: int
+    gender: str
+    role: str
+    description: str
+    location: PersonaLocation
+    
+    # Archetype
+    archetype: str
+    archetype_confidence: float
+    archetype_specific_data: Dict[str, Any] = Field(default_factory=dict)
+    
+    # Dynamic detail categories (scenario-specific)
+    detail_categories: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    
+    # Conversation parameters
+    conversation_rules: Dict[str, Any] = Field(default_factory=dict)
+    
+    # Metadata
+    detail_categories_included: List[str] = Field(default_factory=list)
+    generation_metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class PersonaGenerationRequestV2(BaseModel):
+    """Request to generate a v2 persona"""
+    template_id: str
+    mode: str
+    persona_type: Optional[str] = None
+    gender: Optional[str] = None
+    custom_prompt: Optional[str] = None
+    variation_id: Optional[int] = None
