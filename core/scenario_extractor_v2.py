@@ -45,13 +45,18 @@ class ScenarioExtractorV2:
         print(f"[V2 EXTRACTION] Completed: modes={bool(mode_descriptions)}, personas={bool(persona_types)}, domain={bool(domain_knowledge)}, coaching={bool(coaching_evaluation)}")
         
         # Merge into unified structure
-        return self._merge_extraction_results(
+        template_data = self._merge_extraction_results(
             mode_descriptions,
             persona_types,
             domain_knowledge,
             coaching_evaluation,
             scenario_document
         )
+        
+        # FIX #1: Validate and correct archetype
+        template_data = self._validate_and_correct_archetype(template_data)
+        
+        return template_data
     
     async def _extract_mode_descriptions(self, document: str) -> Dict[str, Any]:
         """Pass 1: Extract what happens in each mode"""
@@ -332,5 +337,48 @@ Extract in JSON format:
             "extraction_version": "v2",
             "extraction_timestamp": datetime.now().isoformat()
         }
+        
+        return template_data
+    
+    def _determine_correct_archetype(self, template_data: Dict[str, Any]) -> Optional[str]:
+        """Determine correct archetype based on scenario context"""
+        domain = template_data.get("general_info", {}).get("domain", "")
+        assess_mode = template_data.get("mode_descriptions", {}).get("assess_mode", {})
+        ai_bot_role = assess_mode.get("ai_bot_role", "")
+        what_happens = assess_mode.get("what_happens", "")
+        
+        # PERSUASION: Sales, pitching scenarios
+        if any(keyword in domain.lower() for keyword in ["sales", "pharmaceutical", "product"]):
+            if any(keyword in what_happens.lower() for keyword in ["pitch", "sell", "convince", "present product"]):
+                return "PERSUASION"
+        
+        # PERSUASION: Customer/client being sold to
+        if any(role in ai_bot_role.lower() for role in ["customer", "client", "doctor", "buyer"]):
+            if "pitch" in what_happens.lower() or "sell" in what_happens.lower():
+                return "PERSUASION"
+        
+        # HELP_SEEKING: Customer seeking help
+        if any(keyword in what_happens.lower() for keyword in ["seeks help", "needs assistance", "has problem"]):
+            return "HELP_SEEKING"
+        
+        # CONFRONTATION: Conflict, bias scenarios
+        if any(keyword in domain.lower() for keyword in ["dei", "bias", "conflict", "complaint"]):
+            return "CONFRONTATION"
+        
+        return None
+    
+    def _validate_and_correct_archetype(self, template_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate archetype and correct if wrong"""
+        current_archetype = template_data.get("archetype_classification", {}).get("primary_archetype")
+        correct_archetype = self._determine_correct_archetype(template_data)
+        
+        if correct_archetype and current_archetype != correct_archetype:
+            print(f"[ARCHETYPE FIX] Correcting {current_archetype} → {correct_archetype}")
+            template_data["archetype_classification"] = {
+                "primary_archetype": correct_archetype,
+                "confidence_score": 0.95,
+                "corrected": True,
+                "original_archetype": current_archetype
+            }
         
         return template_data

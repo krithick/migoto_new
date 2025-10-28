@@ -72,6 +72,21 @@ class PersonaGeneratorV2:
             generation_metadata={"custom_prompt_used": custom_prompt, "gender_specified": gender}
         )
         
+        # FIX #4: Validate and auto-fix persona
+        from core.persona_validator import PersonaValidator
+        
+        issues = PersonaValidator.validate(persona, template_data)
+        if issues:
+            print(f"[VALIDATION] Found {len(issues)} issues:")
+            for issue in issues:
+                print(f"  - {issue}")
+            persona = PersonaValidator.auto_fix(persona, issues)
+            remaining = PersonaValidator.validate(persona, template_data)
+            if remaining:
+                print(f"[VALIDATION] {len(remaining)} issues remain after auto-fix")
+        else:
+            print("[VALIDATION] Persona looks good! ✅")
+        
         return persona
     
     def _extract_base_persona(
@@ -114,6 +129,9 @@ class PersonaGeneratorV2:
     ) -> List[str]:
         """LLM analyzes scenario and decides which detail categories are relevant."""
         
+        # FIX #2: Get required categories first
+        required_categories = self._get_scenario_required_categories(template_data)
+        
         available_categories = self.category_library.get_all_categories()
         category_descriptions = "\n".join([
             f"- {name}: {cat.description} (When: {cat.when_relevant})"
@@ -126,11 +144,15 @@ SCENARIO: {template_data.get("context_overview", {}).get("scenario_title", "Trai
 DOMAIN: {template_data.get("general_info", {}).get("domain", "general")}
 PERSONA ROLE: {base_persona["role"]}
 MODE: {mode}
+ARCHETYPE: {template_data.get("archetype_classification", {}).get("primary_archetype", "unknown")}
 
 AVAILABLE CATEGORIES:
 {category_descriptions}
 
-Select ONLY truly relevant categories. Return JSON array:
+REQUIRED CATEGORIES (MUST include): {required_categories}
+
+Task: START with required categories, then add 2-5 MORE relevant ones.
+Return JSON array:
 ["category1", "category2", "category3"]"""
         
         try:
@@ -151,11 +173,17 @@ Select ONLY truly relevant categories. Return JSON array:
                 response_text = response_text.split("```")[1].split("```")[0].strip()
             
             categories = json.loads(response_text)
+            
+            # Ensure required categories are included
+            for req_cat in required_categories:
+                if req_cat not in categories:
+                    categories.append(req_cat)
+            
             return [cat for cat in categories if cat in available_categories]
             
         except Exception as e:
             print(f"[ERROR] Category selection failed: {e}")
-            return ["professional_context", "time_constraints", "decision_criteria"]
+            return required_categories + ["professional_context", "decision_criteria"]
     
     async def _generate_detail_categories(
         self,
@@ -192,12 +220,17 @@ Select ONLY truly relevant categories. Return JSON array:
         
         category_def = self.category_library.get_category_definition(category_name)
         
+        # FIX #3: Add interaction context
+        interaction_context = self._build_interaction_context(template_data, base_persona)
+        
         generation_prompt = f"""Generate realistic details for "{category_name}" category.
 
 PERSONA: {base_persona["name"]}, {base_persona["age"]}, {base_persona["role"]}
 SCENARIO: {template_data.get("general_info", {}).get("domain", "general")}
 CATEGORY: {category_def.description}
 EXAMPLE FIELDS: {", ".join(category_def.example_fields)}
+
+{interaction_context}
 
 {f"CUSTOM: {custom_prompt}" if custom_prompt else ""}
 
@@ -229,6 +262,39 @@ Return JSON only:"""
             print(f"[ERROR] Category generation failed for {category_name}: {e}")
             return {"error": f"Failed to generate {category_name}"}
     
+    def _get_scenario_required_categories(self, template_data: Dict[str, Any]) -> List[str]:
+        """Determine required categories based on scenario type"""
+        domain = template_data.get("general_info", {}).get("domain", "")
+        archetype = template_data.get("archetype_classification", {}).get("primary_archetype", "")
+        assess_mode = template_data.get("mode_descriptions", {}).get("assess_mode", {})
+        what_happens = assess_mode.get("what_happens", "")
+        
+        required = []
+        
+        # PERSUASION archetype needs decision_criteria
+        if archetype == "PERSUASION":
+            required.append("decision_criteria")
+        
+        # Sales scenarios need these
+        if "sales" in domain.lower() or "pharmaceutical" in domain.lower():
+            required.extend(["professional_context", "time_constraints", "sales_rep_history"])
+        
+        # Medical scenarios need medical_philosophy
+        if any(keyword in domain.lower() for keyword in ["medical", "pharmaceutical", "healthcare"]):
+            required.append("medical_philosophy")
+        
+        # CONFRONTATION needs these
+        if archetype == "CONFRONTATION":
+            required.extend(["emotional_state", "incident_context"])
+        
+        # HELP_SEEKING needs these
+        if archetype == "HELP_SEEKING":
+            required.append("anxiety_factors")
+        
+        required = list(set(required))
+        print(f"[CATEGORIES] Required for this scenario: {required}")
+        return required
+    
     async def _generate_conversation_rules(
         self,
         template_data: Dict[str, Any],
@@ -236,6 +302,9 @@ Return JSON only:"""
         detail_categories: Dict[str, Dict[str, Any]]
     ) -> Dict[str, Any]:
         """Generate conversation rules and behavioral triggers"""
+        
+        # FIX #3: Add interaction context
+        interaction_context = self._build_interaction_context(template_data, base_persona)
         
         context_summary = "\n".join([
             f"{cat_name}: {json.dumps(details, indent=2)}"
@@ -245,6 +314,9 @@ Return JSON only:"""
         rules_prompt = f"""Generate conversation rules for this persona.
 
 PERSONA: {base_persona["name"]}, {base_persona["role"]}
+
+{interaction_context}
+
 DETAILS:
 {context_summary}
 
@@ -287,3 +359,34 @@ Return JSON:
                 "word_limit": 50,
                 "behavioral_triggers": {}
             }
+    
+    def _build_interaction_context(self, template_data: Dict[str, Any], base_persona: Dict[str, Any]) -> str:
+        """Build clear context about WHO persona interacts with and HOW"""
+        assess_mode = template_data.get("mode_descriptions", {}).get("assess_mode", {})
+        learner_role = assess_mode.get("learner_role", "learner")
+        ai_bot_role = assess_mode.get("ai_bot_role", base_persona["role"])
+        what_happens = assess_mode.get("what_happens", "")
+        archetype = template_data.get("archetype_classification", {}).get("primary_archetype", "")
+        
+        context = f"""INTERACTION CONTEXT:
+- This persona is: {ai_bot_role}
+- They interact with: {learner_role}
+- What happens: {what_happens}
+- Archetype: {archetype}
+"""
+        
+        if archetype == "PERSUASION":
+            context += f"""\nThis means:
+- The {learner_role} is trying to CONVINCE/SELL to this persona
+- Focus on: What convinces them? What frustrates them about sales pitches?
+- NOT about patient care - about SALES INTERACTION"""
+        elif archetype == "HELP_SEEKING":
+            context += f"""\nThis means:
+- This persona HAS A PROBLEM and seeks help from {learner_role}
+- Focus on: What's their problem? What help do they need?"""
+        elif archetype == "CONFRONTATION":
+            context += f"""\nThis means:
+- There's a conflict or uncomfortable situation
+- Focus on: Emotional state, incident details"""
+        
+        return context

@@ -43,6 +43,7 @@ from core.tier_boss_admin_routes import router as boss_tier_router
 from core.tier_admin_routes import router as admin_tier_router  
 from core.tier_user_routes import router as user_tier_router
 from core.tier_utils import enforce_analysis_limit
+from core.test_prompt_architect_api import router as test_prompt_architect_router
 
 # from core.document_processor import DocumentProcessor  # ADD THIS
 # from core.azure_search_manager import AzureVectorSearchManager  # ADD THIS
@@ -77,6 +78,7 @@ app.include_router(knowledge_base_router)  # ADD THIS
 app.include_router(boss_tier_router)
 app.include_router(admin_tier_router)
 app.include_router(user_tier_router)
+app.include_router(test_prompt_architect_router)
 
 # app.include_router(new_router)
 

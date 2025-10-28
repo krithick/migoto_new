@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Streaming TTS Test</title>
+</head>
+<body>
+    <h1>Test Streaming TTS</h1>
+    <textarea id="text" placeholder="Enter text to synthesize" rows="4" cols="50">مرحبا كيف حالك اليوم</textarea><br><br>
+    <button onclick="testOldTTS()">Test Old TTS</button>
+    <button onclick="testStreamTTS()">Test Streaming TTS</button><br><br>
+    <div id="status"></div>
+    <audio id="audio" controls style="width: 100%;"></audio>
+    
+    <script>
+        async function testOldTTS() {
+            const text = document.getElementById('text').value;
+            const status = document.getElementById('status');
+            const audio = document.getElementById('audio');
+            
+            status.innerHTML = 'Testing old TTS...';
+            const start = Date.now();
+            
+            try {
+                const formData = new FormData();
+                formData.append('message', text);
+                formData.append('voice_id', 'ar-SA-HamedNeural');
+                
+                const response = await fetch('/speech/tts', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    audio.src = url;
+                    const time = Date.now() - start;
+                    status.innerHTML = `Old TTS completed in ${time}ms`;
+                } else {
+                    status.innerHTML = 'Old TTS failed';
+                }
+            } catch (e) {
+                status.innerHTML = `Old TTS error: ${e.message}`;
+            }
+        }
+        
+        async function testStreamTTS() {
+            const text = document.getElementById('text').value;
+            const status = document.getElementById('status');
+            const audio = document.getElementById('audio');
+            
+            status.innerHTML = 'Testing streaming TTS...';
+            const start = Date.now();
+            
+            try {
+                const formData = new FormData();
+                formData.append('message', text);
+                formData.append('voice_id', 'ar-SA-HamedNeural');
+                
+                const response = await fetch('/speech/tts-stream', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    audio.src = url;
+                    const time = Date.now() - start;
+                    status.innerHTML = `Streaming TTS completed in ${time}ms`;
+                } else {
+                    status.innerHTML = 'Streaming TTS failed';
+                }
+            } catch (e) {
+                status.innerHTML = `Streaming TTS error: ${e.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
