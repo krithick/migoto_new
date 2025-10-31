@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <g id="Small_Pdf_Icon" data-name="Small Pdf Icon" transform="translate(-1040 -583)">
+    <rect id="Rectangle_2736" data-name="Rectangle 2736" width="16" height="16" transform="translate(1040 583)" fill="none"/>
+    <g id="noun-pdf-7650633" transform="translate(1025.332 574.668)">
+      <path id="Path_3167" data-name="Path 3167" d="M21.7,8.332l-5.034,5.035V24.332h12.8v-16Zm6.966,8.8h-11.2v-3.2h4.8v-4.8h6.4Zm-10.635-4L21.468,9.7v3.434Zm-.565,10.4v-5.6h11.2v5.6Z" fill="#535ba4"/>
+      <path id="Path_3168" data-name="Path 3168" d="M27.082,63.3v3.2h.8V64.9h1.6V62.5h-2.4Zm1.6,0v.8h-.8v-.8Z" transform="translate(-8.415 -43.768)" fill="#535ba4"/>
+      <path id="Path_3169" data-name="Path 3169" d="M44.95,62.5h-1.2v4h1.2a1.2,1.2,0,0,0,1.2-1.2V63.7A1.2,1.2,0,0,0,44.95,62.5Zm.4,2.8a.4.4,0,0,1-.4.4h-.4V63.3h.4a.4.4,0,0,1,.4.4Z" transform="translate(-21.882 -43.768)" fill="#535ba4"/>
+      <path id="Path_3170" data-name="Path 3170" d="M60.418,62.5v4h.8V64.9h1.6v-.8h-1.6v-.8h1.6v-.8Z" transform="translate(-35.35 -43.768)" fill="#535ba4"/>
+    </g>
+  </g>
+</svg>
