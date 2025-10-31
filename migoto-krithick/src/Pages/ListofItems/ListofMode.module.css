@@ -1,0 +1,153 @@
+.loiContainer {
+    padding: 1%;
+    height: 95%;
+    min-width: 60vw;
+    max-width: 98%;
+    width: 100%;
+    overflow-y: auto;
+    border-radius: 10px;
+    background-color: #ffffff8f;
+  }
+  .loiHeader {
+    /* height: 6vh; */
+    width: 100%;
+    /* border-bottom: 1px solid #9fa8c7; */
+    display: flex;
+    flex-direction: column;
+  }
+
+  .loiActive > div {
+    display: flex;
+    position: relative;
+    p {
+      font-size: clamp(0.8rem, 0.8vw, 1rem);
+    }
+  }
+  .totalBox {
+    display: flex;
+    font-size: clamp(0.7rem, 0.7vw, 0.9rem);
+    gap: 1%;
+    border-bottom: 1px solid #9fa8c7;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+
+  }
+  .box {
+    padding: 1%;
+    padding-bottom: 0;
+    cursor: pointer;
+    color: var(--textColor);
+  }
+  .active {
+    border-bottom: 3px solid #0085db;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    color: #0085db;
+  }
+  
+
+  .loiBodyOuter{
+    height: 83%;
+  }
+
+  .loiBodyHead{
+    height: 9vh;
+    border-bottom: 1px solid #9fa8c7;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+  }
+  
+  .loiBody {
+    height: 81%;
+    display: flex;
+    gap: 1%;
+    position: relative;
+
+  }
+  
+  .BtnGroup{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 3%;
+    padding: 1%;
+    button{
+      padding: 0.5% 4%;
+      border: 1px solid #0085db;
+      border-radius: 20px;
+    }
+  
+    button[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: #ccc;
+      cursor: pointer;
+    }
+    
+    
+  }
+  .nextBtn{
+    background-color: #0085db;
+    color: white;
+  }
+  /* -----------------------------------------Mode----------------------------------------------- */
+
+  .loiBodyHead > div{
+    font-size: clamp(0.65rem, 0.65vw, 8rem);
+    display: flex;
+    gap: 0.5%;
+  }
+  .loiBodyHead > p{
+    font-size: clamp(0.6rem, 0.6vw, 9rem);
+  }
+  .loiBodyHead label{
+    color: #0085db;
+  }
+  input[type="checkbox"] {
+    accent-color: #0085db;
+    border: 1px solid #0085db;
+    outline: none;
+  }
+  
+  .sideBar{
+    width: 18%;
+    background-color: #FFFFFF8F;
+    padding: 1%;
+    display: flex;
+    flex-direction: column;
+    gap: 2%;
+  }
+  .unselected{
+    height: 3vh;
+    padding: 1%;
+    padding-left: 10%;
+    display: flex;
+    align-items: center;
+    font-size: clamp(0.6rem, 0.6vw, 9rem);
+    color: #ABAFB3;
+    cursor: pointer;
+  }
+  .selected{
+    background-color: #28A74533;
+    color: #28A745;
+    border-radius: 8px;
+  }
+  .contentPanel{
+    width: 78%;
+    padding: 1%;
+    background-color: #FFFFFF8F;
+  }
+.overlay{
+  position: absolute;
+ top: 0;
+ background-color: #FFFFFF8F;;
+ width: 100%;
+ height: 100%;
+ display: block;
+}
+.overlayNone{
+  display: none;
+}

@@ -1,0 +1,152 @@
+.manualUploadContainer {
+    padding: 2%;
+    border-radius: 8px;
+    height: 85%;
+    position: relative;
+  }
+
+  .manualUploadHeader{
+    width: 98%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1%;
+    height: 5vh;
+
+    p{
+      font-weight: 500;
+    }
+
+  }
+  
+  /* .manualUploadHeader h2 {
+    margin-bottom: 20px;
+  } */
+  .manualForm{
+    position: relative;
+    height: 100%;
+  }
+  .gridRow {
+    display: flex;
+    gap: 5%;
+  }
+  
+  .box {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-bottom: 15px;
+    position: relative;
+
+  }
+  
+  .box label {
+    font-size: 14px;
+    color: #9FA8C7;
+    margin-bottom: 5px;
+    font-size: clamp(0.7rem, 0.7vw, 1.0rem);
+    display: flex;
+
+  }
+  
+  .box input {
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    outline: none;
+  }
+.accessInput{
+  border: 1px solid green !important;
+}
+.deniedInput{
+  border: 1px solid red !important;
+}
+  
+  .radioGroup {
+    display: flex;
+    gap: 5%;
+  }
+  
+  .radioOption {
+    display: flex;
+    align-items: center;
+  }
+  
+  .radioOption input[type="radio"] {
+    margin-right: 5px;
+    width: 18px;
+    height: 18px;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    outline: none;
+    cursor: pointer;
+  }
+  
+  
+  .radioLabel {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  
+  .buttonGroup {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    position: absolute;
+    /* bottom: -60%; */
+    bottom: 20px;
+    right: 0;
+  }
+  
+  .cancelButton {
+    padding: 3px 20px;
+    background-color: white;
+    border: 1px solid #0078d4;
+    color: #0078d4;
+    border-radius: 18px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .submitButton {
+    padding: 3px 20px;
+    background-color: #0078d4;
+    border: none;
+    color: white;
+    border-radius: 18px;
+    cursor: pointer;
+    outline: none;
+  }
+  
+  .submitButton:hover {
+    background-color: #006abc;
+  }
+  
+  .cancelButton:hover {
+    background-color: #f0f0f0;
+  }
+
+
+  .IIconInfo{
+    position: absolute;
+    top: 0;
+    left: 35%;
+    /* width: 80%; */
+    background-color: #28a7467e;
+    border: 1px solid #28a746;
+    border-radius: 5px;
+    /* color: #28A745; */
+    padding: 1%;
+    font-size: clamp(0.6rem, 0.6vw, .9rem);
+    /* opacity: 0; */
+  }
+
+  .IIcon:hover{
+    cursor: pointer;
+  }
+  .IIcon:hover .IIconInfo{
+    opacity: 1;
+  }

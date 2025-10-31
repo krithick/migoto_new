@@ -1,0 +1,34 @@
+{
+  "test_completed_at": "2025-09-09T11:51:45.682877",
+  "scenario_name": "Customer Service Training",
+  "total_cost_usd": 0,
+  "breakdown": {
+    "scenario_creation": {
+      "error": "'MongoDB' object has no attribute 'cost_tracking'",
+      "scenario_id": "52493cd2-826a-4c7a-b419-0776e40d59e0"
+    },
+    "conversation_session": {
+      "error": "'MongoDB' object has no attribute 'cost_tracking'",
+      "session_id": "test_session_1757398905"
+    },
+    "full_cost_report": {
+      "user_id": "test_user",
+      "report_period": {
+        "start_date": "2025-09-09T00:00:00",
+        "end_date": "2025-09-09T11:51:45.639427"
+      },
+      "summary": {
+        "total_cost_usd": 0.0,
+        "scenario_creation_cost": 0.0,
+        "conversation_cost": 0.0,
+        "scenarios_created": 3,
+        "conversations_completed": 1
+      },
+      "usage_breakdown": {
+        "total_tokens": 0,
+        "total_stt_minutes": 0,
+        "total_tts_characters": 0
+      },
+      "detailed_scenarios": [
+        {
+          "_id": 

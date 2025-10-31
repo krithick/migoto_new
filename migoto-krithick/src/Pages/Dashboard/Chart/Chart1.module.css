@@ -1,0 +1,43 @@
+.chartContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* flex-direction: column; */
+    border-radius: 8px;
+    /* margin: 3vh 0.8vw 1vh 0.8vw; */
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 80%;
+  }
+  .overallPie{
+    width: 40%;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .pieSvg {
+        position: relative;
+        max-height: 100% !important;
+        max-width: 100% !important;
+      }
+  
+  }
+  .appContainer {
+    display: grid;
+    width: 87%;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  
+  }
+  
+  /* .appContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 87%;
+  }
+   */

@@ -1,0 +1,91 @@
+.cardContainer {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  width: 25%;
+  height: 13vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: "16px"
+  /* scale: 0.8; */
+}
+.cardContainer1 {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  /* width: 25%;
+  height: 13vh; */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: "16px"
+  /* scale: 0.8; */
+}
+
+.cardBody {
+  padding: 16px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cardTitle {
+  font-size: clamp(0.8rem, 1vw, 0.8rem) !important;
+  font-weight: 500;
+  color: #595959;
+}
+
+.iconContainer {
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.numberTitle {
+  /* margin: 8px 0; */
+  /* font-size: x-large !important; */
+  font-size: clamp(1.2rem, 2.5vw, 1.5vw);
+  font-weight: 00;
+
+  margin-bottom: 5px !important;
+}
+
+.viewDetail {
+  position: absolute;
+  bottom: 0.5vh;
+  right: 1em;
+  cursor: pointer;
+
+  /* display: flex;
+  align-items: center;
+  justify-content: end; */
+}
+
+.viewText {
+  color: #1890ff;
+  font-size: 0.7vw;
+
+  /* font-size: 14px; */
+  margin-right: 4px;
+}
+
+.arrowIcon {
+  color: #1890ff;
+  font-size: 0.8vw;
+}
+
+/* icons */
+.userIcon {
+  z-index: 2;
+
+  path {
+    /* fill: var; */
+  }
+}

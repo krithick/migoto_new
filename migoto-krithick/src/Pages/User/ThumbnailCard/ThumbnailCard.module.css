@@ -1,0 +1,25 @@
+.mainDiv{
+    background-color: #FFFFFF;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: first baseline;
+    padding: 2%;
+}
+
+.picDiv{
+    width: 100%;
+    height: 75%;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.infoDiv{
+    width: 100%;
+    height: 25%;
+    background-color: rebeccapurple;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}

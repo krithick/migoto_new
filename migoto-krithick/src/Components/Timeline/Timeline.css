@@ -1,0 +1,76 @@
+.timelineContainer {
+  background-color: #ffffff8f;
+  border: 1px solid #ffffff;
+  border-radius: 10px;
+  width: 15.5vw;
+  display: flex;
+  /* justify-content: center; */
+  /* align-items: center; */
+  padding: 2vh 0 2vh 1vw;
+  overflow: auto;
+  flex-direction: column;
+}
+.timeline {
+  margin: 3vh 1vw;
+  height: 100%;
+  padding: 1vh 1vw;
+}
+.ant-timeline-item-head {
+  background-color: transparent !important;
+}
+.dottedCircle {
+  width: 1.2vw;
+  height: 2.4vh;
+  border: 2px dotted;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  background: transparent;
+  font-size: clamp(0.7rem, 0.6vw, 1rem);
+  color: var(--textColor);
+}
+.childDottedCircle {
+  width: 0.2vw;
+  height: 0.4vh;
+  border: 2px solid;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.muted{
+  border-color: var(--textColor);
+}
+.timelineHeading {
+  font-weight: 600;
+  color: var(--textColor);
+}
+.timelineChildHeading{
+  font-weight: 600;
+  font-size: clamp(0.5rem, 0.55vw, 0.8rem);
+
+  color: var(--textColor);
+}
+.success {
+  color: var(--success);
+}
+.warning {
+  color: var(--warning);
+}
+.blue {
+  color: var(--brand);
+  
+}
+.childTimeline {
+  margin: 1.5vh 0;
+}
+.timelineDetails {
+  margin-top: 0.3vh;
+  font-size: clamp(0.5rem, 0.55vw, 0.8rem);
+  .title {
+    color: var(--textColor);
+  }
+}

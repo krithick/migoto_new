@@ -1,0 +1,3681 @@
+{
+  "total_courses_checked": 190,
+  "courses_with_orphaned_content": 35,
+  "orphaned_courses": [
+    {
+      "course_id": "172de50e-5fee-41e3-9a06-4cbff9517965",
+      "course_title": "Workplace Harassment & Discrimination",
+      "course_creator": {
+        "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+        "username": "Vidya T (Mother Company)",
+        "email": "vidya.t@novactech.in",
+        "role": "admin",
+        "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+      },
+      "orphaned_avatar_interactions_count": 30,
+      "orphaned_templates_count": 0,
+      "orphaned_avatar_interactions": [
+        {
+          "avatar_interaction_id": "de241660-807b-483c-8f2a-954206ba2a4e",
+          "scenario_title": "Circulation of inappropriate content",
+          "module_title": "Sexual Harassment",
+          "mode": "learn_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "4a5def55-b617-4e24-87cb-aed0939b9aea",
+          "scenario_title": "Circulation of inappropriate content",
+          "module_title": "Sexual Harassment",
+          "mode": "try_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "2719e601-f09b-4a94-9f07-946eba42dee8",
+          "scenario_title": "Circulation of inappropriate content",
+          "module_title": "Sexual Harassment",
+          "mode": "assess_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "4284d9e0-f0f2-44d0-9733-c5041da45bfe",
+          "scenario_title": "Inappropriate jokes and comments",
+          "module_title": "Sexual Harassment",
+          "mode": "learn_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "c47eb822-76a0-40ea-b774-1e55f501aa2e",
+          "scenario_title": "Inappropriate jokes and comments",
+          "module_title": "Sexual Harassment",
+          "mode": "try_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "d1dba2a4-6953-498b-991f-ac8bb708700c",
+          "scenario_title": "Inappropriate jokes and comments",
+          "module_title": "Sexual Harassment",
+          "mode": "assess_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "934cc052-fbf8-4e33-9e63-5aa93fb85d71",
+          "scenario_title": "Quid pro quo Harassment",
+          "module_title": "Sexual Harassment",
+          "mode": "learn_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "24fc11b3-ce58-46d3-814e-600da5495349",
+          "scenario_title": "Quid pro quo Harassment",
+          "module_title": "Sexual Harassment",
+          "mode": "try_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "5928d460-08b5-4bfa-aa6e-e70d1a675e20",
+          "scenario_title": "Quid pro quo Harassment",
+          "module_title": "Sexual Harassment",
+          "mode": "assess_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "6d5daf81-46e1-41f2-9c2b-0184761cf3a8",
+          "scenario_title": "Unwanted touching at office events",
+          "module_title": "Sexual Harassment",
+          "mode": "learn_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "a474e5f3-e322-447b-9165-682a1beab034",
+          "scenario_title": "Unwanted touching at office events",
+          "module_title": "Sexual Harassment",
+          "mode": "try_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "f74b4f25-5e73-4d05-9521-c4cf04a461cd",
+          "scenario_title": "Unwanted touching at office events",
+          "module_title": "Sexual Harassment",
+          "mode": "assess_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "4cdb17b4-d097-4cbd-8a18-da447170dfb4",
+          "scenario_title": "Unwelcome Advances",
+          "module_title": "Sexual Harassment",
+          "mode": "learn_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "2eac3c37-504a-4205-a03a-399c51b8603f",
+          "scenario_title": "Unwelcome Advances",
+          "module_title": "Sexual Harassment",
+          "mode": "try_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "ea5f4dcc-8793-4484-869f-8a8eade3e601",
+          "scenario_title": "Unwelcome Advances",
+          "module_title": "Sexual Harassment",
+          "mode": "assess_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "734f9569-3a30-46f2-a0f7-e0a088736b66",
+          "scenario_title": "Biased Hiring and Promotion Decisions",
+          "module_title": "Racial Harassment",
+          "mode": "learn_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "b616e649-5ce7-44e4-a0f3-77756dfd88ee",
+          "scenario_title": "Biased Hiring and Promotion Decisions",
+          "module_title": "Racial Harassment",
+          "mode": "try_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "6442fb4d-ef08-45d0-8071-9b0cedb1d243",
+          "scenario_title": "Biased Hiring and Promotion Decisions",
+          "module_title": "Racial Harassment",
+          "mode": "assess_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "5deef69c-8462-4772-9759-15426eecde59",
+          "scenario_title": "Exclusion from Networking Opportunities",
+          "module_title": "Racial Harassment",
+          "mode": "learn_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "ad9b9d4a-62d2-469b-bbfd-4c27cc3e21fc",
+          "scenario_title": "Exclusion from Networking Opportunities",
+          "module_title": "Racial Harassment",
+          "mode": "try_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "10201175-19bf-4242-a05d-e0c6906cb77e",
+          "scenario_title": "Exclusion from Networking Opportunities",
+          "module_title": "Racial Harassment",
+          "mode": "assess_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "154f1eb7-c0cc-41ea-9685-3c3b404f78ab",
+          "scenario_title": "Microaggressions in Team Interactions",
+          "module_title": "Racial Harassment",
+          "mode": "learn_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "1212236b-e2f9-482f-8288-4932ace37847",
+          "scenario_title": "Microaggressions in Team Interactions",
+          "module_title": "Racial Harassment",
+          "mode": "try_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "ff94aad9-1167-4e9c-8b03-27daf276d446",
+          "scenario_title": "Microaggressions in Team Interactions",
+          "module_title": "Racial Harassment",
+          "mode": "assess_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "ac558c6f-f205-4afa-b314-865019371430",
+          "scenario_title": "Racial Stereotyping in Performance Reviews",
+          "module_title": "Racial Harassment",
+          "mode": "learn_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "b24280af-c14f-4906-a4ff-a5c208d297f5",
+          "scenario_title": "Racial Stereotyping in Performance Reviews",
+          "module_title": "Racial Harassment",
+          "mode": "try_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "d7e4dbc6-2670-47d0-97c4-960c2534fd20",
+          "scenario_title": "Racial Stereotyping in Performance Reviews",
+          "module_title": "Racial Harassment",
+          "mode": "assess_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "515553b8-8cd2-48b4-8af6-479ed94a9471",
+          "scenario_title": "Retaliation for Reporting Racial Discrimination",
+          "module_title": "Racial Harassment",
+          "mode": "learn_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "4c0c527e-93e3-4f95-aee4-8ffc7b8b0d33",
+          "scenario_title": "Retaliation for Reporting Racial Discrimination",
+          "module_title": "Racial Harassment",
+          "mode": "try_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "08ed2b7e-1f79-465a-889e-d8bb89d777fa",
+          "scenario_title": "Retaliation for Reporting Racial Discrimination",
+          "module_title": "Racial Harassment",
+          "mode": "assess_mode",
+          "current_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "current_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        }
+      ],
+      "orphaned_templates": []
+    },
+    {
+      "course_id": "8a7ccaa6-c171-4147-89a5-8020690e6ef3",
+      "course_title": "Hr Policy ",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 2,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "123f4214-8843-47b0-95bd-10b765585dc4",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Hr Policy ",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_349455d0-d05d-4824-8910-2d7d29cfa95b"
+        },
+        {
+          "template_id": "123f4214-8843-47b0-95bd-10b765585dc4",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "Ethics",
+          "module_title": "Hr Policy ",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_349455d0-d05d-4824-8910-2d7d29cfa95b"
+        }
+      ]
+    },
+    {
+      "course_id": "67161d08-cbea-4444-87a2-53152d8390c6",
+      "course_title": "Hr Policy ",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "c60637a9-0257-44b2-a491-17b06c9888de",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Hr Policy vs",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_5e28e45a-81f9-4ec7-9920-5ef585feb01c"
+        }
+      ]
+    },
+    {
+      "course_id": "4cac8ff6-be8c-447e-af7e-683bbaea3b90",
+      "course_title": "Test Base",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "69b2caf4-7528-4480-9beb-367d7c5f1433",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Module Base 2",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_066a1566-c889-46fc-81a5-07f2162dc622"
+        }
+      ]
+    },
+    {
+      "course_id": "77258c18-6577-4441-b5d5-952827e36376",
+      "course_title": "Example Course",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "8c62e3ca-4c3f-4de8-a5b8-a2bc8f77e85a",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Sample Module",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_b8c3676d-dee4-4152-8f40-5fbda8551a12"
+        }
+      ]
+    },
+    {
+      "course_id": "cec2f104-d9d1-4e08-af91-258160c720ce",
+      "course_title": "w",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "04f76c0a-0291-45c9-b5e1-c89f54972c46",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "w",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_62b0f806-b96f-496d-bf36-2e55b034fec4"
+        }
+      ]
+    },
+    {
+      "course_id": "57b4294e-68f9-4913-9a22-f7105ebe5bf5",
+      "course_title": "r",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "cd33d42d-3a35-45e3-84df-a0703d4b40fd",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "r",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_b3433a2e-7b77-4790-b5a8-189f30677e19"
+        }
+      ]
+    },
+    {
+      "course_id": "c623a078-08a4-4092-9dda-437e530dcce8",
+      "course_title": "Cloud9 Sales Course",
+      "course_creator": {
+        "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+        "username": "admin@cloud9.com",
+        "email": "admin@cloud9.com",
+        "role": "admin",
+        "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 6,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "2e416677-6d4c-4d01-95ed-f7943d84ee46",
+          "template_name": "testing",
+          "scenario_title": "string",
+          "module_title": "Cloud9 Moudle Name",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_3436a7ab-b5a5-4825-b8dc-32a222794598"
+        },
+        {
+          "template_id": "e4b2448f-0ba8-4037-83ed-b5808c7f92d1",
+          "template_name": "Universal AI Training Scenario Template Filled",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Cloud9 Moudle Name",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_f82b302e-89ac-4966-aa0c-506bb459f34a"
+        },
+        {
+          "template_id": "cb717169-6bb2-4af0-a08a-28b976e2062f",
+          "template_name": "test",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Cloud9 Moudle Name",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_127dfea0-def2-4444-bc8d-61b20e147c7d"
+        },
+        {
+          "template_id": "3ba604ae-84d2-4ddd-b367-204d10f2464c",
+          "template_name": "asd",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Cloud9 Moudle Name",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_400f4b31-2841-4713-af81-2a07d343ee3b"
+        },
+        {
+          "template_id": "838adf70-5175-491a-9cc3-f5af1b70ee45",
+          "template_name": "cloud 9 final",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence final krithick test",
+          "module_title": "Cloud9 Moudle Name",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_9725b52a-8d7b-41cc-ad1b-1fdb74318cdc"
+        },
+        {
+          "template_id": "29ceb7aa-6b29-48c3-9c60-a8dab00d2b6c",
+          "template_name": "Universal AI Training Scenario Template Filled",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Cloud9 Moudle Name",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_49514ed4-f548-47b6-87e7-f36a4c0a4216"
+        }
+      ]
+    },
+    {
+      "course_id": "a88d3f68-8ed5-45ac-ae96-cfa2b6b40089",
+      "course_title": "Krithick's TEst course",
+      "course_creator": {
+        "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+        "username": "admin@cloud9.com",
+        "email": "admin@cloud9.com",
+        "role": "admin",
+        "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "70b7e7b0-4930-4e7e-9818-a15013871393",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Module Title",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_038633a2-c6d7-4bc0-9cc4-0e5e14115e06"
+        }
+      ]
+    },
+    {
+      "course_id": "eb01ac11-bd89-47d3-b1c8-d41e72f6306e",
+      "course_title": "Course TO test",
+      "course_creator": {
+        "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+        "username": "admin@cloud9.com",
+        "email": "admin@cloud9.com",
+        "role": "admin",
+        "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "e96a7220-fd9d-4a30-87cb-c4bf15309145",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Test Module",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_9b1c9db5-a417-4b1d-81c8-3efcb1ada486"
+        }
+      ]
+    },
+    {
+      "course_id": "3fb9170b-dcfa-41d5-93a2-c28954e9979e",
+      "course_title": "Insurance  Course",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "f1b86753-2c26-4c70-9009-32986e746f32",
+          "template_name": "Universal AI Training Scenario Template.docx",
+          "scenario_title": "HEALTH PROTECT - HealthGuard Health Insurance Sales Mastery",
+          "module_title": "Health Module",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_d8e7ec76-47d9-407a-99f6-8556dfc71b25"
+        }
+      ]
+    },
+    {
+      "course_id": "dd8a35b6-9fa9-4b0f-87b1-c3a0af52bd95",
+      "course_title": "Insurance",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "5154621c-cf15-430b-8a62-9bfbc4c055cc",
+          "template_name": "Universal AI Training Scenario Template.docx",
+          "scenario_title": "HEALTH PROTECT - HealthGuard Health Insurance Sales Mastery",
+          "module_title": "Insurance Sales",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_cc4de266-fbde-46a0-b876-7766ce6e0ee9"
+        }
+      ]
+    },
+    {
+      "course_id": "314b54a1-41c6-4bd3-8844-bc433873980d",
+      "course_title": "Customer Management ",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "975ed44f-42e5-4b06-a39d-045690f804ac",
+          "template_name": "Universal AI Training Scenario Template.docx",
+          "scenario_title": "CLAIM RESOLVE - Insurance Customer De-escalation Excellence",
+          "module_title": "Customer Management Module",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_31ec7ab3-c572-49d5-a53c-4dd7fefbf17c"
+        }
+      ]
+    },
+    {
+      "course_id": "29ca9226-2ee8-4877-acd1-0b4a3caa75b4",
+      "course_title": "string",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 2,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "b98b6d68-ddb0-4b23-8334-fe62b2c92ae3",
+          "template_name": "Universal AI Training Scenario Template.docx",
+          "scenario_title": "CLAIM RESOLVE - Insurance Customer De-escalation Excellence",
+          "module_title": "asd",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_9cb3c233-7b8e-4034-ba4c-1b85df14d23c"
+        },
+        {
+          "template_id": "a968e44e-10d2-4a4c-99f9-c91bcf25e7b8",
+          "template_name": "AI_Training_Scenario_Template_V2__2_.docx",
+          "scenario_title": "PITCH PERFECT",
+          "module_title": "asd",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_6dba43fd-d7ae-419e-8f77-7fee18aa27f4"
+        }
+      ]
+    },
+    {
+      "course_id": "4ca8bbe8-ed75-43a7-a9b5-42a551a483af",
+      "course_title": "Ct",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "794cd2d9-afa5-4f7c-a89b-1afba2db9ae9",
+          "template_name": "AI Training Scenario Templat1.docx",
+          "scenario_title": "SHRIRAM FD MASTERY - Fixed Deposit Sales Excellence Program",
+          "module_title": "Moudle",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_28d76928-67ba-4a4a-ae12-eda46ca74c38"
+        }
+      ]
+    },
+    {
+      "course_id": "d0d65c56-6d57-49bc-8d58-6b323b6c5992",
+      "course_title": "DEmo",
+      "course_creator": {
+        "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+        "username": "admin@cloud9.com",
+        "email": "admin@cloud9.com",
+        "role": "admin",
+        "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "a4f75b33-f67c-4812-ab07-b8f689dcec45",
+          "template_name": "AI_Training_Scenario_Template_V2__2_.docx",
+          "scenario_title": "Pitch Perfect",
+          "module_title": "testModule",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_599d3a3a-e45f-4686-b9e8-994eb231550b"
+        }
+      ]
+    },
+    {
+      "course_id": "6e5bbe3c-ab80-4403-8b41-1c59e3e72217",
+      "course_title": "asdddd",
+      "course_creator": {
+        "id": "33c14cb3-2f99-45be-9c2c-ec115af5e711",
+        "username": "teest@cloud9.com",
+        "email": "teest@cloud9.com",
+        "role": "admin",
+        "company_id": "b'\\xb32:\\x1f\\x1f\\x86E^\\x9c3H\\x19u\\xa3\\x05\\x03'"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 2,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "4c29e472-d946-4bcd-8e36-052dcc65d87b",
+          "template_name": "AI_Training_Scenario_Template_V2__2_.docx",
+          "scenario_title": "PITCH PERFECT",
+          "module_title": "asddd",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "33c14cb3-2f99-45be-9c2c-ec115af5e711",
+          "should_be_owner_details": {
+            "id": "33c14cb3-2f99-45be-9c2c-ec115af5e711",
+            "username": "teest@cloud9.com",
+            "email": "teest@cloud9.com",
+            "role": "admin",
+            "company_id": "b'\\xb32:\\x1f\\x1f\\x86E^\\x9c3H\\x19u\\xa3\\x05\\x03'"
+          },
+          "knowledge_base_id": "kb_03162d89-7cfe-4077-aaff-36007066e834"
+        },
+        {
+          "template_id": "0a097570-8159-455d-b9b5-97a321708c26",
+          "template_name": "AI_Training_Scenario_Template_V2__2_.docx",
+          "scenario_title": "PITCH PERFECT",
+          "module_title": "SDF",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "33c14cb3-2f99-45be-9c2c-ec115af5e711",
+          "should_be_owner_details": {
+            "id": "33c14cb3-2f99-45be-9c2c-ec115af5e711",
+            "username": "teest@cloud9.com",
+            "email": "teest@cloud9.com",
+            "role": "admin",
+            "company_id": "b'\\xb32:\\x1f\\x1f\\x86E^\\x9c3H\\x19u\\xa3\\x05\\x03'"
+          },
+          "knowledge_base_id": "kb_a48a7886-0703-4cc7-9553-824eba6b1b50"
+        }
+      ]
+    },
+    {
+      "course_id": "88dc23f6-5fde-4d09-8bff-c3deeb1cd707",
+      "course_title": "Test1 edditedd",
+      "course_creator": {
+        "id": "d1ce8a54-ff7b-4aa1-b221-91f1d7ca796b",
+        "username": "krithick",
+        "email": "krithick@cooud9.com",
+        "role": "admin",
+        "company_id": "b'\\xb32:\\x1f\\x1f\\x86E^\\x9c3H\\x19u\\xa3\\x05\\x03'"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "3bc144be-e773-4466-87d6-2ecdfabe0754",
+          "template_name": "AI_Training_Scenario_Template_V2__2_.docx",
+          "scenario_title": "PITCH PERFECT",
+          "module_title": "Module1 edited",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "d1ce8a54-ff7b-4aa1-b221-91f1d7ca796b",
+          "should_be_owner_details": {
+            "id": "d1ce8a54-ff7b-4aa1-b221-91f1d7ca796b",
+            "username": "krithick",
+            "email": "krithick@cooud9.com",
+            "role": "admin",
+            "company_id": "b'\\xb32:\\x1f\\x1f\\x86E^\\x9c3H\\x19u\\xa3\\x05\\x03'"
+          },
+          "knowledge_base_id": "kb_fd6e944c-7788-4f00-8a6c-cf3a75fd02fc"
+        }
+      ]
+    },
+    {
+      "course_id": "eb93b9cc-68e9-4515-ae50-5c7b99ae07c2",
+      "course_title": "TestCourses",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "f504d239-f1a7-49c6-bb0e-d5157a0357ed",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Test modules",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_45db790e-ada9-4827-b441-6c267e76b004"
+        }
+      ]
+    },
+    {
+      "course_id": "16643ad5-0c42-4c6d-a1f8-d2dffd58f8dc",
+      "course_title": "ff",
+      "course_creator": {
+        "id": "989f4812-0c6e-4bdb-bba5-42ace833316f",
+        "username": "krithick2",
+        "email": "krithick2@cloud9.com",
+        "role": "admin",
+        "company_id": "b'\\xb32:\\x1f\\x1f\\x86E^\\x9c3H\\x19u\\xa3\\x05\\x03'"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "09d4b264-ae64-4d31-b1fa-22d54f451ea0",
+          "template_name": "AI_Training_Scenario_Template_V2__2_.docx",
+          "scenario_title": "PITCH PERFECT",
+          "module_title": "asd",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "989f4812-0c6e-4bdb-bba5-42ace833316f",
+          "should_be_owner_details": {
+            "id": "989f4812-0c6e-4bdb-bba5-42ace833316f",
+            "username": "krithick2",
+            "email": "krithick2@cloud9.com",
+            "role": "admin",
+            "company_id": "b'\\xb32:\\x1f\\x1f\\x86E^\\x9c3H\\x19u\\xa3\\x05\\x03'"
+          },
+          "knowledge_base_id": "kb_ac688f17-7b57-41c1-9699-47b0d325459f"
+        }
+      ]
+    },
+    {
+      "course_id": "7c8a1d1d-0103-4477-b650-c3233e365163",
+      "course_title": "CloudNine Sales",
+      "course_creator": {
+        "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+        "username": "admin@cloud9.com",
+        "email": "admin@cloud9.com",
+        "role": "admin",
+        "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 2,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "148de0f2-8047-46f4-a387-667c8667d2c6",
+          "template_name": "AI_Training_Scenario_Template_V2__2_.docx",
+          "scenario_title": "PITCH PERFECT",
+          "module_title": "Maternity Offerings",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_6a7b662f-1458-4d56-b8c7-1d707f5bb932"
+        },
+        {
+          "template_id": "129417f6-12df-4fd3-9d67-c27839307b85",
+          "template_name": "AI_Training_Scenario_Template_V2__2_.docx",
+          "scenario_title": "Pitch Perfect V2",
+          "module_title": "Maternity Offerings",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_e9d2f076-a071-49e7-9d72-1aa0a0ca8d39"
+        }
+      ]
+    },
+    {
+      "course_id": "59588d55-c72a-448f-a5c2-487b9bb791d8",
+      "course_title": "da",
+      "course_creator": {
+        "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+        "username": "admin@cloud9.com",
+        "email": "admin@cloud9.com",
+        "role": "admin",
+        "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "8c2a9d37-9722-4f6f-9746-2d292ef5974a",
+          "template_name": "AI_Training_Scenario_Template_V2__2_.docx",
+          "scenario_title": "PITCH PERFECT",
+          "module_title": "as",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+          "should_be_owner_details": {
+            "id": "f544a070-ffea-4b1b-bedb-3c38641bf3cc",
+            "username": "admin@cloud9.com",
+            "email": "admin@cloud9.com",
+            "role": "admin",
+            "company_id": "b3323a1f-1f86-455e-9c33-481975a30503"
+          },
+          "knowledge_base_id": "kb_2570a53b-445f-4a7b-8e67-acdc2fb60737"
+        }
+      ]
+    },
+    {
+      "course_id": "bb228bf0-3948-429a-94e2-18466487c559",
+      "course_title": "Test name",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "7201d7ac-f856-4bcf-8dfc-11f8891856ff",
+          "template_name": "AI_Training_Scenario_Template_V2__2_.docx",
+          "scenario_title": "PITCH PERFECT",
+          "module_title": "Module Heading",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_1d368939-10ae-4612-8399-d9edd860ebe6"
+        }
+      ]
+    },
+    {
+      "course_id": "42c341ce-1c6c-4902-8dfa-f56205db4ab9",
+      "course_title": "DELETE",
+      "course_creator": {
+        "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+        "username": "Vidya",
+        "email": "t.vidya@novactech.in",
+        "role": "admin",
+        "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 2,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "6e11c39f-8c91-449f-b0d4-8aab8acd5bbe",
+          "template_name": "Scope and Impact of DEI 2.docx",
+          "scenario_title": "Scope and Impact of DEI",
+          "module_title": "Foundations of DEI",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "should_be_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "knowledge_base_id": "kb_9500c4b4-46ca-4cd0-a2b0-b43d937f0686"
+        },
+        {
+          "template_id": "1132d835-08ec-4ee1-a594-1f7ee0a6c6f3",
+          "template_name": "Professionalism and DEI.docx",
+          "scenario_title": "Professionalism and DEI",
+          "module_title": "Foundations of DEI",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "should_be_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "knowledge_base_id": "kb_5abbaad0-3522-4b11-8086-c8f8753a6a7a"
+        }
+      ]
+    },
+    {
+      "course_id": "a7c338c4-e9ed-4e41-8a03-859bd4a5d7c6",
+      "course_title": "DELETE",
+      "course_creator": {
+        "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+        "username": "Vidya",
+        "email": "t.vidya@novactech.in",
+        "role": "admin",
+        "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 2,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "6e11c39f-8c91-449f-b0d4-8aab8acd5bbe",
+          "template_name": "Scope and Impact of DEI 2.docx",
+          "scenario_title": "Scope and Impact of DEI",
+          "module_title": "Foundations of DEI",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "should_be_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "knowledge_base_id": "kb_9500c4b4-46ca-4cd0-a2b0-b43d937f0686"
+        },
+        {
+          "template_id": "1132d835-08ec-4ee1-a594-1f7ee0a6c6f3",
+          "template_name": "Professionalism and DEI.docx",
+          "scenario_title": "Professionalism and DEI",
+          "module_title": "Foundations of DEI",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "should_be_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "knowledge_base_id": "kb_5abbaad0-3522-4b11-8086-c8f8753a6a7a"
+        }
+      ]
+    },
+    {
+      "course_id": "851d9530-b58d-4fe2-823d-bc87c651d681",
+      "course_title": "Test course 555",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "e1bd6e2f-8f06-4bf9-8c59-992edd3fe7ff",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Test module 555",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_ff15011b-a887-4343-bfda-5db82619bc97"
+        }
+      ]
+    },
+    {
+      "course_id": "70068c9c-62b6-4949-bf3b-d73d700842ae",
+      "course_title": "Test course 556",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "f668a249-fc41-4584-96ba-9de09b8c1419",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Test module 556",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_0ed36d21-73f2-47e8-b81a-5424d8b22690"
+        }
+      ]
+    },
+    {
+      "course_id": "06c74185-386b-4b79-bd98-aae1188f07ee",
+      "course_title": "TestCourse123",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "879e92a1-e4e1-4dd4-98c9-c3675c3d8044",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "TestModule123",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_7b1bd9cc-6db2-4681-afcc-5154b237bcc2"
+        }
+      ]
+    },
+    {
+      "course_id": "76e6ff98-c646-4c7b-ace6-6a642071a9cc",
+      "course_title": "Testcourse12345",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "c6216cba-2b4f-4db3-9a80-81e3498a5fc2",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence",
+          "module_title": "Testmodule2345",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_eeae28b4-009d-498a-96fb-e002d3588829"
+        }
+      ]
+    },
+    {
+      "course_id": "6951405c-8ffa-497f-a0ff-211b621971c4",
+      "course_title": "test2",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "f745a5b8-a3f2-45b4-8a6c-13c8033eac97",
+          "template_name": "Universal AI Training Scenario Template Filled.docx",
+          "scenario_title": "PITCH PERFECT - Cloudnine Maternity Sales Excellence...",
+          "module_title": "test2",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_688b00f7-637b-452e-85db-f6dc9e555eae"
+        }
+      ]
+    },
+    {
+      "course_id": "5f6b8f08-f043-470c-980c-5edb2686a354",
+      "course_title": "Diversity, Equity, and Inclusion (DEI)",
+      "course_creator": {
+        "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+        "username": "Vidya T (Mother Company)",
+        "email": "vidya.t@novactech.in",
+        "role": "admin",
+        "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+      },
+      "orphaned_avatar_interactions_count": 39,
+      "orphaned_templates_count": 13,
+      "orphaned_avatar_interactions": [
+        {
+          "avatar_interaction_id": "2c962544-0666-4837-b1c8-e6e860996638",
+          "scenario_title": "Scope and Impact of DEI",
+          "module_title": "Foundations of DEI",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "6257625a-1227-4512-b879-ff1bfbd21d2d",
+          "scenario_title": "Scope and Impact of DEI",
+          "module_title": "Foundations of DEI",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "0f20c90f-7385-426e-b143-2f6de697b650",
+          "scenario_title": "Scope and Impact of DEI",
+          "module_title": "Foundations of DEI",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "3772f0ea-c490-4fb9-8b77-070e8ffc0944",
+          "scenario_title": "Professionalism and DEI",
+          "module_title": "Foundations of DEI",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "98ad4c9c-ee83-4990-8a90-7986ad382b79",
+          "scenario_title": "Professionalism and DEI",
+          "module_title": "Foundations of DEI",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "813dfac5-433f-4d41-9a32-fdd8be158465",
+          "scenario_title": "Professionalism and DEI",
+          "module_title": "Foundations of DEI",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "f6dc9da0-5574-4dff-8ad5-fa4a9e43a17c",
+          "scenario_title": "Justice in the JEDI Model",
+          "module_title": "Foundations of DEI",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "7b936a92-178b-454d-a696-1048b4854ea3",
+          "scenario_title": "Justice in the JEDI Model",
+          "module_title": "Foundations of DEI",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "9a455270-d284-4852-82d8-4c6a2e2e5875",
+          "scenario_title": "Justice in the JEDI Model",
+          "module_title": "Foundations of DEI",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "0af02dd8-d7c2-4b65-9fce-9cdc98e55618",
+          "scenario_title": "DELETE",
+          "module_title": "Foundations of DEI",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "eda6a502-b632-46a7-9d76-886832350b34",
+          "scenario_title": "DELETE",
+          "module_title": "Foundations of DEI",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "14fc43eb-c38f-44d9-b5e6-373f96cb359c",
+          "scenario_title": "DELETE",
+          "module_title": "Foundations of DEI",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "e5abb20e-e036-4948-b6fe-9d4317e71d0a",
+          "scenario_title": "Disability and Neurodiversity",
+          "module_title": "Understanding Diversity",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "9225d4ad-8718-4529-b2a6-d3af4de6bde7",
+          "scenario_title": "Disability and Neurodiversity",
+          "module_title": "Understanding Diversity",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "21bc354c-af6a-4e50-a8ca-34a2e1d71893",
+          "scenario_title": "Disability and Neurodiversity",
+          "module_title": "Understanding Diversity",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "f8ca553c-8713-419a-97a7-a19aed750bf5",
+          "scenario_title": "Demographic and Cultural Identity",
+          "module_title": "Understanding Diversity",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "3389f44a-6ed1-4e56-b37e-fd00d9d40cbe",
+          "scenario_title": "Demographic and Cultural Identity",
+          "module_title": "Understanding Diversity",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "c8fac546-8fb6-453c-8078-c3741ffebc38",
+          "scenario_title": "Demographic and Cultural Identity",
+          "module_title": "Understanding Diversity",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "a29fe0b2-6834-4ef2-9434-ce30c73931c2",
+          "scenario_title": "Race, Ethnicity, and Nationality",
+          "module_title": "Understanding Diversity",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "39098151-c1ce-4212-9148-af40399dedaa",
+          "scenario_title": "Race, Ethnicity, and Nationality",
+          "module_title": "Understanding Diversity",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "d2bb6bdc-e505-4816-a62d-6d88865f0245",
+          "scenario_title": "Race, Ethnicity, and Nationality",
+          "module_title": "Understanding Diversity",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "6fc55ef3-2283-4b52-86c6-6b5f1d27cfc7",
+          "scenario_title": "Recognizing Systemic Bias",
+          "module_title": "Practicing Equity",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "d1c388f1-bb8e-4b95-a560-17d818ef6526",
+          "scenario_title": "Recognizing Systemic Bias",
+          "module_title": "Practicing Equity",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "68bb13eb-8840-4efd-83da-99a744492c2f",
+          "scenario_title": "Recognizing Systemic Bias",
+          "module_title": "Practicing Equity",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "15f45d55-95aa-467b-a1d0-56a5106f6b12",
+          "scenario_title": "Privilege and Workplace Power",
+          "module_title": "Practicing Equity",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "8edd51e7-68c2-43b1-8c61-93c0e0de1c68",
+          "scenario_title": "Privilege and Workplace Power",
+          "module_title": "Practicing Equity",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "48a509fc-f68c-4d70-a210-e0cf4a6bcb15",
+          "scenario_title": "Privilege and Workplace Power",
+          "module_title": "Practicing Equity",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "c4d19fe1-dc65-43cf-b97f-9f1da889e501",
+          "scenario_title": "Designing Equitable Processes",
+          "module_title": "Practicing Equity",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "4ca06276-594e-4590-a8c2-c915566302bf",
+          "scenario_title": "Designing Equitable Processes",
+          "module_title": "Practicing Equity",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "380334c2-86d2-4050-b26d-cdac1e43dabd",
+          "scenario_title": "Designing Equitable Processes",
+          "module_title": "Practicing Equity",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "dde9f45f-d457-4ca4-9d25-10f4c294ca28",
+          "scenario_title": "What Inclusion Really Means",
+          "module_title": "Building Inclusion",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "343dbb6a-4342-4e9d-aef9-37c9fc0e96ff",
+          "scenario_title": "What Inclusion Really Means",
+          "module_title": "Building Inclusion",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "ad7f1a81-a00b-472c-b825-6ca752895be6",
+          "scenario_title": "What Inclusion Really Means",
+          "module_title": "Building Inclusion",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "1583cd2d-ceee-45d6-85ca-bbe50af5f52e",
+          "scenario_title": "Inclusive Leadership Behaviors",
+          "module_title": "Building Inclusion",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "4c580b89-a02e-4728-86c1-6e3b6e6aa23f",
+          "scenario_title": "Inclusive Leadership Behaviors",
+          "module_title": "Building Inclusion",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "9577a89b-5a7f-4f5c-86e0-2ea9ea103088",
+          "scenario_title": "Inclusive Leadership Behaviors",
+          "module_title": "Building Inclusion",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "eaf9b30b-df81-44b7-86bf-e38a387922ee",
+          "scenario_title": "Creating Psychological Safety in the Workplace",
+          "module_title": "Building Inclusion",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "156832be-ad81-4c0b-bb2e-66cb483dd6bd",
+          "scenario_title": "Creating Psychological Safety in the Workplace",
+          "module_title": "Building Inclusion",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "bb59f20b-ce70-4842-adb3-6b71068c4f24",
+          "scenario_title": "Creating Psychological Safety in the Workplace",
+          "module_title": "Building Inclusion",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        }
+      ],
+      "orphaned_templates": [
+        {
+          "template_id": "a84fea26-3b3a-4392-a75d-7113f72efaed",
+          "template_name": "Scope and Impact of DEI 2.docx",
+          "scenario_title": "Scope and Impact of DEI",
+          "module_title": "Foundations of DEI",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_7080a238-dcfc-4751-9890-5dd523c9eb80"
+        },
+        {
+          "template_id": "533ed98b-0ed8-46a0-8b73-b5a3c56c66f5",
+          "template_name": "Professionalism and DEI.docx",
+          "scenario_title": "Professionalism and DEI",
+          "module_title": "Foundations of DEI",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_a1826a31-17e5-4a1e-b4c1-b0ae4346f8d0"
+        },
+        {
+          "template_id": "cdfe9954-d1ea-4929-9652-42f11d4a5a54",
+          "template_name": "Justice in the JEDI Model.docx",
+          "scenario_title": "Justice in the JEDI Model",
+          "module_title": "Foundations of DEI",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": null
+        },
+        {
+          "template_id": "919ead2b-4bee-4280-85eb-ef78b77275ff",
+          "template_name": "Race, Ethnicity, and Nationality.docx",
+          "scenario_title": "DELETE",
+          "module_title": "Foundations of DEI",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": null
+        },
+        {
+          "template_id": "83764f48-ddbb-497d-ad69-6e415d39ea1e",
+          "template_name": "Disability and Neurodiversity.docx",
+          "scenario_title": "Disability and Neurodiversity",
+          "module_title": "Understanding Diversity",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_1a7db91b-c89d-49f8-96c8-eec83d8578c8"
+        },
+        {
+          "template_id": "be3858e3-f84e-42c2-8f73-008513f3fa3a",
+          "template_name": "Demographical and Cultural Identity.docx",
+          "scenario_title": "Demographic and Cultural Identity",
+          "module_title": "Understanding Diversity",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": null
+        },
+        {
+          "template_id": "fe2e064c-2fbc-4d38-b1eb-f12c15787773",
+          "template_name": "Race, Ethnicity, and Nationality.docx",
+          "scenario_title": "Race, Ethnicity, and Nationality",
+          "module_title": "Understanding Diversity",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_5203e1b3-1d8b-4de5-acba-c65600753fad"
+        },
+        {
+          "template_id": "ebf78816-7fa6-4640-8702-52904863bdad",
+          "template_name": "Recognizing Systemic Bias.docx",
+          "scenario_title": "Recognizing Systemic Bias",
+          "module_title": "Practicing Equity",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": null
+        },
+        {
+          "template_id": "6cf7a3a4-e61f-4baf-a0be-74212c8bf630",
+          "template_name": "Privilege and Workplace Power.docx",
+          "scenario_title": "Privilege and Workplace Power",
+          "module_title": "Practicing Equity",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_5e5f5fa8-7a5d-4cb7-be4e-7453f894d9a3"
+        },
+        {
+          "template_id": "774ed74c-a187-4075-a363-da42056757ed",
+          "template_name": "Designing Equitable Processes.docx",
+          "scenario_title": "Designing Equitable Processes",
+          "module_title": "Practicing Equity",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_a1957e8d-1077-4e18-b908-2824bab4d92d"
+        },
+        {
+          "template_id": "e5195626-4191-48ce-b7b4-fdb91eb4a508",
+          "template_name": "What Inclusion Really Means.docx",
+          "scenario_title": "What Inclusion Really Means",
+          "module_title": "Building Inclusion",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_d0a3e15f-96dd-49cb-9752-676658d2a8f0"
+        },
+        {
+          "template_id": "a166e22a-2777-4a97-a930-ffead995a9f7",
+          "template_name": "Inclusive Leadership Behaviors.docx",
+          "scenario_title": "Inclusive Leadership Behaviors",
+          "module_title": "Building Inclusion",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_17db78c9-6bd4-427e-bc61-17c753910193"
+        },
+        {
+          "template_id": "76b866fe-3ed9-4773-8af5-e3a9117a5571",
+          "template_name": "Creating Psychological Safety.docx",
+          "scenario_title": "Creating Psychological Safety in the Workplace",
+          "module_title": "Building Inclusion",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_481395ca-0439-449d-8b27-4c41a40f6c1c"
+        }
+      ]
+    },
+    {
+      "course_id": "e1381ff4-fb26-4bf6-ae48-62a4d16288f2",
+      "course_title": "TestCourse20",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "ae759c90-3eee-4640-832f-8f368a46651a",
+          "template_name": "Universal AI Training Scenario Template.docx",
+          "scenario_title": "HEALTH PROTECT - HealthGuard Health Insurance Sales Mastery",
+          "module_title": "TestModule",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_2482b4cb-228b-4ef6-9185-3995a42e4fcb"
+        }
+      ]
+    },
+    {
+      "course_id": "7df7078c-02d8-4807-9eee-04d27f014d40",
+      "course_title": "Workplace Harassment and Discrimination",
+      "course_creator": {
+        "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+        "username": "Vidya T (Mother Company)",
+        "email": "vidya.t@novactech.in",
+        "role": "admin",
+        "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+      },
+      "orphaned_avatar_interactions_count": 12,
+      "orphaned_templates_count": 4,
+      "orphaned_avatar_interactions": [
+        {
+          "avatar_interaction_id": "bcfa3e83-8b96-4c2f-adfd-9ddeb33686a9",
+          "scenario_title": "Inappropriate Jokes and Comments",
+          "module_title": "Sexual Harassment",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "3e4ac872-cd62-4170-8c0b-7aa2d4acf8f3",
+          "scenario_title": "Inappropriate Jokes and Comments",
+          "module_title": "Sexual Harassment",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "ba3adfc8-fd26-415d-934a-724310d926ea",
+          "scenario_title": "Inappropriate Jokes and Comments",
+          "module_title": "Sexual Harassment",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "0ad242aa-c7f4-4954-b769-5767b11febf6",
+          "scenario_title": "Unwelcome Advances from a Colleague",
+          "module_title": "Sexual Harassment",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "63787561-66ca-460b-991d-41f0e4686712",
+          "scenario_title": "Unwelcome Advances from a Colleague",
+          "module_title": "Sexual Harassment",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "c59f1c3d-c0a7-4c8d-96a8-3e9668b93036",
+          "scenario_title": "Unwelcome Advances from a Colleague",
+          "module_title": "Sexual Harassment",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "22891bab-6af6-4382-bfda-601320909d61",
+          "scenario_title": "Quid Pro Quo Harassment Awareness",
+          "module_title": "Sexual Harassment",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "e3ce312a-158b-471d-b819-50b8ed0d2eee",
+          "scenario_title": "Quid Pro Quo Harassment Awareness",
+          "module_title": "Sexual Harassment",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "7a5a585f-72fe-425f-ad49-77722aaf7081",
+          "scenario_title": "Quid Pro Quo Harassment Awareness",
+          "module_title": "Sexual Harassment",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "a480cfa9-50a3-47a8-802d-9b755f1dcfb2",
+          "scenario_title": "Circulation of Inappropriate Content",
+          "module_title": "Sexual Harassment",
+          "mode": "learn_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "5b089bdd-c520-4508-9205-7ac1c7633022",
+          "scenario_title": "Circulation of Inappropriate Content",
+          "module_title": "Sexual Harassment",
+          "mode": "try_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "cd5827ef-1cc6-47bb-a9f9-2547e9a0eaca",
+          "scenario_title": "Circulation of Inappropriate Content",
+          "module_title": "Sexual Harassment",
+          "mode": "assess_mode",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        }
+      ],
+      "orphaned_templates": [
+        {
+          "template_id": "c91efa5c-8f81-45e1-ae7f-814ea0cfad27",
+          "template_name": "Inappropriate Jokes and Comments.docx",
+          "scenario_title": "Inappropriate Jokes and Comments",
+          "module_title": "Sexual Harassment",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_bf3cd020-350c-4e50-ab5e-0f2b3d1dc22c"
+        },
+        {
+          "template_id": "26157a48-7ff7-4784-a0cc-266fcdeea2da",
+          "template_name": "Unwelcome Advances from a Colleague.docx",
+          "scenario_title": "Unwelcome Advances from a Colleague",
+          "module_title": "Sexual Harassment",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_21a7753b-083b-4b0d-9f83-e31cd274193e"
+        },
+        {
+          "template_id": "795ef8b9-ca4d-4704-b0df-ccec8976d7c9",
+          "template_name": "Quid Pro Quo Harassment.docx",
+          "scenario_title": "Quid Pro Quo Harassment Awareness",
+          "module_title": "Sexual Harassment",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_63dc4b2f-4ace-4c3b-a494-9918bd87bbad"
+        },
+        {
+          "template_id": "40b466f8-dd9b-4ccf-a85d-a02ae5b5f515",
+          "template_name": "Circulation of Inappropriate Content.docx",
+          "scenario_title": "Circulation of Inappropriate Content",
+          "module_title": "Sexual Harassment",
+          "current_owner": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+          "current_owner_details": {
+            "id": "68b1114c-e350-4d9d-b759-5ac2da2a03a7",
+            "username": "Vidya",
+            "email": "t.vidya@novactech.in",
+            "role": "admin",
+            "company_id": "b'\\xd4\\xb2\\xc2\\xff\\xc5\\x8aI\\x81\\xa4\\xa0T\\xb0Jq\\xe3\\xb4'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_91063bae-634f-4242-a808-96dd3658b192"
+        }
+      ]
+    },
+    {
+      "course_id": "ca2b7b71-f40e-4027-bea8-6a2509838380",
+      "course_title": "Insurance Course",
+      "course_creator": {
+        "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+        "username": "Admin",
+        "email": "admin@example.com",
+        "role": "admin",
+        "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+      },
+      "orphaned_avatar_interactions_count": 0,
+      "orphaned_templates_count": 1,
+      "orphaned_avatar_interactions": [],
+      "orphaned_templates": [
+        {
+          "template_id": "26b1548d-e41f-4fbe-a176-89ebce6f4471",
+          "template_name": "Universal AI Training Scenario Template.docx",
+          "scenario_title": "HEALTH PROTECT - HealthGuard Health Insurance Sales Mastery",
+          "module_title": "Insurance Module",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+          "should_be_owner_details": {
+            "id": "66e0ed9d-2564-4af5-b2b6-d03a8984cdf6",
+            "username": "Admin",
+            "email": "admin@example.com",
+            "role": "admin",
+            "company_id": "d4b2c2ff-c58a-4981-a4a0-54b04a71e3b4"
+          },
+          "knowledge_base_id": "kb_374ebb46-fd09-4d99-b1d5-2a50ee047ce7"
+        }
+      ]
+    },
+    {
+      "course_id": "15c2990e-9c11-40f8-af07-aff0313e4f30",
+      "course_title": "Executive Leadership Excellence Program",
+      "course_creator": {
+        "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+        "username": "Vidya T (Mother Company)",
+        "email": "vidya.t@novactech.in",
+        "role": "admin",
+        "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+      },
+      "orphaned_avatar_interactions_count": 9,
+      "orphaned_templates_count": 3,
+      "orphaned_avatar_interactions": [
+        {
+          "avatar_interaction_id": "3dc2bd03-fb06-4c42-bb6d-95b26b7b4525",
+          "scenario_title": "DIFFICULT ORGANIZATIONAL NEWS - The Layoff Communication Challenge",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "mode": "learn_mode",
+          "current_owner": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+          "current_owner_details": {
+            "id": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+            "username": "manick",
+            "email": "manick@immerz.com",
+            "role": "admin",
+            "company_id": "b'^\\xfc%\\xd3f\\xc0L\\xc9\\x87\\xa8\\xab\\x19\\x9e]\\x0b\\xf0'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "89a598b6-caec-49e8-9bd3-fd3ee476a162",
+          "scenario_title": "DIFFICULT ORGANIZATIONAL NEWS - The Layoff Communication Challenge",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "mode": "try_mode",
+          "current_owner": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+          "current_owner_details": {
+            "id": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+            "username": "manick",
+            "email": "manick@immerz.com",
+            "role": "admin",
+            "company_id": "b'^\\xfc%\\xd3f\\xc0L\\xc9\\x87\\xa8\\xab\\x19\\x9e]\\x0b\\xf0'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "2398a1bf-33b2-4575-b423-d014c2f2f3ba",
+          "scenario_title": "DIFFICULT ORGANIZATIONAL NEWS - The Layoff Communication Challenge",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "mode": "assess_mode",
+          "current_owner": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+          "current_owner_details": {
+            "id": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+            "username": "manick",
+            "email": "manick@immerz.com",
+            "role": "admin",
+            "company_id": "b'^\\xfc%\\xd3f\\xc0L\\xc9\\x87\\xa8\\xab\\x19\\x9e]\\x0b\\xf0'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "b2d69b9b-2600-47e9-9762-a29663caea65",
+          "scenario_title": "DIFFICULT CONVERSATIONS MASTERY - The Underperforming Star Employee",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "mode": "learn_mode",
+          "current_owner": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+          "current_owner_details": {
+            "id": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+            "username": "manick",
+            "email": "manick@immerz.com",
+            "role": "admin",
+            "company_id": "b'^\\xfc%\\xd3f\\xc0L\\xc9\\x87\\xa8\\xab\\x19\\x9e]\\x0b\\xf0'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "bb099158-c25e-4e59-95df-278569db8336",
+          "scenario_title": "DIFFICULT CONVERSATIONS MASTERY - The Underperforming Star Employee",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "mode": "try_mode",
+          "current_owner": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+          "current_owner_details": {
+            "id": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+            "username": "manick",
+            "email": "manick@immerz.com",
+            "role": "admin",
+            "company_id": "b'^\\xfc%\\xd3f\\xc0L\\xc9\\x87\\xa8\\xab\\x19\\x9e]\\x0b\\xf0'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "937e39c1-91e3-48b0-ba37-19ac425a4335",
+          "scenario_title": "DIFFICULT CONVERSATIONS MASTERY - The Underperforming Star Employee",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "mode": "assess_mode",
+          "current_owner": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+          "current_owner_details": {
+            "id": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+            "username": "manick",
+            "email": "manick@immerz.com",
+            "role": "admin",
+            "company_id": "b'^\\xfc%\\xd3f\\xc0L\\xc9\\x87\\xa8\\xab\\x19\\x9e]\\x0b\\xf0'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "515bb53e-95e0-4a19-a0d2-280c5af9a79d",
+          "scenario_title": "TEAM CONFLICT RESOLUTION - The Engineering vs Product Management Clash",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "mode": "learn_mode",
+          "current_owner": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+          "current_owner_details": {
+            "id": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+            "username": "manick",
+            "email": "manick@immerz.com",
+            "role": "admin",
+            "company_id": "b'^\\xfc%\\xd3f\\xc0L\\xc9\\x87\\xa8\\xab\\x19\\x9e]\\x0b\\xf0'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "727450a9-4538-4ba9-9842-77ab851ba791",
+          "scenario_title": "TEAM CONFLICT RESOLUTION - The Engineering vs Product Management Clash",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "mode": "try_mode",
+          "current_owner": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+          "current_owner_details": {
+            "id": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+            "username": "manick",
+            "email": "manick@immerz.com",
+            "role": "admin",
+            "company_id": "b'^\\xfc%\\xd3f\\xc0L\\xc9\\x87\\xa8\\xab\\x19\\x9e]\\x0b\\xf0'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        },
+        {
+          "avatar_interaction_id": "fb24c915-7aaa-4149-89be-b7c68b6cdc83",
+          "scenario_title": "TEAM CONFLICT RESOLUTION - The Engineering vs Product Management Clash",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "mode": "assess_mode",
+          "current_owner": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+          "current_owner_details": {
+            "id": "0f32500c-b48c-4806-8e99-42b5d90ca778",
+            "username": "manick",
+            "email": "manick@immerz.com",
+            "role": "admin",
+            "company_id": "b'^\\xfc%\\xd3f\\xc0L\\xc9\\x87\\xa8\\xab\\x19\\x9e]\\x0b\\xf0'"
+          },
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          }
+        }
+      ],
+      "orphaned_templates": [
+        {
+          "template_id": "af48cd78-79d0-412c-b040-65955a8eac16",
+          "template_name": "Universal AI Training Scenario Template.docx",
+          "scenario_title": "DIFFICULT ORGANIZATIONAL NEWS - The Layoff Communication Challenge",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_581334c6-4e3e-4c9d-a8ce-4a45a7d9b1f7"
+        },
+        {
+          "template_id": "d501dcd4-935d-4d55-8085-86e063169ff4",
+          "template_name": "Universal AI Training Scenario Template.docx",
+          "scenario_title": "DIFFICULT CONVERSATIONS MASTERY - The Underperforming Star Employee",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_d2527151-eb03-428f-a93f-8b2aa277471a"
+        },
+        {
+          "template_id": "630ce416-feca-4896-9ec7-c17c92e789d4",
+          "template_name": "Universal AI Training Scenario Template.docx",
+          "scenario_title": "TEAM CONFLICT RESOLUTION - The Engineering vs Product Management Clash",
+          "module_title": "Difficult Conversations & Conflict Resolution",
+          "current_owner": null,
+          "current_owner_details": null,
+          "should_be_owner": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+          "should_be_owner_details": {
+            "id": "9f9c86a0-c043-42e7-9b15-59bd2d33b17d",
+            "username": "Vidya T (Mother Company)",
+            "email": "vidya.t@novactech.in",
+            "role": "admin",
+            "company_id": "906fc9d3-60f2-4304-a173-5e88ffa5ed8d"
+          },
+          "knowledge_base_id": "kb_7ac0e544-1d42-4613-9354-66b94fb52c5c"
+        }
+      ]
+    }
+  ]
+}

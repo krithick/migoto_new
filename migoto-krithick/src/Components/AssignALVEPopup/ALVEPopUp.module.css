@@ -1,0 +1,346 @@
+.popBg {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75);
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99;
+}
+
+
+.popupContainer {
+    background-color: #FFFFFF;
+    width: 50%;
+    height: 60%;
+    border-radius: 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    width: 100%;
+    height: 10%;
+    /* background-color: red; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-inline: 16px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    box-sizing: border-box;
+}
+
+.searchContainer {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 30px;
+    gap: 8px;
+    padding-inline: 8px;
+    /* background-color: rebeccapurple; */
+}
+
+.iconHolder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    /* position: absolute; */
+    width: 10%;
+    max-width: 35px;
+
+    max-height: 35px;
+    border-radius: 50%;
+    aspect-ratio: 1/1;
+    background-color: #28A74533;
+}
+
+
+.search {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    border: none;
+    font-size: clamp(0.6rem, 0.675vw, 0.8rem);
+}
+
+
+
+.contentBox {
+    width: 100%;
+    height: 90%;
+    box-sizing: border-box;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
+    background-color: #F4F7FB;
+    padding: 16px;
+}
+
+.langBoxHolder {
+    border-radius: 16px;
+    height: 88%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* langBox begins! */
+.LangBox {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    padding: 5px 10px;
+    /* background-color: rebeccapurple; */
+}
+
+
+.langHeader {
+    box-sizing: border-box;
+    height: 10%;
+    width: 100%;
+    /* background-color: palegoldenrod; */
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 20px;
+    padding-inline: 16px;
+    border-bottom: solid 1px #D0D8E357;
+}
+
+.langHeader p {
+    width: fit-content;
+    padding-inline: 8px;
+    border-radius: 0px;
+    border-bottom: rgba(255, 255, 255, 1) solid 4px;
+    /* font-size: clamp(0.6rem, 0.65vw, 0.7rem); */
+
+    font-size: clamp(0.7rem, 0.875vw, 0.9rem);
+    cursor: pointer;
+
+}
+
+.activeP {
+    border-bottom: #0085DB solid 4px !important;
+    color: #0085DB;
+}
+
+.langContainer {
+    height: 90%;
+    width: 100%;
+    /* background-color: rebeccapurple; */
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+
+    overflow-y: scroll;
+}
+
+
+.langContainer::-webkit-scrollbar {
+    width: 6px; 
+  }
+  
+  .langContainer::-webkit-scrollbar-track {
+    background: #0085DB33; 
+    border-radius: 3px;
+  }
+  
+  .langContainer::-webkit-scrollbar-thumb {
+    background-color: #0085DB; 
+    border-radius: 3px;
+  }
+  
+  .langContainer::-webkit-scrollbar-thumb:hover {
+    background-color: #0072c4; 
+  }
+
+.singleLangCard {
+    width: 130px;
+    /* max-width: 10vw; */
+    position: relative;
+    /* height: fit-content; */
+    aspect-ratio: 1.2/1;
+    box-sizing: border-box;
+    padding: 0px;
+    background-color: #c9c9c9;
+
+}
+
+.imgHolder {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+
+    img{
+        width: 100%;
+        object-fit: cover;
+        height: 100%;
+    }
+
+}
+
+.checkBox {
+    width: 20px;
+    aspect-ratio: 1/1;
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    z-index: 2;
+    border: solid 1px #0085DB;
+    cursor: pointer;
+    background-color: #0085DB33;
+    appearance: none;
+
+}
+
+.checkBox:checked {
+    border-color: #0085db;
+    background-color: #0085DB33;
+}
+
+.checkBox:checked::after {
+    content: "";
+    position: absolute;
+    left: 30%;
+    top: 15%;
+    transform: translateX(50%);
+    transform: translateY(-50%);
+    width: 4px;
+    height: 9px;
+    border: solid #0085db;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* langBox ends! (media querry at last) */
+
+.footer {
+    margin-top: 8px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+    /* background-color: rebeccapurple; */
+    height: 10%;
+    padding-right: 16px;
+    box-sizing: border-box;
+}
+
+.cancelBtn,
+.saveBtn {
+    width: 20%;
+    max-width: 150px;
+    max-height: 40px;
+    background-color: #0085DB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80%;
+    border-radius: 32px;
+    font-size: clamp(0.7rem, 0.875vw, 0.9rem);
+    color: #FFFFFF;
+    border: solid 1px #0085DB;
+    cursor: pointer;
+}
+
+.cancelBtn {
+    background: transparent;
+    color: #0085DB;
+}
+
+
+/* @media screen and (max-width: 1920px) {
+    .iconHolder {
+        max-width: 30px;
+        max-height: 30px;
+    }
+
+    .cancelBtn,
+    .saveBtn {
+        width: 15%;
+        height: 70%;
+        font-size: clamp(0.6rem, 0.675vw, 0.8rem);
+    }
+
+    .singleLangCard {
+        width: 100px;
+        position: relative;
+        aspect-ratio: 1.2/1;
+    }
+
+    .langHeader p {
+        font-size: clamp(0.6rem, 0.65vw, 0.7rem);
+    }
+
+    .checkBox {
+        width: 15px;
+    }
+    .checkBox:checked::after {
+        content: "";
+        position: absolute;
+        left: 30%;
+        top: 10%;
+        transform: translateX(50%);
+        transform: translateY(-50%);
+        width: 4px;
+        height: 9px;
+        border: solid #0085db;
+        border-width: 0 1px 1px 0;
+        transform: rotate(45deg);
+    }
+
+
+}
+
+@media screen and (max-width: 1280px) {
+
+    .iconHolder {
+        max-width: 25px;
+        max-height: 25px;
+    }
+
+
+    .singleLangCard {
+        width: 70px;
+        position: relative;
+        aspect-ratio: 1.2/1;
+    }
+
+    .checkBox {
+        width: 15px;
+    }
+
+
+    .cancelBtn,
+    .saveBtn {
+        width: 15%;
+        height: 70%;
+        font-size: clamp(0.6rem, 0.675vw, 0.7rem);
+    }
+
+    .langHeader p {
+        font-size: clamp(0.6rem, 0.65vw, 0.7rem);
+    }
+
+
+
+} */

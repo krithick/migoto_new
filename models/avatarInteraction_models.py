@@ -22,7 +22,8 @@ class AvatarInteractionBase(BaseModel):
     bot_role: str
     bot_role_alt: Optional[str] = None
     content: Optional[Dict[str, Any]] = None
-    system_prompt: str
+    system_prompt: Optional[str] = None  # Optional - generated async and saved to persona
+    persona_id: Optional[UUID] = None  # Link to persona (for try/assess modes)
     layout: int
     # scenario_id :UUID
     mode: AvatarInteractionType
@@ -78,7 +79,8 @@ class AvatarInteractionExpandedResponse(BaseModel):
     bot_role: str
     bot_role_alt: Optional[str] = None
     content: Optional[Dict[str, Any]] = None
-    system_prompt: str
+    system_prompt: Optional[str] = None
+    persona_id: Optional[UUID] = None
     scenario_id: UUID
     mode: str
     

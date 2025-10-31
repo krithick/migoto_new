@@ -1,0 +1,193 @@
+.card {
+    width: 24%;
+    border-radius: 8px;
+    /* height: 30%; */
+    background-color: white;
+    box-sizing: border-box;
+    margin-bottom: 1%;
+    box-shadow: 0px 3px 6px #00000029;
+    cursor: pointer;
+  }
+  .cardModify{
+    width: 30%;
+    border-radius: 8px;
+    /* height: 30%; */
+    background-color: white;
+    box-sizing: border-box;
+    margin-bottom: 1%;
+    box-shadow: 0px 3px 6px #00000029;
+    cursor: pointer;
+
+  }
+  
+  .activeCard{
+    box-shadow: 2px 2px 2px  #0085db;
+    box-shadow: 0 0 5px #0085db;
+
+    /* border: 1px groove #0085db; */
+  }
+  .imgContainer {
+    margin: 1%;
+    padding: 1%;
+    height: 100px;
+    position: relative;
+    overflow: hidden;
+    background-color: #F4F7FB;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+      /* transition: width 0.5s, height 0.5s; */
+    }
+    /* img:hover { */
+      /* transform: scale(1.1); */
+      /* width: 110%;
+          height: 110%; */
+    /* } */
+  }
+
+  .gradient{
+    position: absolute;
+    background: transparent linear-gradient(180deg, #FFFFFF00 0%, #6363637D 39%, #000000 100%) 0% 0% no-repeat padding-box;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    
+  }
+
+  .contentContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 92%;
+    padding: 4%;
+    /* height: 40%; */
+  }
+
+  .details {
+    position: absolute;
+    bottom: 4px;
+    display: flex;
+    padding: 2%;
+    width: 96%;
+    justify-content: space-between;
+    z-index: 4;
+    box-sizing: border-box;
+
+  }
+  .title {
+    width: 49%;
+    p {
+      color: var(--textColor);
+      font-size: clamp(0.5rem, 0.5vw, 0.7rem);
+    }
+    div {
+      color: white;
+      font-size: clamp(0.6rem, 0.6vw, 0.8rem);
+    }
+  }
+  .status {
+    p {
+      color: var(--textColor);
+      font-size: clamp(0.5rem, 0.5vw, 0.7rem);
+    }
+    div {
+      font-size: clamp(0.5rem, 0.5vw, 0.7rem);
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: white;
+    }
+  }
+  .green{
+    .dot {
+      -webkit-text-stroke: 3px #28a745;
+    }
+    p{
+      color: #28a745;
+    }
+  }
+  .green{
+    padding: 2% 4%;
+    border-radius: 12px;
+    border: 1px solid #28a745;
+    background-color: #28a74569;
+    color: #28a745;
+    display: flex;
+  }
+  .yellow {
+    padding: 2% 4%;
+    border-radius: 12px;
+    border: 1px solid #ff9500;
+    background-color: #ff950069;
+    color: #ff9500;
+    .dot {
+      -webkit-text-stroke: 3px #ff9500;
+    }
+    p{
+      color: #ff9500;
+    }
+  }
+  .white {
+    padding: 2% 4%;
+    border-radius: 12px;
+    border: 1px solid #abafb3;
+    background-color: #abafb369;
+    color: #abafb3;
+  
+    .dot {
+      -webkit-text-stroke: 3px #abafb3;
+    }
+    p{
+      color: #abafb3;
+    }
+  }
+  .courseCreater {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 50%;
+  
+    p {
+      margin-left: 2%;
+      font-size: clamp(0.5rem, 0.5vw, 0.8rem);
+      color: var(--textColor);
+    }
+    div {
+      margin-left: 2%;
+      font-size: clamp(0.6rem, 0.6vw, .9rem);
+    }
+  }
+  
+  .titles{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+  
+    p {
+      margin-left: 2%;
+      font-size: clamp(0.5rem, 0.5vw, 0.8rem);
+      color: var(--textColor);
+    }
+    div {
+      margin-left: 2%;
+      font-size: clamp(0.6rem, 0.6vw, .9rem);
+      margin-bottom: 10px;
+    }
+  
+  }
+  .previewIcon{
+    position: absolute;
+    top: 5px;
+    right: 7px;
+    padding: 1%;
+    z-index: 5;
+  }

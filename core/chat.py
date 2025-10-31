@@ -229,16 +229,22 @@ async def chat(
         # print("self.config.persona_idsss",persona_id)
     # Get the appropriate chat handler - use the mode from the avatar_interaction document
     # You'll need to fetch the avatar_interaction to determine the mode
-    persona_id=await db.avatars.find_one({"_id": session.avatar_id})
-    # print(persona_id["_id"],"self.config.persona_idasdasdsd")
+    avatar_doc = await db.avatars.find_one({"_id": session.avatar_id})
+    # Extract persona_id from avatar document
+    persona_id = None
+    if avatar_doc and "persona_id" in avatar_doc:
+        persona_ids = avatar_doc["persona_id"]
+        if persona_ids and len(persona_ids) > 0:
+            persona_id = persona_ids[0]  # Get first persona
+    
     avatar_interaction = await db.avatar_interactions.find_one({"_id": avatar_interaction_id})
-    mode = avatar_interaction["mode"] if avatar_interaction else "try_mode"  # Default to try_mode
-    language_id=session.language_id
-    # print(persona_id,"self.config.persona_idsss")
+    mode = avatar_interaction["mode"] if avatar_interaction else "try_mode"
+    language_id = session.language_id
+    
     handler = await chat_factory.get_chat_handler(
         avatar_interaction_id=UUID(avatar_interaction_id),
         mode=mode,
-        persona_id=UUID(persona_id["_id"]) if persona_id else None,
+        persona_id=UUID(persona_id) if persona_id else None,
         language_id=language_id 
     )
     
@@ -308,8 +314,8 @@ async def chat_stream(
         persona_id=UUID(persona_id) if persona_id else None,
         language_id=language_id 
     )
-    # await handler.initialize_fact_checking(id)
-    # Get template data for coaching rules
+    
+    # Get template data for coaching rules and pass mode
     try:
         # Get scenario to find template_id
         session = await get_chat_session(db, id)
@@ -348,12 +354,25 @@ async def chat_stream(
         if scenario and scenario.get("template_id"):
             print("step1",scenario.get("template_id"))
             template = await db.templates.find_one({"id": scenario["template_id"]})
-            # print("step2",template)
             if template and template.get("template_data"):
-                coaching_rules = template["template_data"].get("coaching_rules", {})
+                template_data = template.get("template_data", {})
+                
+                # Try domain_knowledge first (v2 structure)
+                domain_knowledge = template_data.get("domain_knowledge", {})
+                coaching_rules = domain_knowledge.get("coaching_rules", {})
+                
+                # Fallback to top level if not in domain_knowledge
+                if not coaching_rules:
+                    coaching_rules = template_data.get("coaching_rules", {})
+                
+                print(f"✅ Extracted coaching_rules: {bool(coaching_rules)}")
                 # print("step3",coaching_rules)
     
-        await handler.initialize_fact_checking(id, coaching_rules=coaching_rules)
+        # Get mode from avatar_interaction
+        avatar_interaction_doc = await db.avatar_interactions.find_one({"_id": str(session.avatar_interaction)})
+        current_mode = avatar_interaction_doc.get("mode", "assess_mode") if avatar_interaction_doc else "assess_mode"
+        
+        await handler.initialize_fact_checking(id, coaching_rules=coaching_rules, mode=current_mode)
     
     except Exception as e:
         print(f"Warning: Could not load coaching rules: {e}")
@@ -651,8 +670,38 @@ async def simple_chat(
         if not avatar_interaction:
             raise HTTPException(status_code=404, detail="Avatar interaction not found")
         
-        # Get system prompt
-        system_prompt = avatar_interaction.get("system_prompt", "You are a helpful assistant.")
+        # Get system prompt - V2: from persona (try/assess) or avatar_interaction (learn)
+        system_prompt = avatar_interaction.get("system_prompt")
+        print(f"[CHAT] Avatar interaction system_prompt: {system_prompt[:100] if system_prompt else None}")
+        
+        if not system_prompt:
+            # V2 flow: Get from persona if mode is try/assess
+            mode = avatar_interaction.get("mode", "")
+            print(f"[CHAT] Mode: {mode}")
+            if mode in ["try", "assess"]:
+                # Get persona from avatar
+                avatars = avatar_interaction.get("avatars", [])
+                print(f"[CHAT] Avatars: {avatars}")
+                if avatars:
+                    avatar_doc = await db.avatars.find_one({"_id": str(avatars[0])})
+                    print(f"[CHAT] Avatar doc found: {avatar_doc is not None}")
+                    if avatar_doc and "persona_id" in avatar_doc:
+                        persona_ids = avatar_doc["persona_id"]
+                        print(f"[CHAT] Persona IDs: {persona_ids}")
+                        if persona_ids:
+                            # Try V2 personas first
+                            persona = await db.personas_v2.find_one({"_id": str(persona_ids[0])})
+                            if not persona:
+                                persona = await db.personas.find_one({"id": str(persona_ids[0])})
+                            
+                            print(f"[CHAT] Persona found: {persona is not None}")
+                            if persona:
+                                system_prompt = persona.get("system_prompt", "You are a helpful assistant.")
+                                print(f"[CHAT] Persona system_prompt: {system_prompt[:100] if system_prompt else None}")
+        
+        if not system_prompt:
+            system_prompt = "You are a helpful assistant."
+            print(f"[CHAT] Using fallback system_prompt")
         
         # Build messages for OpenAI
         messages = [{"role": "system", "content": system_prompt}]

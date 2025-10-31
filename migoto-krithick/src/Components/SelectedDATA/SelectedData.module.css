@@ -1,0 +1,43 @@
+.card{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 30%;
+    height: 40%;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8));
+    border: 2px solid rgb(173, 173, 173);
+
+}
+.headies{
+    width: 98%;
+    height: 7%;
+    /* background-color: red; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: black;
+}
+
+.bodies{
+    height: 84%;
+    padding: 1%;
+    width: 98%;
+    overflow: auto;
+    gap: 2%;
+    font-size: .6vw;
+    background-color: white !important;
+
+    p{
+        font-size: 0.7vw;
+        color: red;
+        display: inline-block;
+    }
+    span{
+        font-size: .6vw;
+        display: inline-block;
+    }
+}
+.footies{
+    height: 7%;
+}

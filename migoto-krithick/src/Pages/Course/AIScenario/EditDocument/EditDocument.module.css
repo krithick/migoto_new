@@ -1,0 +1,665 @@
+.mainBox{
+    background-color: #FFFFFF;
+    width: 100%;
+    height: 100%;
+    min-height: 90%;
+    max-height: 100%;
+    border-radius: 16px;
+    box-sizing: border-box;
+    position: relative;
+    backdrop-filter: blur(50px);
+}
+
+.mainHeader{
+    /* background-color: yellow ; */
+    height: 6%;
+    width: 100%;
+    padding-left: 1.5%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 1%;
+    border-bottom: solid 1px #EEEEEE;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    font-size: clamp(.9rem, 0.9vw, 1rem);
+
+}
+
+.header {
+  width: 98%;
+  /* height: 4%; */
+  display: flex;
+  justify-content: space-between;
+  padding: 1%;
+  border-bottom: 1px solid #9fa8c7;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.page {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: clamp(.9rem, 0.9vw, 1rem);
+}
+
+
+
+.mainSection{
+    /* background-color: paleturquoise; */
+    height: 75%;
+    width: 100%;
+ 
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+
+    display: flex;
+    box-sizing: border-box;
+
+}
+
+.sectionSidebar{
+    /* background-color: peru; */
+    height: 100%;
+    width: 18%;
+    padding: 2%;
+    border-right: solid 1px #EFEFF4 ;
+    box-sizing: border-box;
+    border-bottom-left-radius: 16px;
+   
+}
+
+.sectionContent{
+    /* background-color: blueviolet; */
+    height: 100%;
+    width: 82%;
+    border-bottom-right-radius: 16px;
+}
+
+.unselected {
+    height: 3vh;
+    padding: 1%;
+    padding-left: 10%;
+    display: flex;
+    align-items: center;
+    font-size: clamp(0.6rem, 0.6vw, 9rem);
+    color: #ABAFB3;
+    cursor: pointer;
+    margin-bottom: 2%;
+}
+
+.selected {
+    background-color: #28A74533;
+    color: #28A745;
+    border-radius: 8px;
+}
+
+.addCategoryBtn{
+    height: 3vh;
+    /* padding: 1%; */
+    /* padding-left: 10%; */
+    display: flex;
+    gap: 5%;
+    justify-content: center ;
+    align-items: center;
+    font-size: clamp(0.6rem, 0.6vw, 9rem);
+    color: blue;
+    cursor: pointer;
+}
+
+.contentHeader{
+    box-sizing: border-box;
+    width: 100%;
+    padding:  1%;
+    padding-left: 2%;
+    font-size: clamp(0.8rem, 0.8vw, 0.9rem);
+    height: 8%;
+    align-content: center;
+    color: var(--blueTC);
+    background-color: white;
+
+}
+
+.contentForm{
+    width: 100%;
+    box-sizing: border-box;
+   padding: 1 rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0%;
+    /* background-color: #28A745; */
+    height: fit-content;
+    /* height: 20%; */
+}
+.formTop, .formBottom{
+    box-sizing: border-box;
+    /* display: grid; */
+    grid-template-columns: 80% 20%; 
+    gap: 1%;
+    padding: 4%;
+    padding-top: 1%;
+    padding-bottom: 1%;
+    height: fit-content;
+    width: 100%;
+    /* background-color: yellow; */
+}
+.formTop div, .formBottom div{
+  font-size: clamp(0.7rem, 0.7vw, .8rem);
+    color: #9FA8C7;
+}
+.formTop input, .formBottom input{
+    height: 20px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+    padding-left: 2%;
+    columns: #1D1D1D;
+    border: #DDDFE1 solid 1px; 
+}
+.formBottom{
+    grid-template-columns: 55% 45%; 
+}
+
+.addSectionBtn {
+    height: 3vh;
+    display: flex;
+    gap: 5%;
+    justify-content: center;
+    align-items: center;
+    font-size: small;
+    background-color: #D9EDFA;
+    cursor: pointer;
+    color: #0085DB;
+    width: 12%;
+    min-height: 12%;
+    /* margin-top: 2rem;   */
+    margin-left: 4%;
+    border-radius: 32px;
+    padding: 0.25% 0.5%;
+    align-self: flex-start;
+  }
+  
+
+
+/* Styling for conversation Form */
+
+.conversationForm{
+    box-sizing: border-box;
+    /* background-color: green; */
+    color: #9FA8C7;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding-top: 1%;
+    padding-left: 4%;
+    padding-right: 3%;
+    gap: 1%;
+    margin-bottom: 1%;
+    height: 60%;    
+}
+
+.convoFormTile {
+    /* background-color: saddlebrown; */
+    height: 90%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12%;
+    /* margin-bottom:1%; */
+    /* justify-content: center; */
+    box-sizing: border-box;
+
+}
+.convoFormHeader{
+    height: 20%;
+    /* background-color: pink; */
+    box-sizing: border-box;
+}
+
+.convoFormInput{
+    width: 100%;
+    height: 45%;
+    box-sizing: border-box;
+    border-radius: 8px;
+    padding-left: 2%;
+    border: solid 1px #DDDFE1;
+    color: #1D1D1D;
+}
+
+/* Styling for Facts form */
+
+.factsForm{
+    box-sizing: border-box;
+    /* background-color: yellowgreen; */
+    display: flex;
+    flex-direction: column;
+    justify-content:baseline;
+    align-items: first baseline;
+    padding-left: 4%;
+    padding-right: 3%;
+    padding-top: 1%;
+    width: 100%;
+    height: 80%;
+    gap: 3%;
+    color: #9FA8C7;
+}
+
+
+.factsProgramBox{
+    box-sizing: border-box;
+    height: 30%;
+    width: 100% ;
+    /* background-color: rebeccapurple; */
+    display: flex;
+    flex-direction: column;
+    justify-content: first baseline;
+    align-items: first baseline;
+    gap: 5%;
+}
+
+.factsProgramBox input{
+    box-sizing: border-box;
+    height: 50%;
+    width: 100%;
+    border-radius: 8px;
+    padding: 1%;
+    border: solid 1px #DDDFE1;
+    color: #1D1D1D;
+
+}
+
+.factsFormSpace{
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2%;
+
+    width: 100%;
+    height: 60%;
+}
+.factsFormBox{
+    /* background-color: paleturquoise; */
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    /* justify-content: first baseline; */
+    gap: 10%;
+    align-items: first baseline;
+}
+
+.factsFormInput{
+    width: 100%;
+    height: 50%;
+    box-sizing: border-box;
+    border-radius: 8px;
+    padding: 2%;
+    border: solid 1px #DDDFE1;
+    color: #1D1D1D;
+
+}
+
+.sectionWrapper {
+    display: flex;
+    flex-direction: column;
+    /* background-color: palevioletred;  */
+    gap: 0px;
+    height: 75%;
+    overflow: auto;
+  }
+  
+.btnBox{
+    width: 100%;
+    /* background-color: red; */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 3%;
+    height: 7%;
+    /* position: absolute;
+    bottom: 0;
+    left: 0; */
+    padding-right: 3%;
+    box-sizing: border-box;
+    font-size: clamp(.8rem, 0.8vw, .9rem);
+
+}
+
+.cancelBtn, .saveBtn {
+    width: 150px;
+    background-color: #0085DB;
+    text-align: center;
+    border-radius: 24px;
+    padding-top: 0.5%;
+    padding-bottom: 0.5%;
+    color: white;
+    border: solid 1px #0085DB;
+    cursor: pointer;
+}
+
+.cancelBtn{
+    background: transparent;
+    color: #0085DB
+}
+
+
+
+
+
+/* to be removed */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow: auto;
+  }
+  
+  .card {
+    /* border: 1px solid #e5e7eb; */
+    border-radius: 0.5rem;
+    padding: 1rem;
+  }
+  
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* margin-bottom: 1rem; */
+  }
+  
+  .title {
+    font-size: clamp(1rem, 0.9vw, 1.1rem);
+    font-weight: 500;
+    color: #1f2937c4;
+    text-transform: capitalize;
+  }
+  
+  .description {
+    font-size: clamp(.8rem, 0.8vw, .9rem);
+    color: #4b5563;
+  }
+  
+  .addButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    color: var(--blueTC);
+    /* background: transparent; */
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .addButton:hover {
+    background-color: #eff6ff;
+  }
+  
+  .pointList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1%;
+  }
+  
+  .pointItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .pointIndex {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: #f3f4f6;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #4b5563;
+  }
+  
+  .input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: clamp(.8rem, 0.8vw, .9rem);
+
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: transparent;
+    box-shadow: 0 0 0 2px #3b82f6;
+  }
+  
+  .removeButton {
+    opacity: 0;
+    padding: 0.5rem;
+    color: #ef4444;
+    border: none;
+    background: transparent;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  
+  .pointItem:hover .removeButton {
+    opacity: 1;
+    background-color: #fef2f2;
+  }
+  
+  .emptyState {
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-style: italic;
+    padding: 1rem;
+    text-align: center;
+    border: 2px dashed #e5e7eb;
+    border-radius: 0.5rem;
+  }
+  
+
+
+  /* === Personas Section === */
+
+.personaGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  @media (min-width: 1024px) {
+    .personaGrid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  .personaCard {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+  }
+  
+  .learnTitle {
+    font-size: clamp(.9rem, 0.9vw, 1rem);
+    font-weight: 500;
+    color: #16a34a; /* Tailwind blue-600 */
+    margin-bottom: 1rem;
+  }
+  
+  .assessTitle {
+    font-size: clamp(.9rem, 0.9vw, 1rem);
+    font-weight: 500;
+    color: #16a34a; /* Tailwind green-600 */
+    margin-bottom: 1rem;
+  }
+  
+  .fieldGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 1%;
+  }
+  
+  .label {
+    font-size: clamp(0.8rem, 0.8vw, 0.9rem);
+    font-weight: 500;
+    /* color: var(--brandTextColor); */
+    color: var(--textColor);
+    margin-bottom: 0.25rem;
+  }
+  
+  .input,
+  .textarea {
+    width: 96%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    outline: none;
+  }
+  
+  .input:focus,
+  .textarea:focus {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px #3b82f6;
+  }
+  
+  .textarea {
+    height: 5rem;
+    resize: vertical;
+  }
+
+
+/* Persona Selector Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modalContent h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+}
+
+.personaOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.personaOption {
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.personaOption:hover {
+  border-color: #0085DB;
+  background-color: #f0f9ff;
+}
+
+.selectedOption {
+  border-color: #0085DB;
+  background-color: #eff6ff;
+}
+
+.personaType {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.personaDesc {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.modalButtons .cancelBtn,
+.modalButtons .saveBtn {
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+
+.formSection {
+  margin-bottom: 1.5rem;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.selectInput {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background-color: white;
+}
+
+.selectInput:focus {
+  outline: none;
+  border-color: #0085DB;
+  box-shadow: 0 0 0 2px rgba(0, 133, 219, 0.1);
+}
+
+.textareaInput {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #1f2937;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.textareaInput:focus {
+  outline: none;
+  border-color: #0085DB;
+  box-shadow: 0 0 0 2px rgba(0, 133, 219, 0.1);
+}

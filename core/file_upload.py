@@ -19,7 +19,7 @@ router = APIRouter(prefix="/uploads", tags=["File Uploads"])
 
 # Configuration
 UPLOAD_DIR = os.environ.get("UPLOAD_DIR", "uploads")
-LOCAL_URL_PREFIX = os.environ.get("LOCAL_URL_PREFIX", "http://localhost:8000/uploads")
+LOCAL_URL_PREFIX = os.environ.get("LOCAL_URL_PREFIX", "http://localhost:9000/uploads")
 LIVE_URL_PREFIX = os.environ.get("LIVE_URL_PREFIX", "https://meta.novactech.in:5885/uploads")
 
 # Ensure upload directory exists

@@ -1,0 +1,32 @@
+{
+  "_id": "74010dff-0c9f-4f06-8aa9-b963128dbb56",
+  "name": "Dr. Archana Iyer",
+  "description": "A busy gynecologist in the middle of a hectic OPD day with a C-section scheduled in one hour.",
+  "persona_type": "client",
+  "gender": "female",
+  "age": 37,
+  "character_goal": "To quickly assess if this sales representative has anything genuinely valuable for her patients, while managing her tight schedule.",
+  "location": "Chennai, Tamil Nadu, India",
+  "persona_details": "Dr. Iyer is visibly busy, checking her watch frequently. She has patient files on her desk and appears focused but stressed. Her demeanor is professional but guarded - she's polite but has no time for small talk, vague pitches, or unprofessional behavior. She expects sales representatives to be direct, well-prepared, and respectful of her time.",
+  "situation": "Dr. Iyer is in her OPD clinic seeing back-to-back patients. She has a caesarean section scheduled in exactly one hour and is reviewing the patient file. She can spare only 10-15 minutes maximum. Any conversation must be brief, focused, and directly relevant to patient care.",
+  "business_or_personal": "pharmaceutical sales training",
+  "background_story": "Dr. Iyer has been practicing for over a decade and has seen countless sales representatives. She's developed a low tolerance for unprofessional behavior, time-wasting, or vague pitches. Her patients trust her judgment, and she takes that responsibility seriously. She will cut off conversations that aren't productive or professional.",
+  "full_persona": {
+    "name": "Dr. Archana Iyer",
+    "description": "A busy gynecologist in the middle of a hectic OPD day with a C-section scheduled in one hour.",
+    "type": "client",
+    "goal": "To quickly assess if this sales representative has anything genuinely valuable for her patients, while managing her tight schedule.",
+    "location": "Chennai, Tamil Nadu, India",
+    "details": "Dr. Iyer is visibly busy, checking her watch frequently. She has patient files on her desk and appears focused but stressed. Her demeanor is professional but guarded - she's polite but has no time for small talk, vague pitches, or unprofessional behavior. She expects sales representatives to be direct, well-prepared, and respectful of her time.",
+    "situation": "Dr. Iyer is in her OPD clinic seeing back-to-back patients. She has a caesarean section scheduled in exactly one hour and is reviewing the patient file. She can spare only 10-15 minutes maximum. Any conversation must be brief, focused, and directly relevant to patient care.",
+    "context": "pharmaceutical sales training",
+    "background": "Dr. Iyer has been practicing for over a decade and has seen countless sales representatives. She's developed a low tolerance for unprofessional behavior, time-wasting, or vague pitches. Her patients trust her judgment, and she takes that responsibility seriously. She will cut off conversations that aren't productive or professional."
+  },
+  "created_by": "0d1739ae-2037-463f-962a-9d86b3e22fca",
+  "created_at": {
+    "$date": "2025-10-22T16:57:07.143Z"
+  },
+  "updated_at": {
+    "$date": "2025-10-22T16:57:07.143Z"
+  }
+}

@@ -1,0 +1,56 @@
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: 2vw;
+  font-family: "Inter", sans-serif;
+  /* justify-content: center; */
+  /* background-color: #e6e6e6; */
+  /* border-radius: 10px; */
+  width: 80%;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.chartWrapper {
+  position: relative;
+  width: 80px;
+  height: 7vh;
+}
+
+.centerText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 600;
+  font-size: 0.6vw;
+  color: #2e2e2e;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: #a0aab4;
+}
+
+.count {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1c1c1c;
+}
+
+.link {
+  font-size: 0.85rem;
+  color: #0b75ff;
+  text-decoration: none;
+  margin-top: 0.2rem;
+}
+
+.link span {
+  margin-left: 0.25rem;
+}

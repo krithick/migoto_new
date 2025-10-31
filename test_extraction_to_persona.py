@@ -43,22 +43,7 @@ async def test_extraction_to_persona():
             azure_endpoint=os.getenv("endpoint")
         )
         
-        # Add persona_definitions for compatibility (v2 needs this)
-        if not template_data.get("persona_definitions"):
-            # Use first persona type to create definition
-            first_type = persona_types[0] if persona_types else {}
-            template_data["persona_definitions"] = {
-                "assess_mode_ai_bot": {
-                    "name": "Dr. Priya Sharma",
-                    "age": 42,
-                    "gender": "Female",
-                    "role": first_type.get("type", "Gynecologist"),
-                    "description": first_type.get("description", "Medical professional"),
-                    "location": "Mumbai, Maharashtra",
-                    "current_situation": "In clinic office",
-                    "context": template_data['mode_descriptions']['assess_mode'].get('context', 'Office')
-                }
-            }
+        # V2 extraction already has persona_types, no fallback needed
         
         # Add template_id if missing
         if not template_data.get("template_id"):

@@ -81,6 +81,7 @@ class MongoDB:
         self.flexible_templates=self.db.flexible_templates 
         self.flexible_scenarios=self.db.flexible_scenarios 
         self.archetype_definitions=self.db.archetype_definitions
+        self.personas_v2=self.db.personas_v2
     def __getitem__(self, collection_name: str):
         """Enable dict-style access for enhanced system compatibility"""
         if hasattr(self, collection_name):

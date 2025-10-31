@@ -61,43 +61,33 @@ class DynamicChatHandler:
         self.fact_checker = EnhancedFactChecker(self.vector_search, llm_client)
         self.knowledge_base_id = None
         self.fact_checking_enabled = False
-    async def initialize_fact_checking(self, session_id: str,coaching_rules: Dict = None):
+    async def initialize_fact_checking(self, session_id: str, coaching_rules: Dict = None, mode: str = "assess_mode"):
         """Initialize fact-checking if this session supports it"""
-        print(coaching_rules,"coaching_rulessssssss")
         try:
-            # Get knowledge base ID from session
             knowledge_base_id = await self._get_knowledge_base_for_session(session_id)
-            print("checkkkk",knowledge_base_id)
-            
-            # Get language instructions
             language_instructions = await self._get_language_instructions()
             
-            # Initialize fact checker with or without knowledge base
-            print(f"Initializing fact checker with language instructions: {language_instructions[:50] if language_instructions else 'None'}...")
             self.fact_checker = EnhancedFactChecker(
                 self.vector_search, 
                 self.llm_client,
-                coaching_rules=coaching_rules or {},  # Pass coaching rules here
-                language_instructions=language_instructions  # Pass language instructions
+                coaching_rules=coaching_rules or {},
+                mode=mode,
+                language_instructions=language_instructions
             )
             
-            avatar_interaction = await self.db.avatar_interactions.find_one(
-                {"_id": str(self.config.avatar_interaction_id)}
-            )
-            
-            # Enable fact-checking for try_mode and learn_mode, even without knowledge base
-            self.fact_checking_enabled = (
-                avatar_interaction and 
-                avatar_interaction.get("mode") in ["try_mode", "learn_mode"]
-            )
-            
-            if knowledge_base_id:
-                self.knowledge_base_id = knowledge_base_id
+            # Set flags based on mode
+            if mode == "learn_mode":
+                self.fact_checking_enabled = True
+                self.coaching_enabled = False
+            elif mode == "try_mode":
+                self.fact_checking_enabled = True
+                self.coaching_enabled = True
             else:
-                self.knowledge_base_id = None
-                print("No knowledge base - coaching will work without document search")
-                
-            print("self.fact_checking_enabled",self.fact_checking_enabled)
+                self.fact_checking_enabled = False
+                self.coaching_enabled = False
+            
+            self.knowledge_base_id = knowledge_base_id
+            self.mode = mode
             
         except Exception as e:
             print(f"Error initializing fact-checking: {e}")
@@ -324,6 +314,7 @@ class DynamicChatHandler:
                 model="gpt-4o",
                 messages=contents,
                 temperature=0.7,
+                top_p=0.95,
                 max_tokens=1000,
                 stream=True,
                 stream_options={"include_usage": True}
@@ -349,8 +340,16 @@ class DynamicChatHandler:
     async def _process_with_fact_checking(self, response, user_message: str,conversation_history: List[Message], name: Optional[str]):
         """Process response with fact-checking - ensure final response has complete data"""
     
-        # Fact-check the user's message
-        coaching_feedback = await self._check_user_response_accuracy(user_message,conversation_history, self.knowledge_base_id)
+        # Pre-screen for abuse/off-topic
+        prescreen = await self._prescreen_message(user_message, conversation_history)
+        
+        if prescreen["issue_type"] == "abuse":
+            coaching_feedback = "I notice inappropriate language. This training requires professional communication. Please use respectful language."
+        elif prescreen["issue_type"] == "off_topic":
+            coaching_feedback = "Please stay focused on the training scenario. What would you like to work on?"
+        else:
+            # Normal fact-checking
+            coaching_feedback = await self._check_user_response_accuracy(user_message,conversation_history, self.knowledge_base_id)
         print("coaching_feedback",coaching_feedback)
         # Collect AI's full response
         full_response = ""
@@ -370,9 +369,11 @@ class DynamicChatHandler:
             else:
                 final_response = full_response
         
-            # Add coaching feedback if needed
+            # Add coaching feedback if needed (with proper tags)
             if coaching_feedback:
-                final_response = f"{final_response} [CORRECT] {coaching_feedback} [CORRECT]"
+                # Remove any HTML entities and clean up
+                clean_coaching = coaching_feedback.replace("&#39;", "'").replace("&quot;", '"')
+                final_response = f"{final_response}\n\n[CORRECT]{clean_coaching}[CORRECT]"
         
             # Stream in chunks ensuring final chunk has complete data
             words = final_response.split()
@@ -554,62 +555,143 @@ class DynamicChatHandler:
 #             return None
     # 
     async def _check_user_response_accuracy(self, user_message: str, conversation_history: List[Message], knowledge_base_id: str) -> Optional[str]:
-        """Hybrid coaching: Enhanced template coaching + existing verification"""
-    
+        """Smart coaching with trigger detection"""
         try:
-            # Check professionalism from message 2 onwards
-            if len(conversation_history) <= 1:
+            # Skip early turns
+            if len(conversation_history) <= 2:
                 return None
             
-            # Check professionalism even without knowledge base
-            professionalism_check = await self._check_professionalism(user_message, conversation_history)
-            if professionalism_check:
-                return professionalism_check
+            # Check if customer ended conversation
+            if len(conversation_history) >= 2:
+                last_customer_msg = conversation_history[-2].content.lower() if len(conversation_history) >= 2 else ""
+                if any(phrase in last_customer_msg for phrase in ["we're done", "goodbye", "end this", "not interested"]):
+                    return None
             
-            # Only check factual accuracy if we have a knowledge base
-            if not knowledge_base_id:
+            # Step 1: Check if coaching needed
+            trigger_info = await self.fact_checker.should_coach(user_message, conversation_history)
+            
+            if not trigger_info.get("trigger", False):
                 return None
             
-            language_instructions = await self._get_language_instructions()
-        
-            # 🔄 HYBRID APPROACH: Try enhanced coaching first, fallback to existing
-            enhanced_coaching = None
-        
-            # TRY: Enhanced contextual coaching if available
-            if hasattr(self, 'fact_checker') and self.fact_checker.has_coaching_rules:
-                try:
-                    print(f"Using enhanced coaching with language: {language_instructions[:50] if language_instructions else 'None'}...")
-                    verification = await self.fact_checker.verify_response_with_coaching(
-                        user_message, conversation_history, knowledge_base_id, language_instructions
-                    )
-                
-                    if verification.result != FactCheckResult.CORRECT:
-                        if verification.coaching_feedback:
-                            enhanced_coaching = f"Dear Learner, {verification.coaching_feedback}"
-                        elif verification.explanation:
-                            enhanced_coaching = f"Dear Learner, {verification.explanation}"
-                        
-                except Exception as enhanced_error:
-                    print(f"Enhanced coaching failed: {enhanced_error}")
-                    enhanced_coaching = None
-        
-            # FALLBACK: Only run existing coaching if enhanced failed
-            if not enhanced_coaching or enhanced_coaching == "Dear Learner, ":
-                existing_coaching = await self._run_existing_coaching_logic(
-                    user_message, conversation_history, knowledge_base_id, language_instructions
-                )
-                if existing_coaching:
-                    print("✅ Using existing coaching logic")
-                    return existing_coaching
+            # Step 2: Get coaching based on mode and trigger
+            if self.mode == "learn_mode":
+                return await self._provide_factual_correction(user_message, knowledge_base_id)
             else:
-                print("✅ Using enhanced template coaching")
-                return enhanced_coaching
-            
-            return None
-            
+                return await self._provide_structured_coaching(user_message, trigger_info.get("type", "general"), conversation_history, knowledge_base_id)
+        
         except Exception as e:
-            print(f"Fact-checking error: {e}")
+            print(f"Coaching error: {e}")
             return None
+    
+    async def _provide_factual_correction(self, user_message: str, knowledge_base_id: str) -> Optional[str]:
+        """Learn mode: simple factual correction"""
+        if not knowledge_base_id:
+            return None
+        
+        try:
+            search_results = await self.vector_search.vector_search(
+                user_message, knowledge_base_id, top_k=3, openai_client=self.llm_client
+            )
+            
+            if not search_results:
+                return None
+            
+            context = "\n".join([result['content'] for result in search_results])
+            
+            correction_prompt = f"""
+Check if this is factually correct:
+
+STATEMENT: {user_message}
+KNOWLEDGE BASE: {context}
+
+If CORRECT: Return {{"correct": true}}
+If INCORRECT: Return {{"correct": false, "correction": "What's correct"}}
+"""
+            
+            response = await self.llm_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": correction_prompt}],
+                temperature=0.1,
+                max_tokens=200
+            )
+            
+            result_text = response.choices[0].message.content.strip()
+            if result_text.startswith('```json'):
+                json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
+                result = json.loads(json_match.group(1)) if json_match else {"correct": True}
+            else:
+                result = json.loads(result_text)
+            
+            if result.get("correct", True):
+                return None
+            
+            correction = result.get('correction', 'Please review the material.')
+            return f"[CORRECT]📚 Factual Correction: {correction}[CORRECT]"
+        
+        except:
+            return None
+    
+    async def _provide_structured_coaching(self, user_message: str, trigger_type: str, conversation_history: List[Message], knowledge_base_id: str) -> Optional[str]:
+        """Try mode: full coaching with correction patterns"""
+        try:
+            correction_patterns = self.fact_checker.coaching_rules.get("correction_patterns", {})
+            coaching_style = self.fact_checker.coaching_rules.get("coaching_style", "supportive")
+            
+            pattern_key_map = {
+                "methodology_violation": "skipped_step",
+                "vague_claims": "vague_claim",
+                "factual_error": "wrong_fact",
+                "unaddressed_objection": "objection_not_addressed"
+            }
+            
+            pattern_key = pattern_key_map.get(trigger_type, "general")
+            base_correction = correction_patterns.get(pattern_key, "Please review your approach.")
+            
+            context = ""
+            if knowledge_base_id:
+                search_results = await self.vector_search.vector_search(
+                    user_message, knowledge_base_id, top_k=2, openai_client=self.llm_client
+                )
+                if search_results:
+                    context = "\n".join([result['content'] for result in search_results[:2]])
+            
+            coaching_prompt = f"""
+Provide {coaching_style} coaching feedback in 30 words or less.
+
+USER RESPONSE: {user_message}
+ISSUE: {trigger_type.replace('_', ' ')}
+GUIDANCE: {base_correction}
+CONTEXT: {context if context else "Use best practices"}
+
+Format (MAX 30 WORDS):
+Dear Learner, [Issue]. {base_correction} [Brief suggestion]. Keep practicing!
+
+Be concise and direct.
+"""
+            
+            response = await self.llm_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": coaching_prompt}],
+                temperature=0.3,
+                max_tokens=100
+            )
+            
+            return response.choices[0].message.content.strip()
+        
+        except:
+            return f"Dear Learner, {correction_patterns.get('general', 'Please review your approach and try again.')} Keep practicing!"
+    
+    async def _prescreen_message(self, message: str, history: List) -> Dict[str, Any]:
+        """Quick check for abuse or off-topic"""
+        message_lower = message.lower()
+        
+        # Expanded abuse keywords
+        abuse_keywords = ["fuck", "shit", "damn", "stupid", "idiot", "hate", "donkey", "ass", "bitch", "dumb"]
+        if any(word in message_lower for word in abuse_keywords):
+            return {"issue_type": "abuse", "severity": "high"}
+        
+        # Skip off-topic check - too aggressive and catches valid training messages
+        return {"issue_type": "none", "severity": "none"}
 
     async def _run_existing_coaching_logic(self, user_message: str, conversation_history: List[Message], 
                                      knowledge_base_id: str, language_instructions: str) -> Optional[str]:
@@ -671,7 +753,7 @@ OTHERWISE:
             {"role": "system", "content": f"You are a training coach. CRITICAL: You must respond in the exact same language as these instructions: {language_instructions}"},
             {"role": "user", "content": fact_check_prompt}
         ],
-        temperature=0.1,
+        temperature=0.7,top_p=0.95,
         max_tokens=200
     )
         log_token_usage(response, "_run_existing_coaching_logic")
@@ -790,7 +872,7 @@ OTHERWISE:
                     {"role": "system", "content": "You provide factually corrected responses while maintaining natural conversation flow."},
                     {"role": "user", "content": correction_prompt}
                 ],
-                temperature=0.2,
+                temperature=0.7,
                 max_tokens=1000
             )
             log_token_usage(correction_response, "_apply_fact_check_corrections")
@@ -845,38 +927,45 @@ OTHERWISE:
         return coaching_message
 
     async def _check_professionalism(self, user_message: str, conversation_history: List[Message]) -> Optional[str]:
-        """Check for unprofessional behavior in pharma sales context"""
+        """Universal professionalism check - catches issues regardless of domain"""
         message_lower = user_message.lower().strip()
         
-        # Unprofessional patterns
-        if any([
-            len(message_lower) < 5 and message_lower in ["idk", "nothing", "nah"],
-            "beauty" in message_lower or "beautiful" in message_lower,
-            message_lower in ["nothing much", "are you not busy", "can you help me out"],
-            "i wnat to sell" in message_lower or "i want to sell" in message_lower,
-        ]):
-            return "Dear Learner, maintain professional communication. Introduce yourself properly, state your purpose clearly, and respect the doctor's time. Avoid casual language or personal comments."
+        # 1. Too short/dismissive (any context)
+        if len(message_lower) < 5 and message_lower in ["idk", "ok", "nothing", "nah", "no", "yes", "k"]:
+            return "Dear Learner, provide complete, professional responses. Explain your reasoning and show engagement."
         
-        # Vague opening after 3+ messages
-        if len(conversation_history) >= 3 and len(message_lower) < 15:
-            return "Dear Learner, be specific and purposeful. The doctor is busy - clearly state what product you're discussing and why it's relevant to their practice."
+        # 2. Unprofessional language
+        unprofessional_words = ["beauty", "beautiful", "sexy", "hot", "bro", "dude", "yeah", "nope", "gonna", "wanna"]
+        if any(word in message_lower for word in unprofessional_words):
+            return "Dear Learner, use professional business language. Avoid casual or personal comments."
+        
+        # 3. Vague responses
+        if len(message_lower) < 20 and not any(q in message_lower for q in ["?", "what", "how", "when", "where", "why"]):
+            return "Dear Learner, be specific. Provide detailed information or ask clarifying questions to move the conversation forward."
         
         return None
     
-    async def _is_response_unhelpful(self, user_message: str) -> bool:
-        """Check if user response is unhelpful based on patterns - MORE RESTRICTIVE"""
-    
+    async def _check_response_structure(self, user_message: str, conversation_history: List[Message]) -> Optional[str]:
+        """Check response structure and completeness"""
         message_lower = user_message.lower().strip()
-    
-        # Only flag VERY unhelpful patterns
-        unhelpful_patterns = [
-        message_lower in ["no", "i don't know", "idk"],  # Removed length check
-        "figure it out" in message_lower,
-        "not my problem" in message_lower,
-        "don't care" in message_lower,
-    ]
-    
-        return any(unhelpful_patterns)    
+        
+        # Coaching starts immediately (no skip)
+        
+        # 1. No questions when clarification needed
+        customer_msg = conversation_history[-2].content.lower() if len(conversation_history) >= 2 else ""
+        if any(word in customer_msg for word in ["confused", "not sure", "don't understand", "unclear"]):
+            if "?" not in user_message:
+                return "Dear Learner, when the customer is confused, ask clarifying questions to understand their needs better."
+        
+        # 2. Missing key information
+        if len(user_message.split()) < 10 and len(conversation_history) >= 4:
+            return "Dear Learner, provide more detailed responses. Explain your reasoning and offer specific information."
+        
+        # 3. Not addressing customer's question
+        if "?" in customer_msg and len(user_message.split()) < 8:
+            return "Dear Learner, address the customer's question directly with a complete answer."
+        
+        return None    
    
    
     
@@ -938,17 +1027,31 @@ OTHERWISE:
         if self.config.persona_id:
             try:
                 print(self.config.persona_id,"self.config.persona_id")
-                persona = await self.db.personas.find_one({"_id": str(self.config.persona_id)})
+                # Check V2 personas first (_id), then V1 (id)
+                persona = await self.db.personas_v2.find_one({"_id": str(self.config.persona_id)})
+                is_v2 = persona is not None
+                if not persona:
+                    persona = await self.db.personas.find_one({"id": str(self.config.persona_id)})
+                
                 language = await self.db.languages.find_one({"_id": str(self.config.language_id)})
                 if persona:
-                    persona_obj = PersonaDB(**persona)
-                    language_obj= LanguageDB(**language)
-                    system_content = self.format_persona_context(scenario_prompt=system_content,persona=persona_obj,language=language_obj)
+                    # V2 personas: use raw dict, V1 personas: use Pydantic model
+                    if is_v2:
+                        # V2: Don't validate, just use the dict directly
+                        language_obj = LanguageDB(**language) if language else None
+                        # For V2, system_content already has the prompt from persona
+                        # Just keep it as is
+                        pass
+                    else:
+                        # V1: Use Pydantic validation
+                        persona_obj = PersonaDB(**persona)
+                        language_obj = LanguageDB(**language) if language else None
+                        system_content = self.format_persona_context(scenario_prompt=system_content,persona=persona_obj,language=language_obj)
             except Exception as e:
                 print(f"Error loading persona: {e}")
         
         # If conversation is empty and mode is try/assess, add explicit wait instruction AFTER persona
-        if len(conversation_history) == 0 and self.config.mode in ["try_mode", "assess_mode"]:
+        if len(conversation_history) == 0 and self.config.mode in ["try", "assess", "try_mode", "assess_mode"]:
             print("🚨 ADDING WAIT INSTRUCTION - conversation is empty!")
             system_content += "\n\nCRITICAL: This is the start of the conversation. DO NOT send any message. WAIT for the user to speak first. Do not greet, do not offer help, do not say anything until the user initiates."
         
@@ -1089,6 +1192,7 @@ OTHERWISE:
             messages=contents,
             temperature=0.7,
             max_tokens=1000,
+            top_p=0.95,
             stream=True,
             stream_options={"include_usage": True}
             )
@@ -1201,12 +1305,37 @@ class DynamicChatFactory:
             raise HTTPException(status_code=404, detail="Avatar interaction not found")
         
         ai_obj = AvatarInteractionDB(**avatar_interaction)
+        print("🔍 🔍 D🔍 D🔍 D🔍 D{persona_id}")
+        print(persona_id,mode)
+        # Get system_prompt - V2: from persona (try/assess) or avatar_interaction (learn)
+        system_prompt = ai_obj.system_prompt
+        print(f"🔍 system_prompt exists: {system_prompt is not None}, mode: {mode}")
+        print(f"🔍 Condition check: not system_prompt={not system_prompt}, mode in try/assess={mode in ['try', 'assess']}")
+        
+        if not system_prompt and mode in ["try", "assess", "try_mode", "assess_mode"]:
+            # V2 flow: Get from persona
+            if persona_id:
+                print(f"🔍 🔍 D🔍 D🔍 D🔍 D {persona_id}")
+                print(persona_id)
+                persona = await self.db.personas_v2.find_one({"_id": str(persona_id)})
+                print("persona",persona) 
+                if not persona:
+                    persona = await self.db.personas.find_one({"id": str(persona_id)})
+                
+                if persona:
+                    system_prompt = persona.get("system_prompt", "You are a helpful assistant.")
+        
+        if not system_prompt:
+            print("🔍 Using fallback system_prompt")
+            system_prompt = "You are a helpful assistant."
+        else:
+            print(f"🔍 Final system_prompt length: {len(system_prompt)}")
         
         # Create handler config
         config = ChatHandlerConfig(
             avatar_interaction_id=avatar_interaction_id,
             mode=mode,
-            system_prompt=ai_obj.system_prompt,
+            system_prompt=system_prompt,
             bot_role=ai_obj.bot_role,
             bot_role_alt=ai_obj.bot_role_alt or ai_obj.bot_role,
             persona_id=persona_id,

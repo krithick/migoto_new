@@ -19,7 +19,7 @@ class FileStorageService:
         live_url_prefix: str = None
     ):
         self.base_upload_dir = base_upload_dir or os.environ.get("UPLOAD_DIR", "uploads")
-        self.local_url_prefix = local_url_prefix or os.environ.get("LOCAL_URL_PREFIX", "http://localhost:8000/uploads")
+        self.local_url_prefix = local_url_prefix or os.environ.get("LOCAL_URL_PREFIX", "http://localhost:9000/uploads")
         self.live_url_prefix = live_url_prefix or os.environ.get("LIVE_URL_PREFIX", "https://meta.novactech.in:5885/uploads")
         
         # Create base directory if it doesn't exist

@@ -5,8 +5,8 @@ from uuid import UUID
 from datetime import datetime
 
 
-from models.persona_models import  PersonaBase, PersonaCreate, PersonaResponse, PersonaDB, PersonaGenerateRequest, PersonaGenerationRequestV2, PersonaInstanceV2
-from models.user_models import UserDB,UserRole
+from models.persona_models import PersonaBase, PersonaCreate, PersonaResponse, PersonaDB, PersonaGenerateRequest, PersonaGenerationRequestV2, PersonaInstanceV2
+from models.user_models import UserDB, UserRole
 
 from core.user import get_current_user, get_admin_user, get_superadmin_user
 from dotenv import load_dotenv
@@ -433,27 +433,64 @@ async def get_persona_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Persona not found")
     return persona
 
-@router.post("/", response_model=PersonaResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 async def create_persona_endpoint(
-    persona: PersonaCreate,
+    persona_data: Dict[str, Any] = Body(...),
     db: Any = Depends(get_database),
-    admin_user: UserDB = Depends(get_admin_user)  # Only admins and superadmins can create personas
+    admin_user: UserDB = Depends(get_admin_user)
 ):
     """
-    Create a new persona (admin/superadmin only)
+    Create a new persona - supports both V1 (PersonaCreate) and V2 (PersonaInstanceV2) formats.
+    Automatically detects format and saves to appropriate collection.
     """
-    return await create_persona(db, persona, admin_user.id)
+    try:
+        # Detect if V2 format (has detail_categories field)
+        is_v2 = "detail_categories" in persona_data or "archetype" in persona_data
+        
+        if is_v2:
+            # V2 format - save to personas_v2 collection
+            persona_v2 = PersonaInstanceV2(**persona_data)
+            stored = await store_persona_v2(db, persona_v2, admin_user.id)
+            
+            return {
+                "success": True,
+                "version": "v2",
+                "persona_id": stored["_id"],
+                "persona": stored,
+                "detail_categories_count": len(persona_v2.detail_categories)
+            }
+        else:
+            # V1 format - use existing logic
+            persona_v1 = PersonaCreate(**persona_data)
+            created = await create_persona(db, persona_v1, admin_user.id)
+            
+            return {
+                "success": True,
+                "version": "v1",
+                "persona_id": str(created.id),
+                "persona": created.dict()
+            }
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create persona: {str(e)}")
 
-@router.post("/generate", response_model=PersonaResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/generate", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 async def generate_persona_endpoint(
     request: PersonaGenerateRequest,
     db: Any = Depends(get_database),
-    admin_user: UserDB = Depends(get_admin_user)  # Only admins and superadmins can generate personas
+    admin_user: UserDB = Depends(get_admin_user)
 ):
     """
-    Generate a persona based on a description (admin/superadmin only)
+    Generate a persona based on a description (admin/superadmin only).
+    Uses V1 generation (AI-based from description).
     """
-    return await generate_persona(db, request, admin_user.id)
+    persona = await generate_persona(db, request, admin_user.id)
+    return {
+        "success": True,
+        "version": "v1",
+        "persona_id": str(persona.id),
+        "persona": persona.dict()
+    }
 
 @router.put("/{persona_id}", response_model=PersonaResponse)
 async def update_persona_endpoint(
@@ -488,6 +525,56 @@ async def delete_persona_endpoint(
 # ============================================================================
 # V2 PERSONA GENERATION - Dynamic Persona System
 # ============================================================================
+
+async def store_persona_v2(
+    db: Any,
+    persona: PersonaInstanceV2,
+    created_by: UUID
+) -> Dict[str, Any]:
+    """
+    Store a v2 persona in the database with dynamic field support.
+    Safely handles any additional fields without breaking.
+    """
+    try:
+        # Convert persona to dict, preserving all fields
+        persona_dict = persona.dict(exclude_none=False)
+        
+        # Add metadata
+        persona_dict["created_by"] = str(created_by)
+        persona_dict["created_at"] = datetime.now()
+        persona_dict["updated_at"] = datetime.now()
+        persona_dict["version"] = "v2"
+        
+        # Ensure id is string
+        if "id" in persona_dict:
+            persona_dict["_id"] = persona_dict.pop("id")
+        
+        # Insert into personas_v2 collection
+        result = await db.personas_v2.insert_one(persona_dict)
+        
+        # Retrieve and return the stored persona
+        stored = await db.personas_v2.find_one({"_id": persona_dict["_id"]})
+        return stored
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to store persona v2: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to store persona: {str(e)}")
+
+
+async def get_persona_v2(
+    db: Any,
+    persona_id: str,
+    current_user: Optional[UserDB] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Retrieve a v2 persona by ID. Returns raw dict to preserve all dynamic fields.
+    """
+    if not current_user:
+        return None
+    
+    persona = await db.personas_v2.find_one({"_id": persona_id})
+    return persona
+
 
 async def generate_persona_v2(
     template_data: Dict[str, Any],
@@ -527,7 +614,7 @@ async def generate_persona_v2_endpoint(
 ):
     """
     V2 endpoint - uses new PersonaGeneratorV2 with dynamic categories.
-    Safe: falls back to v1 if fails.
+    Stores persona with all dynamic fields preserved.
     """
     try:
         # Get template data from database
@@ -545,14 +632,89 @@ async def generate_persona_v2_endpoint(
             custom_prompt=request.custom_prompt
         )
         
+        # Store persona in database
+        stored_persona = await store_persona_v2(db, persona, admin_user.id)
+        
         return {
             "success": True,
             "version": "v2",
             "template_id": request.template_id,
-            "persona": persona.dict()
+            "persona_id": stored_persona["_id"],
+            "persona": stored_persona
         }
         
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"V2 generation failed: {str(e)}")
+
+
+@router.get("/v2/{persona_id}", response_model=Dict[str, Any])
+async def get_persona_v2_endpoint(
+    persona_id: str,
+    db: Any = Depends(get_database),
+    current_user: UserDB = Depends(get_current_user)
+):
+    """
+    Get a v2 persona by ID. Returns all fields including dynamic ones.
+    """
+    persona = await get_persona_v2(db, persona_id, current_user)
+    if not persona:
+        raise HTTPException(status_code=404, detail="Persona not found")
+    return persona
+
+
+@router.post("/v2/load-from-json", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
+async def load_persona_from_json_endpoint(
+    persona_data: Dict[str, Any] = Body(...),
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """
+    Load a persona from JSON data (like extraction output).
+    Preserves all fields including dynamic detail categories.
+    """
+    from core.persona_loader import load_persona_from_json, validate_persona_structure
+    
+    try:
+        # Validate basic structure
+        await validate_persona_structure(persona_data)
+        
+        # Load into database
+        stored_persona = await load_persona_from_json(db, persona_data, admin_user.id)
+        
+        return {
+            "success": True,
+            "version": "v2",
+            "persona_id": stored_persona["_id"],
+            "detail_categories_count": len(stored_persona.get("detail_categories", {})),
+            "persona": stored_persona
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load persona: {str(e)}")
+
+
+@router.put("/v2/{persona_id}", response_model=Dict[str, Any])
+async def update_persona_v2_endpoint(
+    persona_id: str,
+    updates: Dict[str, Any] = Body(...),
+    db: Any = Depends(get_database),
+    admin_user: UserDB = Depends(get_admin_user)
+):
+    """
+    Update a v2 persona. Supports updating any field including dynamic ones.
+    """
+    from core.persona_loader import update_persona_v2
+    
+    updated_persona = await update_persona_v2(db, persona_id, updates, admin_user.id)
+    if not updated_persona:
+        raise HTTPException(status_code=404, detail="Persona not found")
+    
+    return {
+        "success": True,
+        "persona_id": persona_id,
+        "persona": updated_persona
+    }

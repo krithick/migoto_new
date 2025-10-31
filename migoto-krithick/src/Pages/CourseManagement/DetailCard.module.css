@@ -1,0 +1,249 @@
+.main {
+  width: 99%;
+  height: 80%;
+  box-sizing: border-box;
+  /* background: #000; */
+  background-color: #f4f7fb99;
+  padding: 1%;
+  margin: .5%;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  position: relative;
+  min-height: fit-content;
+  background-color: #958beb17;
+}
+
+.thumbnail,
+.content {
+  /* height: 100%; */
+  /* background-color: aliceblue; */
+  width: 30%;
+  box-sizing: border-box;
+}
+
+.content {
+  flex-grow: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.contentSnips,
+.descriptionBox {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.descriptionBox {
+  /* max-height: 90px; */
+  height: 50px;
+  overflow-y: auto;
+}
+
+.contentSnips {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 3%;
+  /* background-color: red; */
+  height: 3vh;
+}
+.snipTitle,
+.descTitle {
+  font-size: clamp(0.5rem, 0.6vw, 0.6rem);
+  font-weight: 450;
+  color: #666666;
+}
+.snipContent {
+  /* font-size: clamp(0.7rem, 0.775vw, 0.825rem); */
+  font-size: clamp(0.6rem, 0.7vw, 0.7rem);
+  font-weight: 500;
+}
+
+/* .descContent{
+    font-size: clamp(0.6rem, 0.7vw, 0.75rem);
+} */
+
+.descContent {
+  font-size: clamp(0.6rem, 0.7vw, 0.7rem);
+  font-weight: 500;
+}
+
+.editBtn {
+  position: absolute;
+  right: 0;
+  top: 1;
+  /* background-color: #ff2d5533; */
+  background-color: transparent;
+  min-width: fit-content;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  margin-right: 8px;
+  border-radius: 50%;
+padding: .5%;}
+
+.editSvg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+
+}
+.EditTitle {
+  width: 65%;
+  color: #ff2d5533;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 8px;
+  /* text-align: left; */
+  box-sizing: border-box;
+  border-radius: 50%;
+  font-size: clamp(0.6rem, 0.7vw, 0.7rem);
+}
+
+@media screen and (max-width: 1280px) {
+  /* .editBtn {
+    width: 4.5vw;
+    padding-left: 4px;
+    height: 25px;
+  }
+  .editSvg {
+    width: 28%;
+  } */
+}
+.aiBanner {
+  /* width: 18%; */
+  padding-inline: 16px;
+  box-sizing: border-box;
+  min-width: fit-content;
+  height: 20%;
+  min-height: 25px;
+  position: absolute;
+  /* background-color: yellow; */
+  background: linear-gradient(to right, #ab8beb, #f981df, #537fb6);
+  z-index: 100;
+  display: flex;
+  gap: 16px;
+  font-size: clamp(0.6rem, 0.7vw, 0.7rem);
+  justify-content: flex-start;
+  padding-left: 8px;
+  border-radius: 0px;
+
+  div {
+    min-width: fit-content;
+    /* background-color: palegreen; */
+    display: flex;
+    align-items: center;
+    color: white;
+    opacity: 1;
+    /* z-index: 100; */
+  }
+}
+
+.aiBanner {
+  padding-inline: 16px;
+  box-sizing: border-box;
+  min-width: fit-content;
+  height: 20%;
+  min-height: 25px;
+  position: absolute;
+  background: linear-gradient(
+    to right,
+    rgba(171, 139, 235, 0.8),
+    rgba(249, 129, 223, 0.8),
+    rgba(83, 127, 182, 0.8)
+  );
+  z-index: 100;
+  display: flex;
+  gap: 16px;
+  font-size: clamp(0.6rem, 0.7vw, 0.7rem);
+  justify-content: flex-start;
+  padding-left: 8px;
+  border-radius: 0px;
+  border-top-left-radius: 8px;
+
+  div {
+    min-width: fit-content;
+    display: flex;
+    align-items: center;
+    color: white;
+    opacity: 1;
+    font-size: clamp(0.5rem, 0.6vw, 0.75rem);
+  }
+}
+@media screen and (max-width: 1280px) {
+  .aiBanner {
+    /* width: 2vw; */
+
+    /* max-width: 30px; */
+    /* min-width: fit-content; */
+    gap: 4px;
+
+    div {
+      /* min-width: none; */
+      /* width: 0.5vw; */
+    }
+  }
+}
+.aiSvg {
+  /* width: 10%; */
+  height: 70%;
+  aspect-ratio: 1/1;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.thumbnail {
+  border-radius: 8px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+  }
+}
+
+.btnGrp{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1%;
+    width: 100%;
+    button{
+        border: 2px solid var(--brand);
+        border-radius: 15px;
+        padding: .5% 3%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: clamp(0.6rem, 0.6vw, 0.6rem);
+        color: var(--brand);
+        outline: none;
+
+        svg{
+            width: 14px !important;
+            height: 14px !important;
+        }
+    }
+    button:hover{
+        background-color: #0083db18;
+    }
+    .assign{
+        background-color: var(--brand);
+        color: white;
+    }
+    .assign:hover{
+        background-color: #0083dbda;
+    }
+}

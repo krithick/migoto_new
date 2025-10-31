@@ -1,0 +1,140 @@
+.manualUploadContainer {
+    padding: 2%;
+    border-radius: 8px;
+    height: 100%;
+    position: relative;
+  }
+
+  .manualUploadHeader{
+    width: 98%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1%;
+    
+    h3{
+      color: var(--textColor);
+    }
+
+    button{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 30px;
+        border: 1px solid #0078d4;
+        padding: 0.5% 1%;
+        color: white;
+        background-color: #0078d4;
+        width: 20%;
+        gap: 4%;
+        font-size: clamp(0.8rem, 0.8vw, 1rem);
+        white-space: nowrap;
+    }
+  }
+  
+  .manualForm{
+    position: relative;
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4%;
+  }
+
+  .FileContainer{
+    height: 20vh;
+    width: 85%;
+    background-color: #F4F9FB;
+    border: 2px dashed #809FB8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border-radius: 10px;
+    position: relative;
+    font-size: clamp(0.8rem, 0.8vw, 1rem);
+
+    p{
+        color: #85A3BB;
+    }
+  }
+
+  .iconContainer{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #384455;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .instructionContainer{
+    /* height: 15vh; */
+    width: 85%;
+    background-color: #FFC10726;
+    border: 1px solid #FFC107;
+    border-radius: 10px;
+
+  }
+  .instruction{
+    color: #FFC107;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1%;
+    width: 100%;
+    /* height: 30%; */
+    padding: 1% 1%;
+    font-size: clamp(0.8rem, 0.8vw, 1rem);
+  }
+  .instructionPoint{
+    width: 100%;
+    /* height: 68%; */
+
+    p{
+        margin-left: 6%;
+        margin-bottom: 1.5%;
+        color: #757575;
+        font-size: clamp(0.8rem, 0.8vw, 1rem);
+    }
+  }
+  
+  
+  .buttonGroup {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+  
+  .cancelButton {
+    padding: 3px 20px;
+    background-color: white;
+    border: 1px solid #0078d4;
+    color: #0078d4;
+    border-radius: 18px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .submitButton {
+    padding: 3px 20px;
+    background-color: #0078d4;
+    border: none;
+    color: white;
+    border-radius: 18px;
+    cursor: pointer;
+    outline: none;
+  }
+  
+  .submitButton:hover {
+    background-color: #006abc;
+  }
+  
+  .cancelButton:hover {
+    background-color: #f0f0f0;
+  }

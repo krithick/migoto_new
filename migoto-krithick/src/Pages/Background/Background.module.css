@@ -1,0 +1,60 @@
+.pinkContainer {
+  position: absolute; /* To allow positioning with top and left */
+  top: 0;
+  left: 0;
+  transform: translate(calc(-595 / 1533 * 100vw), calc(-757 / 1509 * 100vw));
+  width: 95vw; /* Adjust as needed based on the desired maximum width relative to the viewport */
+  height: 85vw;
+  z-index: 1;
+}
+
+.pinkContainer2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform:  translate(calc(837 / 1533 * 100vw), calc(1 / 1509 * 100vw));
+  /* transform: translate(calc(1050 / 1533 * 100vw), calc(26 / 1509 * 100vw)); */
+  width: 72vw;
+  height: 62vw;
+  z-index: 1;
+}
+
+.pink {
+  width: 100%;
+  height: 100%;
+  background-color: #7900d5; /* Or your desired background color */
+  border-radius: 50%;
+  opacity: 0.16;
+  filter: blur(50px);
+}
+
+/* blue circles */
+
+.blueContainer {
+  position: absolute;
+  top: -7vh;
+  left: 35vw;
+  /* transform: translate(35vw, -7vh); */
+  /* transform: translate(calc(-695 / 1533* 100vw), calc(-627 / 1509* 100vw)); */
+  height: 15vw;
+  width: 60vw;
+  z-index: 0;
+}
+
+.blueContainer2 {
+  position: absolute;
+  top: 50%;
+  left: -8vw;
+  width: 89vw;
+  height: 35vw;
+  z-index: 0;
+}
+
+.blue {
+  width: 100%;
+  height: 100%;
+  background-color: #0085db; /* Or your desired background color */
+  border-radius: 50%;
+  opacity: 0.19;
+  filter: blur(50px);
+}

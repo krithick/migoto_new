@@ -1,0 +1,145 @@
+.sideBar {
+  width: 19%;
+  height: 97%;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.sideTop {
+  width: 100;
+  height: 13%;
+  background-color: #d5e6ff;
+  border-radius: 0;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: last baseline;
+  padding: 3%;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.editBtn {
+  background-color: #0085db26;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10%;
+  padding: 4%;
+  padding-inline: 5%;
+  border-radius: 4px;
+  cursor: pointer;
+
+  div {
+    color: #1e90ff;
+    font-size: clamp( 0.6rem, 0.7vw, 0.8rem );
+    font-weight: 500;
+    height: 80%;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.nameBox {
+  width: 28%;
+  position: absolute;
+  background-color: #78adff;
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  border: solid 3px #ffffff;
+  color: #ffffff;
+  left: 50%;
+  bottom: 0%;
+  transform: translate(-50%, 50%);
+  padding: 1%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.nameBox div {
+  font-size: clamp(1rem, 2vw, 5rem);
+}
+
+.sideContent {
+  width: 100%;
+  height: 87%;
+  border-radius: 0;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  background-color: #ffffffff;
+  padding-left: 4%;
+  box-sizing: border-box;
+}
+
+.personalInfoBox {
+  margin-top: 20%;
+  width: 100%;
+  height: 70%;
+  display: flex;
+  flex-direction: column;
+  gap: 4%;
+  justify-content: flex-start;
+}
+
+.infoTitle {
+  width: 100%;
+  height: 8%;
+  align-content: center;
+  box-sizing: border-box;
+  color: #0085DB;
+  font-size: clamp( 0.8rem, 0.9vw, 1rem );
+}
+
+.infoStats {
+    display: flex;
+    flex-direction: column;
+    align-items: first baseline;
+    padding-left: 5%;
+}
+
+.infoStats div {
+    color: #9FA8C7;
+    font-size: clamp(0.6rem, 0.7vw, 0.8rem);
+}
+
+.statsValue {
+    color: #1D1D1D !important;
+    font-size: clamp(0.7rem, 0.9vw, 1rem);
+}
+
+.infoActiveStats {
+    display: flex;
+    flex-direction: column;
+    align-items: first baseline;
+    padding-left: 5%;
+    color: #9FA8C7;
+    
+}
+
+.infoActiveStats div{
+  font-size: clamp(0.6rem, 0.7vw, 0.8rem);
+  width: 20%;
+  height: 100%;
+}
+
+.statsActiveValue {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2%;
+    font-size: clamp(0.9rem, 1.2vw, 1.5rem);
+
+}
+
+.statsStatus{
+
+}
+
+.statsSign {
+  text-align: center;
+}

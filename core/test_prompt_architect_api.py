@@ -11,7 +11,7 @@ from openai import AsyncAzureOpenAI
 
 from core.scenario_extractor_v2 import ScenarioExtractorV2
 from core.persona_generator_v2 import PersonaGeneratorV2
-from core.prompt_architect_v3 import PromptArchitectV3
+from core.system_prompt_generator import SystemPromptGenerator
 
 
 router = APIRouter(prefix="/test-prompt-architect", tags=["Test Prompt Architect"])
@@ -75,10 +75,10 @@ async def test_new_prompt_generation(request: TestPromptRequest):
         print(f"[STEP 2] ✓ Persona generated: {persona_data.get('name')} ({persona_data.get('role')})")
         print(f"[STEP 2]   Detail categories: {persona_data.get('detail_categories_included')}")
         
-        # Step 3: Generate prompt using new architecture
+        # Step 3: Generate prompt using system prompt generator
         print("\n[STEP 3] Generating prompt with 6-section architecture...")
-        architect = PromptArchitectV3(client)
-        final_prompt = await architect.generate_prompt(
+        prompt_generator = SystemPromptGenerator(client)
+        final_prompt = await prompt_generator.generate_system_prompt(
             template_data=template_data,
             persona_data=persona_data,
             mode=request.mode

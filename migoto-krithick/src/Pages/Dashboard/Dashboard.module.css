@@ -1,0 +1,72 @@
+.mainContainer {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 1%;
+  gap: 1%;
+  border-radius: 8px;
+  background-color: #f4f7fb;
+  height: 71vh;
+  position: relative;
+  width: 100%;
+  /* overflow: hidden; */
+}
+.uHeader {
+  position: relative;
+  top: 8px;
+  left: 10px;
+  font-weight: 500;
+  color: rgb(52, 52, 52);
+  /* color: var(--brand); */
+}
+.leftContainer {
+  position: relative;
+  display: flex;
+  width: 70%;
+  height: 100%;
+  flex-direction: column;
+  .userStatus {
+    display: flex;
+    /* align-items: center; */
+    justify-content: left;
+    height: 30%;
+    width: 98%;
+    background-color: #eef3ff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex-direction: column;
+    padding: 0px 1%;
+
+    .uHeader {
+      position: relative;
+      top: 8px;
+      left: 10px;
+      font-weight: 500;
+      color: rgb(52, 52, 52);
+      /* color: var(--brand); */
+    }
+    .statusContainer {
+      display: flex;
+      gap: 1vw;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      width: 100%;
+    }
+  }
+}
+.rightContainer {
+  position: relative;
+  right: 0;
+  height: 100%;
+  width: 28%;
+  /* border: 1px solid; */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: auto;
+  background-color: #eef3ff;
+}
+.tableContainer {
+  height: 70%;
+  background-color: #eef3ff;
+  /* border: 1px solid; */
+  margin-top: 2vh;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}

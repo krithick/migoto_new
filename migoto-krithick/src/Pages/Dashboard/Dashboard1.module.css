@@ -1,0 +1,130 @@
+.mainContainer {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 1%;
+    gap: 1%;
+    border-radius: 8px;
+    background-color: #f4f7fb;
+    height: 71vh;
+    position: relative;
+    width: 98%;
+    /* overflow: hidden; */
+  }
+  .uHeader {
+    position: relative;
+    top: 8px;
+    left: 10px;
+    font-weight: 500;
+    color: rgb(52, 52, 52);
+    /* color: var(--brand); */
+  }
+
+  .header{
+    height: 7%;
+    width: 100%;
+    background-color: bisque;
+  }
+  .body{
+    display: flex;
+    height: 92%;
+    width: 100%;
+  }
+  .leftContainer {
+    position: relative;
+    display: flex;
+    width: 70%;
+    height: 98%;
+    flex-direction: column;
+    gap: 2%;
+    .userStatus {
+      display: flex;
+      /* align-items: center; */
+      justify-content: left;
+      /* height: 30%; */
+      width: 36%;
+      background-color: #eef3ff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      flex-direction: column;
+      padding: 0px 1%;
+      gap: 5%;
+  
+      .uHeader {
+        position: relative;
+        top: 8px;
+        left: 10px;
+        font-weight: 500;
+        color: rgb(52, 52, 52);
+        /* color: var(--brand); */
+      }
+      .userstatusContainer {
+        display: grid;
+        column-gap: 3%;
+        row-gap: 5%;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;      
+        /* height: 50%;
+        width: 50%; */
+      }
+      
+      /* .statusContainer {
+        display: flex;
+        gap: 1vw;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+      } */
+    }
+  }
+
+  .courseStatus{
+    display: flex;
+    /* align-items: center; */
+    justify-content: left;
+    /* height: 30%; */
+    width: 60%;
+    background-color: #eef3ff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex-direction: column;
+    padding: 0px 1%;
+    gap: 5%;
+
+  }
+  .statusContainer{
+    display: flex;
+    gap: 1vw;
+    width: 98%;
+    height: 40%;
+  }
+  .rightContainer {
+    position: relative;
+    right: 0;
+    height: 100%;
+    width: 31%;
+    /* border: 1px solid; */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: auto;
+    background-color: #eef3ff;
+  }
+
+  .performanceTable{
+    background-color: #eef3ff;
+    width: 98.5%;
+    height: 59%;
+    .tableContainer {
+        height: 95%;
+        background-color: #eef3ff;
+        /* border: 1px solid; */
+        margin-top: 1vh;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+    
+  }
+  .tableContainer {
+    height: 70%;
+    background-color: #eef3ff;
+    /* border: 1px solid; */
+    margin-top: 2vh;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  

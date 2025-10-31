@@ -1,0 +1,44 @@
+.voiceContainer{
+    width: 20%;
+    height: 96%;
+    padding: 1%;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0px 3px 6px #00000029;
+
+    
+}
+
+.voiceList{
+    width: 98%;
+    height: 98%;
+    padding: 1%;
+    display: flex;
+flex-direction: column;
+gap: 1%;
+overflow: auto;
+}
+
+.voiceItem{
+    background-color: white;
+    box-shadow: 0px 3px 6px #00000029;
+width: 98%;
+border-radius: 10PX;
+text-align: center;
+font-size: clamp(0.75rem, 0.7vw, 0.8rem);
+cursor: pointer;
+}
+.voiceItem:active{
+    box-shadow: 0px 3px 6px #51b1ffbe;
+
+}
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed !important;
+}
+.fff{
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed !important;
+}

@@ -1,0 +1,226 @@
+.card {
+    width: 19%;
+    border-radius: 8px;
+    height: fit-content;
+    background-color: white;
+    box-sizing: border-box;
+    margin-bottom: 1%;
+    box-shadow: 0px 3px 6px #00000029;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .activeCard{
+    /* box-shadow: 0px 3px 6px #0085db; */
+  }
+  .imgContainer {
+    margin: 1%;
+    padding: 1%;
+    height: 100px;
+    position: relative;
+    overflow: hidden;
+    background-color: #F4F7FB;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* transition: transform 0.5s ease; */
+      /* transition: width 0.5s, height 0.5s; */
+    }
+    img:hover {
+      /* transform: scale(1.1); */
+      /* width: 110%;
+          height: 110%; */
+    }
+  }
+  .gradient{
+    position: absolute;
+    background: transparent linear-gradient(180deg, #FFFFFF00 0%, #6363637D 39%, #000000 100%) 0% 0% no-repeat padding-box;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+  }
+
+  .PdfContainer{
+    height: 60%;
+  }
+  .contentContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 96%;
+    padding: 3% 2%;
+    /* height: 40%; */
+  }
+  .details {
+    position: absolute;
+    bottom: 4px;
+    display: flex;
+    padding: 2%;
+    width: 96%;
+    justify-content: space-between;
+    z-index: 10;
+    box-sizing: border-box;
+  }
+  .title {
+    width: 49%;
+    p {
+      color: var(--textColor);
+      font-size: clamp(0.5rem, 0.5vw, 0.7rem);
+    }
+    div {
+      color: white;
+      font-size: clamp(0.6rem, 0.6vw, 0.8rem);
+    }
+  }
+  .status {
+    p {
+      color: var(--textColor);
+      font-size: clamp(0.5rem, 0.5vw, 0.7rem);
+    }
+    div {
+      font-size: clamp(0.5rem, 0.5vw, 0.7rem);
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+  }
+  .green{
+    .dot {
+      -webkit-text-stroke: 3px #28a745;
+    }
+    p{
+      color: #28a745;
+    }
+  }
+  .green{
+    padding: 2% 4%;
+    border-radius: 12px;
+    border: 1px solid #28a745;
+    background-color: #28a74569;
+    color: #28a745;
+    display: flex;
+  }
+  .yellow {
+    padding: 2% 4%;
+    border-radius: 12px;
+    border: 1px solid #ff9500;
+    background-color: #ff950069;
+    color: #ff9500;
+    .dot {
+      -webkit-text-stroke: 3px #ff9500;
+    }
+    p{
+      color: #ff9500;
+    }
+  }
+  .white {
+    padding: 2% 4%;
+    border-radius: 12px;
+    border: 1px solid #abafb3;
+    background-color: #abafb369;
+    color: #abafb3;
+  
+    .dot {
+      -webkit-text-stroke: 3px #abafb3;
+    }
+    p{
+      color: #abafb3;
+    }
+  }
+  .courseCreater {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 50%;
+  
+    p {
+      margin-left: 2%;
+      font-size: clamp(0.5rem, 0.5vw, 0.8rem);
+      color: var(--textColor);
+    }
+    div {
+      margin-left: 2%;
+      font-size: clamp(0.6rem, 0.6vw, .9rem);
+    }
+  }
+  .selectedIndicator{
+        width: 20px;
+        background-color: #0085DB52;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 20px;
+        border-radius: 15px;
+        padding: 2%;
+  }
+  .activeCard{
+     background-color: #00D63152;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     height: 20px;
+     border-radius: 15px;
+     padding: 2%;
+     width: 20px;
+  }
+
+   .unassigned div{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1%;
+    font-size: clamp(0.6rem, 0.6vw, .9rem);
+    width: 70px;
+    border: 1px solid #0085db;
+    background-color: #0085db;
+    color: white;
+    border-radius: 15px;
+    padding: 4% 0%;
+}
+.assigned div{
+    border: 1px solid #28a745;
+    background-color: #28A74566;
+
+}
+.checkIcon{
+    background-color: #247B3870;
+    border-radius: 15px;
+    width: 10px;
+    height: 10px;
+    padding: 1%;
+
+}
+  
+  .titles{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+  
+    p {
+      margin-left: 2%;
+      font-size: clamp(0.5rem, 0.5vw, 0.8rem);
+      color: var(--textColor);
+    }
+    div {
+      margin-left: 2%;
+      font-size: clamp(0.6rem, 0.6vw, .9rem);
+      margin-bottom: 10px;
+    }
+  
+  }
+    .previewIcon{
+    position: absolute;
+    top: 5px;
+    right: 7px;
+    padding: 1%;
+    /* background-color: #f0f0f0be; */
+    z-index: 11;
+  }

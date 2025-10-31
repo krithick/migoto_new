@@ -1,0 +1,144 @@
+.loiHeader {
+    /* height: 6vh; */
+    width: 100%;
+    border-bottom: 1px solid #9fa8c736;
+    display: flex;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .loiHeaderLeft {
+    width: 65%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1%;
+    margin-left: 1%;
+  }
+  .loiActive > div {
+    display: flex;
+    position: relative;
+    p {
+      font-size: clamp(0.8rem, 0.8vw, 1rem);
+    }
+  }
+  .totalBox {
+    display: flex;
+    font-size: clamp(0.7rem, 0.7vw, 0.9rem);
+    gap: 1%;
+  }
+  .heading{
+    display: flex;
+    padding: 1%;
+    align-items: center;
+    gap: 2%;
+  }
+  .box {
+    padding: 1%;
+    cursor: pointer;
+    color: var(--textColor);
+  }
+  .active {
+    border-bottom: 3px solid #0085db;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    color: #0085db;
+  }
+  
+  .filterIcon{
+    margin-left: 1%;
+    background-color: #0085DB33;
+    border-radius: 15px;
+    /* width: 20px;
+    height: 20px; */
+    display: flex;
+    align-items: center;
+    padding: .5%;
+    cursor: pointer;
+  }
+  .filterList{
+    background-color: white;
+    border: 1px solid white;
+    box-shadow: 0px 3px 6px #00000029;
+    padding: 0.5%;
+    height: 13.5vh;
+    position: absolute;
+    top: 5%;
+    left: 21.5%;
+    z-index: 5;
+  }
+  
+  .filterData{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 3vh;
+    width: 8vw;
+    cursor: pointer;
+    margin-bottom: 1%;
+    padding: 1%;
+  
+    .blackDot{
+      -webkit-text-stroke: 3px #000000;
+    }
+  
+    .greenDot{
+      -webkit-text-stroke: 3px #28a745;
+    }
+    .whiteDot{
+      -webkit-text-stroke: 3px #abafb3;
+    }
+    .yellowDot{
+      -webkit-text-stroke: 3px #ff9500;
+    }
+  }
+  .filterData:hover{
+    background-color: whitesmoke;
+  }
+  
+  .loiHeaderRight {
+    width: 33%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 2%;
+  
+    button {
+      padding: 1.5%;
+      outline: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 15px;
+      border: 1px solid #0085db;
+      background-color: #0085db;
+      gap: 3%;
+      width: 35%;
+      font-size: clamp(0.6rem, 0.6vw, 0.8rem);
+      cursor: pointer;
+      color: white;
+    }
+  
+    .searchBar{
+      position: relative;
+      /* margin-bottom: 10px; */
+  
+      input {
+        padding: 1.5%;
+        outline: none;
+        border-radius: 15px;
+        border: 1px solid var(--textColor);
+        font-size: clamp(0.7rem, 0.7vw, 0.9rem);
+        text-indent: 10px;
+      }
+    
+    }
+    .searchIconSvg{
+      position: absolute;
+      top: 4px;
+      right: 0;
+      background-color: #28A74533;
+      padding: 3px;
+      border-radius: 12px;
+    }
+  }
+  

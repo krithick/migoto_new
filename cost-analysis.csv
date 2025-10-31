@@ -1,0 +1,19 @@
+UsageDate,CostUSD,Cost,Currency
+01-05-2025,2.636942156,224.2224877,INR
+01-06-2025,88.78761623,7578.688952,INR
+01-07-2025,109.4005203,9376.034839,INR
+01-08-2025,109.5608391,9512.072054,INR
+01-09-2025,27.68765056,2427.860859,INR
+,,,
+,,,
+,,,
+"novacimmerz-search-aivr-dev (microsoft.search/searchservices)
+","? 24,126.59",,
+"novacimmerze-dev-openai-aivr (microsoft.cognitiveservices/accounts)
+","?4,419.72
+",,
+"novacimmerz-speech-aivr-dev (microsoft.cognitiveservices/accounts)
+","?643.39
+",,
+"novacimmerzaivrdev (microsoft.storage/storageaccounts)
+",? 0.11,,

@@ -1,0 +1,137 @@
+:root {
+  --blueTC: #0085DB;
+  --brand: #0085db;
+  --brandHover: #0083dbd4;
+  --panelBG: #F4F7FB;
+  --secBrand: #0085db26;
+  --tableHeaderTC: #464A53;
+  --tableDataTC: #0C0C0C;
+  --blackTC: #1E1E1E;
+  --fadeTC: #9fa8c7;
+  --greyTC: #9E9E9E;
+  --transparentColor: #ffffff16;
+  --transparentColor2: rgba(255, 255, 255, 0.41) 6;
+  --textColor: #abafb3;
+  --warning: #ff9500;
+  --success: #28a745;
+}
+* {
+  margin: 0;
+}
+
+/* Width of scrollbar */
+::-webkit-scrollbar {
+  width: 5px;  /* For vertical scrollbar */
+  height: 5px; /* For horizontal scrollbar */
+
+}
+
+/* Track (background of scrollbar) */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;  
+  box-shadow: inset 0 0 5px rgb(243, 241, 241); 
+  border-radius: 10px;
+  cursor: pointer;
+}
+ 
+/* Handle (scroll thumb) */
+::-webkit-scrollbar-thumb {
+  background: #dbe5fd; 
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #cad9fd; 
+  cursor: pointer;
+}
+
+body {
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+.SideContainer {
+  padding: 2vh 1vw;
+  height: 100vh;
+}
+.mainContainer {
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 18.4vw;
+  z-index: 2;
+}
+
+.PopUpContainer{
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  z-index: 5;
+
+  .bgDark{
+    background-color: #000000D1;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    
+  }
+}
+button:disabled{
+  cursor: not-allowed;
+}
+
+/* ------------------------Table Section start-------------------------- */
+
+/* ------------------------Table Section End-------------------------- */
+
+:where(.css-dev-only-do-not-override-1v5z42l).ant-collapse>.ant-collapse-item >.ant-collapse-header {
+  position: relative;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row-reverse !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding: 12px 16px;
+    color: rgba(0, 0, 0, 0.88);
+    line-height: 1.5714285714285714;
+    cursor: pointer;
+    transition: all 0.3s, visibility 0s;
+
+}
+:where(.css-dev-only-do-not-override-1v5z42l).ant-collapse {
+  width: 100% !important;
+}
+
+:where(.css-dev-only-do-not-override-1v5z42l).ant-collapse-borderless >.ant-collapse-item>.ant-collapse-content>.ant-collapse-content-box{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1%;
+}
+/* -------------------------------------voice  card----------------------- */
+.hvAlMV{
+  height: 40px !important;
+  gap: 1% !important;
+}
+.hKWLSJ{
+  height: 110% !important;
+  background-color: #D7E7FC;
+  padding-left: 2%;
+}
+
+:where(.css-dev-only-do-not-override-mc1tut).ant-card .ant-card-body {
+  padding: 7% !important;
+}
+
+:where(.css-dev-only-do-not-override-mc1tut).ant-btn {
+  /* height: auto !important; */
+}
+
+:where(.css-dev-only-do-not-override-1odpy5d).ant-collapse>.ant-collapse-item >.ant-collapse-header {
+  flex-direction: row-reverse;
+}

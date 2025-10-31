@@ -1,0 +1,116 @@
+.panelHeader{
+  font-size: clamp(0.65rem, 0.65vw, .9rem);
+  display: flex;
+  gap: .5%;
+  margin-bottom: .5%;
+}
+.descrip{
+  font-size: clamp(0.55rem, 0.55vw, .8rem);
+  margin-bottom: 1%;
+}
+
+.accordationContainer{
+  border-radius: 8px;
+  /* display: flex;
+  flex-wrap: wrap; */
+  padding: 1%;
+  gap: 1%;
+  background-color: #FFFFFF;
+  /* height: 88%; */
+  overflow: auto;
+  position: relative;
+}
+.overlay{
+  position: absolute;
+ top: 0;
+ background-color: #FFFFFF8F;;
+ width: 98%;
+ height: 100%;
+ display: block;
+}
+.overlayNone{
+  display: none;
+}
+
+.cardTitle{
+  color: #666666;
+  font-size: clamp(0.55rem, 0.55vw, .8rem);
+  width: 100%;
+
+}
+
+.panelLabel{
+  font-size:clamp(0.7rem, 0.7vw, 1rem) ;
+}
+
+.ListBox{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1%;
+}
+
+.footer{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1%;
+}
+
+.addDel{
+  padding: 1% 5%;
+  background-color: #D9EDFA;
+  color: #0085DB;
+  font-size: clamp(0.7rem,0.8vw,0.8rem);
+  border: 1px solid #D9EDFA;
+  outline: none;
+  border-radius: 18px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.addDel::after{
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 150px;
+  transform: rotate(35deg);
+  top: -20px;
+  left: -70px;
+  transition: all 1s ease;
+  background-color: rgb(255, 255, 255, 0.5);
+
+}
+.addDel:hover::after{
+  left: 150%;
+  transition: all 1s ease;
+}
+
+/* .addDel:active{
+  background-color: #bee1f8;
+} */
+
+.accordationContainer1{
+    border-radius: 8px;
+    padding: 1%;
+    gap: 1%;
+    background-color: #FFFFFF;
+    height: 80%;
+    width: 98%;
+    overflow: auto;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1%;
+}
+
+.rightSection{
+  width: 300px;
+  height: 200px;
+
+  img{
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+  }
+}

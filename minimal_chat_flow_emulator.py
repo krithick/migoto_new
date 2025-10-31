@@ -37,7 +37,7 @@ class ConsoleCapture:
         self.original_stdout.flush()
 
 class ChatFlowEmulator:
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:9000"):
         self.base_url = base_url
         self.session_id = None
         self.conversation_count = 0
@@ -379,7 +379,7 @@ class ChatFlowEmulator:
 class APIFlowTester:
     """Test individual API endpoints"""
     
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:9000"):
         self.base_url = base_url
     
     async def test_all_apis(self):

@@ -1,0 +1,44 @@
+.container{
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    border-radius: 12px;
+}
+.body{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    height: 85%;
+    border-radius: 12px;
+}
+
+.courseListBox{
+    /* padding: 1%; */
+    width: 98%;
+    height: 98%;
+    border-radius: 12px;
+    transition: width 0.3s ease-in-out;
+    margin: 1%;
+    border: 1px solid #BACAD9;
+    overflow: hidden;
+}
+
+.courseListBox.small{
+    width: 32%;
+}
+
+.moduleListBox{
+    width: 0;
+    padding: 0;
+    height: 100%;
+    transform: translateX(100%);
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+}
+
+.moduleListBox.open{
+    width: 66%;
+    padding: 1%;
+    transform: translateX(0);
+}

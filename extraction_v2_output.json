@@ -1,0 +1,252 @@
+{
+  "general_info": {
+    "domain": "pharmaceutical_product",
+    "title": "EO-Dine",
+    "purpose_of_ai_bot": "expert sales trainer / gynecologist",
+    "target_audience": "Field Sales Officer (FSO)",
+    "preferred_language": "English"
+  },
+  "context_overview": {
+    "scenario_title": "EO-Dine",
+    "learn_mode_description": "An expert sales trainer teaches the FSO the IMPACT methodology.",
+    "assess_mode_description": "The FSO practices pitching EO-Dine to a gynecologist in their office.",
+    "try_mode_description": "Same as assess mode with coaching",
+    "purpose_of_scenario": "Learn IMPACT and practice application"
+  },
+  "mode_descriptions": {
+    "learn_mode": {
+      "what_happens": "An expert sales trainer teaches the FSO the IMPACT methodology.",
+      "ai_bot_role": "expert sales trainer",
+      "learner_role": "Field Sales Officer (FSO)",
+      "teaching_focus": "IMPACT methodology for pitching EO-Dine",
+      "methods": [
+        "IMPACT"
+      ],
+      "uses_vector_db": true
+    },
+    "assess_mode": {
+      "what_happens": "The FSO practices pitching EO-Dine to a gynecologist in their office.",
+      "learner_role": "Field Sales Officer (FSO)",
+      "context": "In the gynecologist's office during a practice pitch session",
+      "ai_bot_role": "gynecologist"
+    },
+    "try_mode": {
+      "same_as_assess": true,
+      "coaching_enabled": true
+    }
+  },
+  "persona_types": [
+    {
+      "type": "Experienced Gynecologist",
+      "description": "A seasoned medical professional specializing in gynecology, particularly endometriosis, who is evidence-driven and skeptical of new products.",
+      "use_case": "Used to train FSOs on how to effectively communicate with and persuade skeptical, experienced doctors.",
+      "key_characteristics": {
+        "specialty": "Gynecology, Endometriosis",
+        "decision_style": "Evidence-driven, skeptical",
+        "time_availability": "Time-constrained",
+        "current_solution": "Prescribes Dienogest",
+        "pain_points": [
+          "Concerned about irregular bleeding",
+          "Concerned about bone loss side effects"
+        ]
+      }
+    },
+    {
+      "type": "Young Gynecologist",
+      "description": "A newer professional in the field who is open to innovative treatments and seeks validation from peers.",
+      "use_case": "Used to train FSOs on how to engage with and influence younger doctors who are more receptive to new ideas.",
+      "key_characteristics": {
+        "specialty": "Gynecology",
+        "decision_style": "Open to innovation, seeks peer validation",
+        "time_availability": "Moderate",
+        "current_solution": "Varies, likely open to change",
+        "pain_points": [
+          "Desires peer support and validation"
+        ]
+      }
+    },
+    {
+      "type": "Academic Gynecologist",
+      "description": "A research-focused professional who prioritizes clinical trial data and evidence-based practices.",
+      "use_case": "Used to train FSOs on how to present detailed clinical evidence and data to satisfy research-oriented doctors.",
+      "key_characteristics": {
+        "specialty": "Gynecology, Research",
+        "decision_style": "Research-focused, data-driven",
+        "time_availability": "Limited due to research commitments",
+        "current_solution": "Relies on evidence-based treatments",
+        "pain_points": [
+          "Requires robust clinical trial data"
+        ]
+      }
+    }
+  ],
+  "domain_knowledge": {
+    "methodology": "IMPACT",
+    "methodology_steps": [
+      "Introduce yourself and build rapport",
+      "Motivate with patient pain points",
+      "Present EO-Dine benefits with evidence",
+      "Address objections professionally",
+      "Close with clear next steps",
+      "Thank and schedule follow-up"
+    ],
+    "subject_matter": {
+      "type": "pharmaceutical_product",
+      "name": "EO-Dine",
+      "main_points": [
+        "New endometriosis treatment",
+        "Pitch to gynecologists"
+      ],
+      "key_benefits": [
+        "Reduces irregular bleeding by 60% vs Dienogest",
+        "Prevents bone density loss (BMD maintained)"
+      ],
+      "evidence": [
+        "Clinical studies",
+        "Product specifications",
+        "Competitive analysis"
+      ]
+    },
+    "key_facts": [
+      "EO-Dine reduces irregular bleeding by 60% vs Dienogest",
+      "EO-Dine prevents bone density loss (BMD maintained)",
+      "Approved for long-term use (>2 years)",
+      "Covered by major insurance plans"
+    ],
+    "dos": [
+      "Follow IMPACT methodology",
+      "Present EO-Dine's advantages",
+      "Handle objections about efficacy and cost",
+      "Close with a prescription commitment"
+    ],
+    "donts": [
+      "Skip IMPACT steps",
+      "Make vague claims without evidence",
+      "Fail to address objections",
+      "Miss closing opportunities"
+    ],
+    "conversation_topics": [
+      "EO-Dine's advantages over Dienogest",
+      "Handling concerns about irregular bleeding and bone loss",
+      "Insurance coverage and long-term use approval"
+    ],
+    "evaluation_criteria": {
+      "what_to_evaluate": [
+        "IMPACT methodology adherence",
+        "Objection handling quality",
+        "Factual accuracy",
+        "Communication skills"
+      ],
+      "scoring_weights": {
+        "methodology_adherence": 30,
+        "objection_handling": 20,
+        "factual_accuracy": 25,
+        "communication_skills": 25
+      },
+      "common_mistakes": [
+        "Skipping IMPACT steps",
+        "Making vague claims without evidence",
+        "Failing to address objections",
+        "Missing closing opportunities"
+      ]
+    },
+    "coaching_rules": {
+      "when_coach_appears": [
+        "After methodology violation",
+        "After factual error",
+        "When objections are not addressed",
+        "When closing opportunities are missed"
+      ],
+      "coaching_style": "Gentle and supportive",
+      "what_to_catch": [
+        "Methodology violations",
+        "Factual inaccuracies",
+        "Unaddressed objections",
+        "Missed closing opportunities"
+      ],
+      "correction_patterns": {
+        "skipped_step": "Remind the FSO to follow the IMPACT steps in order.",
+        "vague_claim": "Encourage the FSO to provide specific evidence or data to support claims.",
+        "wrong_fact": "Correct the factual error and provide the accurate information."
+      }
+    }
+  },
+  "knowledge_base": {
+    "key_facts": [
+      "EO-Dine reduces irregular bleeding by 60% vs Dienogest",
+      "EO-Dine prevents bone density loss (BMD maintained)",
+      "Approved for long-term use (>2 years)",
+      "Covered by major insurance plans"
+    ],
+    "dos": [
+      "Follow IMPACT methodology",
+      "Present EO-Dine's advantages",
+      "Handle objections about efficacy and cost",
+      "Close with a prescription commitment"
+    ],
+    "donts": [
+      "Skip IMPACT steps",
+      "Make vague claims without evidence",
+      "Fail to address objections",
+      "Miss closing opportunities"
+    ],
+    "conversation_topics": [
+      "EO-Dine's advantages over Dienogest",
+      "Handling concerns about irregular bleeding and bone loss",
+      "Insurance coverage and long-term use approval"
+    ]
+  },
+  "coaching_rules": {
+    "when_coach_appears": [
+      "After methodology violation",
+      "After factual error",
+      "When objections are not addressed",
+      "When closing opportunities are missed"
+    ],
+    "coaching_style": "Gentle and supportive",
+    "what_to_catch": [
+      "Methodology violations",
+      "Factual inaccuracies",
+      "Unaddressed objections",
+      "Missed closing opportunities"
+    ],
+    "correction_patterns": {
+      "skipped_step": "Remind the FSO to follow the IMPACT steps in order.",
+      "vague_claim": "Encourage the FSO to provide specific evidence or data to support claims.",
+      "wrong_fact": "Correct the factual error and provide the accurate information."
+    }
+  },
+  "evaluation_criteria": {
+    "what_to_evaluate": [
+      "IMPACT methodology adherence",
+      "Objection handling quality",
+      "Factual accuracy",
+      "Communication skills"
+    ],
+    "scoring_weights": {
+      "methodology_adherence": 30,
+      "objection_handling": 20,
+      "factual_accuracy": 25,
+      "communication_skills": 25
+    },
+    "common_mistakes": [
+      "Skipping IMPACT steps",
+      "Making vague claims without evidence",
+      "Failing to address objections",
+      "Missing closing opportunities"
+    ]
+  },
+  "persona_definitions": {},
+  "dialogue_flow": {},
+  "variations_challenges": {},
+  "success_metrics": {},
+  "feedback_mechanism": {},
+  "extraction_version": "v2",
+  "extraction_timestamp": "2025-10-31T15:59:03.674337",
+  "archetype_classification": {
+    "primary_archetype": "PERSUASION",
+    "confidence_score": 0.95,
+    "corrected": true,
+    "original_archetype": null
+  }
+}

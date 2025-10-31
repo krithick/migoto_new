@@ -1,0 +1,221 @@
+.modelContainer {
+  position: relative;
+  width: 100%;
+  height: 85%;
+}
+.loaderDrei{
+  span{
+
+    color: red;
+  }
+}
+.avtType {
+  width: 7%;
+  height: 95%;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 2%;
+  padding: 1%;
+  position: absolute;
+  left: 1%;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  box-sizing: border-box;
+  box-shadow: 0px 3px 6px #00000029;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow: auto;
+}
+
+.bar{
+    background-color: #d2e6ee;
+    color: #0085db;
+    font-size: clamp(0.7rem, 0.7vw, 1.0rem);
+    padding: 2%;
+    border-radius: 1px solid #0085db;
+    border: none;
+    margin: 3%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 2%;
+}
+.bar:hover{
+    background-color: #0085db;
+    color: white;
+}
+
+.avtType div {
+  width: 77%;
+  /* height: 6%; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.unselectedType {
+  background-color: #F4F9FB;
+  color: #0085db;
+  padding: 1%;
+  border-radius: 5px;
+}
+
+.selectedType {
+  background-color: #0085db;
+  color: #f4f9fb;
+  padding: 1%;
+  border-radius: 5px;
+}
+
+.unselectedType:hover{
+  scale: 1.1;
+}
+
+.avtTypeLists {
+  background-color: #ffffff;
+  cursor: pointer;
+  width: 15%;
+  height: 95%;
+  padding: 1%;
+  position: absolute;
+  left: 9%;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  box-sizing: border-box;
+  box-shadow: 0px 3px 6px #00000029;
+  overflow: auto;
+  border-radius: 10px;
+}
+.TypeListsHeading {
+  padding: 2%;
+  font-size: .9vw;
+}
+
+.TypeListsContainer {
+  width: 100%;
+  height: 90%;
+  background-color: #ffffff;
+  padding: 1%;
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  grid-column-gap: 5px;
+  grid-row-gap: 40px;
+  /* gap: 10px; */
+  /* padding: 5% 5% 0% 5%; */
+  box-sizing: border-box;
+  padding-top: 5%;
+}
+
+.charModelList {
+  width: 100%;
+  height: 90%;
+  background-color: #ffffff;
+  padding: 1%;
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  grid-column-gap: 10px;
+  grid-row-gap: 40px;
+  /* gap: 10px; */
+  /* padding: 5% 5% 0% 5%; */
+  box-sizing: border-box;
+  padding-top: 5%;
+}
+
+.modelButtons {
+  /* background-color: red; */
+  width: 90%;
+  height: 135%;
+  margin: 0;
+  justify-self: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: solid 1px white;
+  background: #F4F9FB;
+  border-radius: 8px;
+
+  img{
+    object-fit: cover;
+  }
+  
+}
+.modelButtons:hover {
+  border: solid 1px #0085db;
+}
+
+.charModelButtons {
+  width: 95%;
+  height: 105%;
+  margin: 0;
+  justify-self: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modelButtons img {
+  width: 100%;
+  height: 100%;
+  font-size: clamp(0.7rem, 0.7vw, 1.0rem);
+}
+
+.fullSceneButton {
+  background-color: skyblue;
+  width: 2vh;
+  padding: 0.5vh;
+  position: absolute;
+  right: 0.5%;
+  top: 1%;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  color: blue;
+}
+
+.sceneContainer {
+  width: 100%;
+  height: 100%;
+  background-color: #f0f0f0;
+  z-index: 100;
+  border-radius: 1%;
+  /* position: inherit; */
+}
+.footer {
+  display: flex;
+  flex-direction: row;
+  height: 15%;
+  width: 100%;
+  align-items: center;
+  justify-content: end;
+  .container {
+      background-color: white;
+      border: 1px solid transparent;
+      border-radius: 10px !important;
+
+    width: 30%;
+    input {
+        background-color: transparent;
+      border-radius: 0px !important;
+      border: none;
+      width: 70%;
+outline: none;
+    }
+    button {
+      width: 30%;
+      border-radius: 10px !important;
+      border: none;
+      background-color: var(--brand);
+    }
+  }
+}

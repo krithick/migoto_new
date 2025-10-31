@@ -46,12 +46,18 @@ class PersonaGeneratorV2:
             template_data, base_persona, relevant_categories, custom_prompt
         )
         
-        # Step 4: Extract conversation rules
+        # Step 4: Generate realistic name if needed
+        if base_persona["name"] == base_persona["role"]:
+            base_persona["name"] = await self._generate_realistic_name(
+                base_persona["role"], base_persona["gender"], base_persona["age"]
+            )
+        
+        # Step 5: Extract conversation rules
         conversation_rules = await self._generate_conversation_rules(
             template_data, base_persona, detail_categories
         )
         
-        # Step 5: Construct final persona
+        # Step 6: Construct final persona
         persona = PersonaInstanceV2(
             template_id=template_data.get("template_id", "unknown"),
             persona_type=base_persona["persona_type"],
@@ -95,27 +101,39 @@ class PersonaGeneratorV2:
         mode: str,
         gender: Optional[str]
     ) -> Dict[str, Any]:
-        """Extract base persona info from template_data."""
+        """Extract base persona info from V2 extraction format."""
+        # V2: Get from mode_descriptions and persona_types
+        mode_key = mode if mode in ["learn_mode", "assess_mode", "try_mode"] else "assess_mode"
+        mode_desc = template_data.get("mode_descriptions", {}).get(mode_key, {})
+        persona_types = template_data.get("persona_types", [])
+        first_persona = persona_types[0] if persona_types else {}
+        
+        # V1 fallback: persona_definitions
         persona_key = f"{mode}_ai_bot" if "mode" in mode else "assess_mode_ai_bot"
         persona_def = template_data.get("persona_definitions", {}).get(persona_key, {})
         
+        # Extract name and role (V2 first, then V1 fallback)
+        role = first_persona.get("type") or mode_desc.get("ai_bot_role") or persona_def.get("role") or "Character"
+        name = persona_def.get("name") or role  # Will be overridden by LLM or caller
+        
+        # Location
         location_str = persona_def.get("location", "Mumbai, India")
         parts = location_str.split(",")
         city = parts[0].strip() if parts else "Mumbai"
         state = parts[1].strip() if len(parts) > 1 else "Maharashtra"
         
         return {
-            "persona_type": persona_def.get("role", "Character"),
-            "name": persona_def.get("name", "Character"),
+            "persona_type": role,
+            "name": name,
             "age": persona_def.get("age", 35),
             "gender": gender or persona_def.get("gender", "Female"),
-            "role": persona_def.get("role", "Person"),
-            "description": persona_def.get("description", ""),
+            "role": role,
+            "description": first_persona.get("description") or persona_def.get("description", ""),
             "location": PersonaLocation(
                 city=city,
                 state=state,
-                current_physical_location=persona_def.get("current_situation", "At location"),
-                location_type=persona_def.get("context", "General"),
+                current_physical_location=mode_desc.get("context") or persona_def.get("current_situation", "At location"),
+                location_type=mode_desc.get("context") or persona_def.get("context", "General"),
                 languages_spoken=["English", "Hindi"]
             ),
             "archetype_specific_data": {}
@@ -359,6 +377,32 @@ Return JSON:
                 "word_limit": 50,
                 "behavioral_triggers": {}
             }
+    
+    async def _generate_realistic_name(self, role: str, gender: str, age: int) -> str:
+        """Generate a realistic Indian name for the persona"""
+        prompt = f"""Generate ONE realistic Indian name for this character:
+Role: {role}
+Gender: {gender}
+Age: {age}
+
+Return ONLY the name (first and last), nothing else.
+Example: Priya Sharma"""
+        
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You generate realistic Indian names."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=50
+            )
+            name = response.choices[0].message.content.strip()
+            return name if name else role
+        except Exception as e:
+            print(f"[ERROR] Name generation failed: {e}")
+            return role
     
     def _build_interaction_context(self, template_data: Dict[str, Any], base_persona: Dict[str, Any]) -> str:
         """Build clear context about WHO persona interacts with and HOW"""

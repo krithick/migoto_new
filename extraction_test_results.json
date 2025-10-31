@@ -1,0 +1,341 @@
+{
+  "raw_data": {
+    "project_basics": {},
+    "target_skills": [],
+    "learner_info": {},
+    "ai_trainer": {},
+    "ai_colleague": {},
+    "knowledge_accuracy": {},
+    "common_situations": [],
+    "correction_preferences": {},
+    "success_metrics": [],
+    "common_mistakes": [],
+    "conversation_examples": {
+      "topic": "The purpose of authoritative leadership in an employee-first organization.",
+      "ai_line": "Exactly! That’s what I was thinking. The team should have total autonomy; structure seems unnecessary.",
+      "correct_response": "Authoritative leadership can actually complement an employee-first culture. It’s not about overriding the team—it’s about setting a clear vision, providing guidance, and aligning everyone toward shared goals. When used thoughtfully, it gives employees direction while still valuing their input and autonomy.",
+      "incorrect_response": "Yeah, I agree. Authoritative leadership doesn’t really fit here—we should just let everyone make decisions freely."
+    },
+    "all_paragraphs": []
+  },
+  "template": {
+    "scenario_understanding": {
+      "main_topic": "Training Scenario",
+      "learning_situation": "Professional development training",
+      "target_skills": [
+        "Professional communication",
+        "Problem-solving",
+        "Critical thinking"
+      ],
+      "key_challenges": "Developing practical skills",
+      "domain": "General Training",
+      "extraction_source": "MIXED_CONTENT"
+    },
+    "participant_roles": {
+      "expert_role": "Expert Trainer",
+      "practice_role": "Practice Partner",
+      "learner_role": "Trainee",
+      "extraction_source": "GENERATED_CONTENT"
+    },
+    "knowledge_base": {
+      "dos": [
+        "Follow best practices",
+        "Communicate clearly",
+        "Listen actively"
+      ],
+      "donts": [
+        "Avoid assumptions",
+        "Don't rush decisions",
+        "Don't ignore concerns"
+      ],
+      "key_facts": [
+        "Document-based knowledge",
+        "Professional standards"
+      ],
+      "conversation_topics": [
+        "Core concepts",
+        "Practical application"
+      ],
+      "extraction_source": "GENERATED_CONTENT"
+    },
+    "coaching_rules": {
+      "process_requirements": {
+        "mentioned_methodology": "Interactive learning approach",
+        "required_steps": "Learn, practice, apply, reflect",
+        "validation_criteria": "Demonstrate understanding and application"
+      },
+      "correction_preferences": {
+        "preferred_tone": "Gentle coaching",
+        "feedback_timing": "Immediately",
+        "correction_method": "Explain and guide"
+      },
+      "document_specific_mistakes": [],
+      "extraction_source": "MIXED_CONTENT"
+    },
+    "success_metrics": {
+      "kpis_for_interaction": [
+        "Understanding demonstrated",
+        "Skills applied effectively"
+      ],
+      "learning_objectives": "Apply knowledge effectively in realistic scenarios",
+      "evaluation_criteria": [
+        "Accuracy",
+        "Completeness",
+        "Practical application"
+      ],
+      "extraction_source": "GENERATED_CONTENT"
+    },
+    "conversation_dynamics": {
+      "learn_mode_purpose": "Expert teaches relevant topics",
+      "practice_mode_purpose": "Practice partner needs guidance and support",
+      "typical_interactions": [
+        "Seeking guidance",
+        "Asking for clarification"
+      ],
+      "success_looks_like": "Learner provides helpful, accurate guidance",
+      "failure_patterns": [
+        "Generic responses",
+        "Dismissive attitude"
+      ],
+      "difficulty_level": "Mixed",
+      "extraction_source": "MIXED_CONTENT"
+    },
+    "content_specifics": {
+      "key_knowledge": [
+        "Professional knowledge"
+      ],
+      "procedures_mentioned": [
+        "Standard procedures"
+      ],
+      "policies_referenced": [
+        "Company policies"
+      ],
+      "examples_given": [
+        "The purpose of authoritative leadership in an employee-first organization."
+      ],
+      "extraction_source": "MIXED_CONTENT"
+    },
+    "conversation_examples": {
+      "dialogue_samples": [
+        "Exactly! That’s what I was thinking. The team should have total autonomy; structure seems unnecessary."
+      ],
+      "question_patterns": [
+        "How should I handle...",
+        "What's the best approach..."
+      ],
+      "response_patterns": [
+        "Authoritative leadership can actually complement an employee-first culture. It’s not about overriding the team—it’s about setting a clear vision, providing guidance, and aligning everyone toward shared goals. When used thoughtfully, it gives employees direction while still valuing their input and autonomy."
+      ],
+      "incorrect_patterns": [
+        "Yeah, I agree. Authoritative leadership doesn’t really fit here—we should just let everyone make decisions freely."
+      ],
+      "extraction_source": "FROM_DOCUMENT"
+    },
+    "feedback_mechanism": {
+      "positive_closing": "Thank you, that really helps me understand better",
+      "negative_closing": "I'm still not sure about this situation",
+      "neutral_closing": "I'll think about what you've said",
+      "persona_context": "Practice Partner",
+      "extraction_source": "NEEDS_PERSONA_ENHANCEMENT"
+    },
+    "variations_challenges": {
+      "scenario_variations": [
+        "Different experience levels",
+        "Various contexts"
+      ],
+      "edge_cases": [
+        "Challenging situations"
+      ],
+      "difficulty_levels": [
+        "Mixed"
+      ],
+      "extraction_source": "GENERATED_CONTENT"
+    },
+    "knowledge_base_integration": {
+      "requires_knowledge_base": "false",
+      "fact_checking_areas": [
+        "General accuracy"
+      ],
+      "accuracy_requirements": "Must align with document specifications",
+      "extraction_source": "GENERATED_CONTENT"
+    }
+  },
+  "validation": {
+    "validated_extraction": {
+      "scenario_understanding": {
+        "main_topic": "Training Scenario",
+        "learning_situation": "Professional development training",
+        "target_skills": [
+          "Professional communication",
+          "Problem-solving",
+          "Critical thinking"
+        ],
+        "key_challenges": "Developing practical skills",
+        "domain": "General Training",
+        "extraction_source": "MIXED_CONTENT"
+      },
+      "participant_roles": {
+        "expert_role": "Expert Trainer",
+        "practice_role": "Practice Partner",
+        "learner_role": "Trainee",
+        "extraction_source": "GENERATED_CONTENT"
+      },
+      "knowledge_base": {
+        "dos": [
+          "Follow best practices",
+          "Communicate clearly",
+          "Listen actively"
+        ],
+        "donts": [
+          "Avoid assumptions",
+          "Don't rush decisions",
+          "Don't ignore concerns"
+        ],
+        "key_facts": [
+          "Document-based knowledge",
+          "Professional standards"
+        ],
+        "conversation_topics": [
+          "Core concepts",
+          "Practical application"
+        ],
+        "extraction_source": "GENERATED_CONTENT"
+      },
+      "coaching_rules": {
+        "process_requirements": {
+          "mentioned_methodology": "Interactive learning approach",
+          "required_steps": "Learn, practice, apply, reflect",
+          "validation_criteria": "Demonstrate understanding and application"
+        },
+        "correction_preferences": {
+          "preferred_tone": "Gentle coaching",
+          "feedback_timing": "Immediately",
+          "correction_method": "Explain and guide"
+        },
+        "document_specific_mistakes": [],
+        "extraction_source": "MIXED_CONTENT"
+      },
+      "success_metrics": {
+        "kpis_for_interaction": [
+          "Understanding demonstrated",
+          "Skills applied effectively"
+        ],
+        "learning_objectives": "Apply knowledge effectively in realistic scenarios",
+        "evaluation_criteria": [
+          "Accuracy",
+          "Completeness",
+          "Practical application"
+        ],
+        "extraction_source": "GENERATED_CONTENT"
+      },
+      "conversation_dynamics": {
+        "learn_mode_purpose": "Expert teaches relevant topics",
+        "practice_mode_purpose": "Practice partner needs guidance and support",
+        "typical_interactions": [
+          "Seeking guidance",
+          "Asking for clarification"
+        ],
+        "success_looks_like": "Learner provides helpful, accurate guidance",
+        "failure_patterns": [
+          "Generic responses",
+          "Dismissive attitude"
+        ],
+        "difficulty_level": "Mixed",
+        "extraction_source": "MIXED_CONTENT"
+      },
+      "content_specifics": {
+        "key_knowledge": [
+          "Professional knowledge"
+        ],
+        "procedures_mentioned": [
+          "Standard procedures"
+        ],
+        "policies_referenced": [
+          "Company policies"
+        ],
+        "examples_given": [
+          "The purpose of authoritative leadership in an employee-first organization."
+        ],
+        "extraction_source": "MIXED_CONTENT"
+      },
+      "conversation_examples": {
+        "dialogue_samples": [
+          "Exactly! That’s what I was thinking. The team should have total autonomy; structure seems unnecessary."
+        ],
+        "question_patterns": [
+          "How should I handle...",
+          "What's the best approach..."
+        ],
+        "response_patterns": [
+          "Authoritative leadership can actually complement an employee-first culture. It’s not about overriding the team—it’s about setting a clear vision, providing guidance, and aligning everyone toward shared goals. When used thoughtfully, it gives employees direction while still valuing their input and autonomy."
+        ],
+        "incorrect_patterns": [
+          "Yeah, I agree. Authoritative leadership doesn’t really fit here—we should just let everyone make decisions freely."
+        ],
+        "extraction_source": "FROM_DOCUMENT"
+      },
+      "feedback_mechanism": {
+        "positive_closing": "Thank you, that really helps me understand better",
+        "negative_closing": "I'm still not sure about this situation",
+        "neutral_closing": "I'll think about what you've said",
+        "persona_context": "Practice Partner",
+        "extraction_source": "NEEDS_PERSONA_ENHANCEMENT"
+      },
+      "variations_challenges": {
+        "scenario_variations": [
+          "Different experience levels",
+          "Various contexts"
+        ],
+        "edge_cases": [
+          "Challenging situations"
+        ],
+        "difficulty_levels": [
+          "Mixed"
+        ],
+        "extraction_source": "GENERATED_CONTENT"
+      },
+      "knowledge_base_integration": {
+        "requires_knowledge_base": "false",
+        "fact_checking_areas": [
+          "General accuracy"
+        ],
+        "accuracy_requirements": "Must align with document specifications",
+        "extraction_source": "GENERATED_CONTENT"
+      }
+    },
+    "validation_notes": {
+      "completeness_score": 34.5,
+      "missing_elements": [
+        "participant_roles",
+        "knowledge_base",
+        "success_metrics",
+        "feedback_mechanism",
+        "variations_challenges",
+        "knowledge_base_integration"
+      ],
+      "suggestions": [
+        "Consider uploading a more complete document template",
+        "Persona-specific feedback responses need customization",
+        "Add specific dos and don'ts for this scenario"
+      ],
+      "data_quality": {
+        "scenario_understanding": "Partially from document",
+        "participant_roles": "AI generated - needs review",
+        "knowledge_base": "AI generated - needs review",
+        "coaching_rules": "Partially from document",
+        "success_metrics": "AI generated - needs review",
+        "conversation_dynamics": "Partially from document",
+        "content_specifics": "Partially from document",
+        "conversation_examples": "Complete from document",
+        "feedback_mechanism": "AI generated - needs review",
+        "variations_challenges": "AI generated - needs review",
+        "knowledge_base_integration": "AI generated - needs review"
+      }
+    },
+    "template_enhancements": {
+      "persona_customization_needed": true,
+      "knowledge_base_expansion_needed": true,
+      "conversation_examples_needed": false
+    }
+  }
+}

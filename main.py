@@ -29,7 +29,7 @@ from core.scenario import router as scenario_router
 from core.persona import router as persona_router
 from core.video import router as video_router
 from core.chat import router as chat_router
-from scenario_generator import router as scenario_router_
+from scenario_generator_routes import router as scenario_router_
 from core.scenario_assignment_router import router as scenario_assignment_router
 from core.module_assignment_router import router as module_assignment_router
 from core.speech import router as speech_router
@@ -44,6 +44,7 @@ from core.tier_admin_routes import router as admin_tier_router
 from core.tier_user_routes import router as user_tier_router
 from core.tier_utils import enforce_analysis_limit
 from core.test_prompt_architect_api import router as test_prompt_architect_router
+from scenario_prompt_generation_v2 import router as prompt_generation_v2_router
 
 # from core.document_processor import DocumentProcessor  # ADD THIS
 # from core.azure_search_manager import AzureVectorSearchManager  # ADD THIS
@@ -79,6 +80,7 @@ app.include_router(boss_tier_router)
 app.include_router(admin_tier_router)
 app.include_router(user_tier_router)
 app.include_router(test_prompt_architect_router)
+app.include_router(prompt_generation_v2_router)
 
 # app.include_router(new_router)
 

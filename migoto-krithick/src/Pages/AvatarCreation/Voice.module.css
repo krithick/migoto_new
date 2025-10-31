@@ -1,0 +1,76 @@
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5% 1%;
+    position: relative;
+  }
+  .activePage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* position: relative; */
+    p {
+      font-size: clamp(0.6rem, 0.6vw, 0.8rem);
+      font-weight: 400;
+      padding: 1%;
+      /* position: relative; */
+      width: 140px;
+    }
+    .out{
+      background-color: #0085db33;
+      padding: 4px;
+      border-radius: 10px;
+    }
+  
+    span {
+      border-radius: 20px;
+      padding: 0 0.5%;
+      width: 12px;
+      height: 12px;
+      border: 1px solid #0085db;
+      color: #0085db;
+      background-color: #0085db33;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: clamp(0.5rem, 0.5vw, 0.6rem);
+    }
+  }
+
+  .voiceOutter{
+    height: 85%;
+    overflow: auto;
+  }
+  .voiceBody{
+    width: 98%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1%;
+    padding: 1%;
+  
+  }
+  .BtnGroup{
+    display: flex;
+    gap: 2%;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 1%;
+    button {
+        padding: 0.5% 4%;
+        border: 1px solid #0085db;
+        border-radius: 20px;
+      }
+    
+      button[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background-color: #ccc;
+        cursor: pointer;
+      }
+    }
+    .nextBtn {
+      background-color: #0085db;
+      color: white;
+    }
+    

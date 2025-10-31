@@ -45,7 +45,10 @@ async def validate_avatar_interaction_references(db: Any, avatar_interaction: Av
         if avatar:
             for persona_id in avatar["persona_id"]:
                 print(persona_id,type(persona_id))
-                persona = await db.personas.find_one({"_id": str(persona_id)})
+                # Check V1 personas (use 'id' field), then V2 (use '_id' field)
+                persona = await db.personas.find_one({"id": str(persona_id)})
+                if not persona:
+                    persona = await db.personas_v2.find_one({"_id": str(persona_id)})
                 if not persona:
                     raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -155,10 +158,26 @@ async def get_avatar_interaction(
                     if "persona_id" in avatar_doc:
                         personas = []
                         for persona_id in avatar_doc["persona_id"]:
-                            persona = await db.personas.find_one({"_id": str(persona_id)})
+                            # Check V1 personas (use 'id' field), then V2 (use '_id' field)
+                            persona = await db.personas.find_one({"id": str(persona_id)})
+                            if not persona:
+                                persona = await db.personas_v2.find_one({"_id": str(persona_id)})
+                                print("persona_debug",persona)
                             if persona:
-                                persona["id"] = persona.pop("_id")
+                                print("is persona")
+                                # Ensure 'id' field exists for response
+                                if "_id" in persona and "id" not in persona:
+                                    persona["id"] = persona.pop("_id")
+                                elif "_id" in persona:
+                                    persona["id"] = persona["_id"]
                                 personas.append(persona)
+                            else:
+                                # Persona not found, return placeholder
+                                personas.append({
+                                    "id": str(persona_id),
+                                    "error": "Persona not found",
+                                    "name": "Missing Persona"
+                                })
                         avatar_doc["persona_id"] = personas
                         
                     # Convert _id to id

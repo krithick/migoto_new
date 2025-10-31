@@ -1,0 +1,54 @@
+.actionBox{
+  border-radius: 10px;
+  height: 73vh;
+  width: 100%;
+  padding: 1%;
+  background-color: #FFFFFF8F;
+}
+.actionBoxHeader{
+  display: flex;
+  gap: 1%;
+  border-bottom: 2px solid #ABAFB3;
+  width: 100%;
+  height: 40px;
+    color: var(--textColor);
+    border-bottom-left-radius:0;
+    border-bottom-right-radius:0;
+}
+.uploadBox{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4%;
+  width: 150px;
+  height: 98%;
+  cursor: pointer;
+  font-size: clamp(0.7rem, 0.7vw, 1.0rem);
+
+}
+.uploadBoxActive{
+  border-bottom: 4px solid #0085DB;
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+  color: #0085DB;
+  font-size: clamp(0.7rem, 0.7vw, 1.0rem);
+  svg{
+    g{
+      fill: #0085DB;
+    }
+  }
+}
+.uploadManualIconActive{
+  g{
+    fill: #0085DB;
+  }
+}
+.uploadBulkIconActive{
+  path{
+    fill: #0085DB;
+  }
+}
+.actionBoxBody{
+  margin-top:1%;
+  height: 67vh;
+}

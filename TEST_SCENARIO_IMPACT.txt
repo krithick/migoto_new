@@ -1,0 +1,21 @@
+ACRONYM	Steps	Complete IMPACT	Scoring
+I	Introduction	"I am XYZ from Integrace Orthopedics, the youngest top 100 pharma company in India / the makers of Dubinor, Lizolid and Esoz / Trusted by more than 34000 Indian doctors / Leaders in treatment of neuropathic pain and PAD"	Complete I AND voice clarity
+M	Memorizing last visit	"I visited you last XX weeks ago and detailed ABC" OR "in my last visit, we discussed... And ..." OR "Since __ visits, I am promoting XYZ for your patients of ____. However, I am unable to get Rxs. Let me try it once again"	Complete M AND voice clarity
+P	Probing	"Have you had an opportunity since then to prescribe ABC?" OR "Doctor, would you like more information on ABC" OR "Doctor, given a choice, what would you prefer the most in ABC (disease or therapy)?" OR "Doctor, what are your key concerns while treating patients of ABC (disease or therapy)"	Complete P and voice clarity
+A	Articulation of relevant brand benefits	"Doctor did you know...<brand benefits>" - Check for detailing of brands that is relevant to the competition that the Dr is prescribing. FSO should be able to complete the features as well as benefits for the brand that he is detailing	Complete and Relevant A and Confidence
+C	Clarify doubts	Check whether the FSO asks about brand conviction. In case of doubts, he should be able to handle it confidently. Even if he borrows time and promises to answer then - will be considered as 2 or 1 - based on the type of the question raised	Confident ability to C
+T	Take commitment	"Thank you for your time Doctor. I look forward for your prescriptions for <brand> in your next patient suffering from <Indication>". Check for the ability to ask and quantify prescription demand.	Clear T with sampling and availability
+
+Coaching Title: SmartDerma Objection Handling
+
+Coaching Description: You are going to meet Dr. Archana Pandey – a gynaecologist. She is in a OPD and has a caesarean section planned after an hour. Today, you are going to launch the new product EO-Dine to her.
+
+Background Information to the AI: The conversation is about the launch of new product intended for Endometriosis. The doctor being in a metro has many such cases.
+
+Customer Profile: Dr. Archana is a doctor in her early 40's having a practice for more than 15 years in the city. She has a OPD of 40 patients / day with at least two surgical procedures in a week. She owns the nursing home and has a attached pharmacy – Jawahar medical.
+
+Product Details: EO-Dine reduces chronic pelvic pain by 49%, Dysmenorrhoea by 44%, Dyspareunia by 20%. EO-Dine inhibits ovulation & has high contraceptive efficacy. EO-Dine is effective in menstrual cycle regulation. Long term use of Dienogest can cause irregular bleeding (Breakthrough bleeding) & Bone loss. EO-Dine is safer and has great tolerability of upto 15 years of use.
+
+Suggested Objections:
+• How EO-Dine is better than Dienogest?
+• Share the data of efficacy in Endometriosis.

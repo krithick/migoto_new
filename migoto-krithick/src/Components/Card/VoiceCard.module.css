@@ -1,0 +1,113 @@
+.voiceDescription{
+    color: black;
+    font-weight: 500;
+    font-size: clamp(0.6rem, 0.6vw, 0.8rem);
+}
+
+.voiceCardContainer{
+    display: flex;
+    flex-direction: column;
+    padding: 1%;
+    width: 30%;
+    box-shadow: 0px 3px 6px #00000029;
+    cursor: pointer;
+}
+.voiceCardContainer2{
+    display: flex;
+    flex-direction: column;
+    padding: 1%;
+    width: 25%;
+    box-shadow: 0px 3px 6px #00000029;
+    cursor: pointer;
+}
+.voiceCardContainer1{
+    display: flex;
+    flex-direction: column;
+    padding: 1% 3%;
+    width: 90%;
+    box-shadow: 0px 3px 6px #00000029;
+    cursor: pointer;
+}
+.voiceCard{
+    background-color: #F4F7FB;
+    margin: 1%;
+}
+.voiceDescription{
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1%;
+    text-transform: uppercase;
+}
+.description{
+    display: flex;
+    flex-wrap: wrap;
+}
+.selectedIndicator{
+    width: 20px;
+    background-color: #0085DB52;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 20px;
+    border-radius: 15px;
+    padding: 2%;
+}
+.activeCard{
+ background-color: #00D63152;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ height: 20px;
+ border-radius: 15px;
+ padding: 2%;
+ width: 20px;
+}
+
+.unassigned div{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1%;
+    font-size: clamp(0.6rem, 0.6vw, .9rem);
+    width: 70px;
+    border: 1px solid #0085db;
+    background-color: #0085db;
+    color: white;
+    border-radius: 15px;
+    padding: 4% 0%;
+}
+.assigned div{
+    border: 1px solid #28a745;
+    background-color: #28A74566;
+
+}
+.checkIcon{
+    background-color: #247B3870;
+    border-radius: 15px;
+    width: 10px;
+    height: 10px;
+    padding: 1%;
+
+}
+.selectedIndicator{
+    width: 20px;
+    background-color: #0085DB52;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 20px;
+    border-radius: 15px;
+    padding: 2%;
+}
+.activeCard{
+ background-color: #00D63152;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ height: 20px;
+ border-radius: 15px;
+ padding: 2%;
+ width: 20px;
+}
